@@ -5,6 +5,7 @@ import Layout from "./Layouts/DefaultLayout";
 // import About from "./Pages/About";
 import Appointment from "./Pages/Appointment";
 import Home from "./Pages/Home";
+import DashboardApp from "./DashboardApp";
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/Appointment" element={<Appointment />} />
         </Route>
+
+         <Route path="/dashboard/*" element={<DashboardApp />} />
       </Routes>
     </div>
   );

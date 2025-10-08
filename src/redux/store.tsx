@@ -1,14 +1,16 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import rootReducer from "./rootReducer";
+import cartReducer from "./cartSlice";
+import infoReducer from "./informationSlice";
+import authReducer from "./authSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "@/redux/api";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart"], // 👈 choose which slices to persist
+  whitelist: ["cart", "auth"], // 👈 choose which slices to persist
   transforms: [
     {
       in: (state: any) => {
@@ -47,7 +49,15 @@ const persistConfig = {
   ]
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// Create the final reducer with all reducers
+const finalReducer = combineReducers({
+  cart: cartReducer,
+  info: infoReducer,
+  auth: authReducer,
+  [api.reducerPath]: api.reducer,
+});
+
+const persistedReducer = persistReducer(persistConfig, finalReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
@@ -63,4 +73,11 @@ export const persistor = persistStore(store);
 
 // Types
 export type AppDispatch = typeof store.dispatch;
-export type RootState = ReturnType<typeof store.getState>;
+
+// Define RootState explicitly to include all reducers
+export type RootState = {
+  cart: ReturnType<typeof cartReducer>;
+  info: ReturnType<typeof infoReducer>;
+  auth: ReturnType<typeof authReducer>;
+  api: ReturnType<typeof api.reducer>;
+};

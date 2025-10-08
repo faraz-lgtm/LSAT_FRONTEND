@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/dashboard/ui/card";
 
 type AppointmentSideBarProps = {
   selected: "appointments" | "information" | "payments";

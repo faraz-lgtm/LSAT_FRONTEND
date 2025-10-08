@@ -1,7 +1,7 @@
 import { DateTimePicker } from "@/components/ui/dateTimerPicker";
 import { updateBookingDate } from "@/redux/cartSlice";
 import { addInfo, type InformationState } from "@/redux/informationSlice";
-import type { RootState } from "@/redux/rootReducer";
+import type { RootState } from "@/redux/store";
 import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import { useNavigate } from "react-router-dom";
