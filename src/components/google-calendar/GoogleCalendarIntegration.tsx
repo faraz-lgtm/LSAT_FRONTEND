@@ -22,7 +22,6 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
     loading,
     error,
     authenticate,
-    fetchEvents,
     fetchTodayEvents,
     fetchMonthEvents,
     isTimeSlotAvailable,
@@ -95,7 +94,6 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
         authUrl={authUrl}
         loading={loading}
         error={error}
-        onAuthenticate={authenticate}
       />
 
       {/* Events Display */}

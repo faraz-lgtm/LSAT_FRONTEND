@@ -83,8 +83,6 @@ export default function Calendar() {
 
   // Event editing state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [selectedOldEvent, setSelectedOldEvent] = useState<CalendarEvent | null>(null);
-  const [isDrag, setIsDrag] = useState(false);
   const [eventViewOpen, setEventViewOpen] = useState(false);
   const [eventEditOpen, setEventEditOpen] = useState(false);
   const [eventDeleteOpen, setEventDeleteOpen] = useState(false);
@@ -251,8 +249,6 @@ export default function Calendar() {
     };
 
     // Set event editing state
-    setIsDrag(false);
-    setSelectedOldEvent(event);
     setSelectedEvent(event);
     setEventViewOpen(true);
     

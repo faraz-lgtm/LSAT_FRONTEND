@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/dashboard/ui/card";
-import { CheckCircle, Circle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
 type AppointmentSideBarProps = {
   selected: "appointments" | "information" | "payments";

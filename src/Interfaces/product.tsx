@@ -9,6 +9,6 @@ export type Product = {
     text: string;
     color: string;
   };
-  DateTime?:Date[] | undefined[];
+  DateTime?:(Date | undefined)[];
   // add more fields from WooCommerce if needed
 };

@@ -52,28 +52,28 @@ export function DataTableBulkActions<TData>({
   return (
     <>
       <BulkActionsToolbar
-        table={table}
-        actions={
-          <div className='flex items-center gap-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className='h-8'
-                >
-                  <Trash2 className='mr-2 h-4 w-4' />
-                  Delete ({selectedRows.length})
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete selected orders</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        }
-      />
+        table={table as Table<unknown>}
+        entityName="orders"
+      >
+        <div className='flex items-center gap-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setShowDeleteConfirm(true)}
+                className='h-8'
+              >
+                <Trash2 className='mr-2 h-4 w-4' />
+                Delete ({selectedRows.length})
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete selected orders</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </BulkActionsToolbar>
       <OrdersMultiDeleteDialog
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}

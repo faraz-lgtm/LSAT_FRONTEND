@@ -67,7 +67,11 @@ export function UserAuthForm({
 
 
       // Set user and tokens from API response
-      dispatch(setUser(result.data.user))
+      dispatch(setUser({
+        id: result.data.user.id,
+        username: result.data.user.username,
+        roles: result.data.user.role || []
+      }))
       dispatch(setTokens({
         accessToken: result.data.auth.accessToken,
         refreshToken: result.data.auth.refreshToken

@@ -18,7 +18,7 @@ export interface LoginResponse {
     user: {
       id: string;
       username: string;
-      role: string[];
+      role: ROLE[];
     };
   };
   meta: {};
@@ -40,7 +40,7 @@ export interface IRegisterUserRequest {
   name: string;
   username: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   password: string;
   roles: ROLE[];
 }

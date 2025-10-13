@@ -14,14 +14,14 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): IUser | null 
   }
 
   return {
-    id: parseInt(authUser.id),
+    id: authUser.id,
     name: authUser.username, // Using username as name since AuthUser doesn't have name
     username: authUser.username,
     roles: authUser.roles || [], // Convert string[] to ROLE[], handle undefined case
     email: '', // AuthUser doesn't have email
     isAccountDisabled: false,
-    phone: '',
-    createdAt: '',
-    updatedAt: '',
+    phoneNumber: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 }

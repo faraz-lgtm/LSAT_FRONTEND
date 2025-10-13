@@ -137,7 +137,7 @@ export const ordersColumns: ColumnDef<Order>[] = [
         </div>
       )
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _id, value) => {
       const isDisabled = row.original.customer.isAccountDisabled
       const status = isDisabled ? 'disabled' : 'active'
       return value.includes(status)

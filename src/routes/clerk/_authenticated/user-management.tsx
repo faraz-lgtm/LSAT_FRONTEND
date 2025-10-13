@@ -18,7 +18,6 @@ import { UsersDialogs } from '@/features/dashboardRelated/users/components/users
 import { UsersPrimaryButtons } from '@/features/dashboardRelated/users/components/users-primary-buttons'
 import { UsersProvider } from '@/features/dashboardRelated/users/components/users-provider'
 import { UsersTable } from '@/features/dashboardRelated/users/components/users-table'
-import { users } from '@/features/dashboardRelated/users/data/users'
 
 export const Route = createFileRoute('/clerk/_authenticated/user-management')({
   component: UserManagement,
@@ -89,7 +88,7 @@ function UserManagement() {
               <UsersPrimaryButtons />
             </div>
             <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
-              <UsersTable data={users} navigate={navigate} search={search} />
+              <UsersTable data={[]} navigate={navigate} search={search} />
             </div>
           </Main>
 

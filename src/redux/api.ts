@@ -98,7 +98,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
           const user = {
             id: decodedToken.sub?.toString() || "",
             username: decodedToken.username || "",
-            role: decodedToken.roles || [],
+            roles: decodedToken.roles || [],
           };
           api.dispatch(setUser(user));
           console.log("👤 User data updated from new token");

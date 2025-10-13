@@ -15,7 +15,6 @@ interface GoogleCalendarAuthProps {
   authUrl: string | null;
   loading: boolean;
   error: string | null;
-  onAuthenticate: (code: string) => Promise<void>;
 }
 
 export const GoogleCalendarAuth: React.FC<GoogleCalendarAuthProps> = ({
@@ -23,7 +22,6 @@ export const GoogleCalendarAuth: React.FC<GoogleCalendarAuthProps> = ({
   authUrl,
   loading,
   error,
-  onAuthenticate,
 }) => {
   const handleAuth = () => {
     if (authUrl) {

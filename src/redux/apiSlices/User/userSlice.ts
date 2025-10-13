@@ -3,22 +3,22 @@ import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 
 export interface IUser{
-    id: number;
+    id: string;
     name: string;
     username: string;
     roles: ROLE[];
     email: string;
+    phoneNumber: string;
     isAccountDisabled: boolean;
-    phone: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface IUpdateUser {
   name: string;
   username: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   roles: ROLE[];
 }
 
@@ -29,7 +29,7 @@ export const usersApi=api.injectEndpoints({
       query: () => '/users',
       providesTags: ['Users'],
     }),
-    updateUser:builder.mutation<BaseApiResponse<IUser>,{id: number, userData: IUpdateUser}>({
+    updateUser:builder.mutation<BaseApiResponse<IUser>,{id: string, userData: IUpdateUser}>({
       query:({id, userData})=>({
         url: `/users/${id}`,
         method:'PATCH',
@@ -38,7 +38,7 @@ export const usersApi=api.injectEndpoints({
       invalidatesTags:['Users']
     }),
     
-    deleteUser: builder.mutation<BaseApiResponse<{ message: string }>, number>({
+    deleteUser: builder.mutation<BaseApiResponse<{ message: string }>, string>({
       query: (id) => ({
         url: `/users/${id}`,
         method: 'DELETE',

@@ -80,7 +80,7 @@ const cartSlice = createSlice({
             const currentLength = item.DateTime.length;
             const newSlots = Array.from({ length: totalSlotsNeeded - currentLength }, () => undefined);
             item.DateTime = [...item.DateTime, ...newSlots];
-            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime.length}`);
+            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime?.length}`);
           }
         }
         
@@ -107,7 +107,7 @@ const cartSlice = createSlice({
             const currentLength = item.DateTime.length;
             const newSlots = Array.from({ length: totalSlotsNeeded - currentLength }, () => undefined);
             item.DateTime = [...item.DateTime, ...newSlots];
-            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime.length}`);
+            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime?.length}`);
           }
         }
       }

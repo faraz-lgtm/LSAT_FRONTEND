@@ -1,22 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useToast } from "@/hooks/dashboardRelated/calendar/use-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/dashboard/ui/calendarRelatedUI/ui/form";
-import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
-import { Textarea } from "@/components/dashboard/ui/calendarRelatedUI/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/popover";
-import { HexColorPicker } from "react-colorful";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,22 +9,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/dashboard/ui/calendarRelatedUI/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/dashboard/ui/calendarRelatedUI/ui/calendar";
-import { CalendarIcon, Clock } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/dashboard/ui/calendarRelatedUI/ui/form";
+import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/popover";
+import { Textarea } from "@/components/dashboard/ui/calendarRelatedUI/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/dashboardRelated/calendar/use-toast";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import type { CalendarEvent } from "@/utils/calendar/data";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useEffect } from "react";
+import { HexColorPicker } from "react-colorful";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const eventEditFormSchema = z.object({
   title: z.string().min(1, { message: "Please enter an event title." }),
   description: z.string().optional(),
   startDate: z.date({
-    required_error: "Please select a start date.",
+    message: "Please select a start date.",
   }),
   startTime: z.string().min(1, { message: "Please select a start time." }),
   endDate: z.date({
-    required_error: "Please select an end date.",
+    message: "Please select an end date.",
   }),
   endTime: z.string().min(1, { message: "Please select an end time." }),
   color: z

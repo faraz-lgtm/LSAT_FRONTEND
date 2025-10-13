@@ -18,7 +18,6 @@ import {
   Users,
   MessagesSquare,
   ShieldCheck,
-  AudioWaveform,
   Command,
   GalleryVerticalEnd,
   Calendar,

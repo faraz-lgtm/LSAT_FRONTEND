@@ -26,7 +26,7 @@ export function Orders() {
   let orders: Order[] = [];
 
   if (isSuccess && ordersData) {
-    orders = ordersData;
+    orders = ordersData.data;
     console.log("orders array:", orders);
     console.log("orders length:", orders.length);
     console.log("first order:", orders[0]);
@@ -73,7 +73,6 @@ export function Orders() {
           </div>
         </div>
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12">
-          {console.log("About to pass to OrdersTable - orders:", orders, "orders.length:", orders.length)}
           <OrdersTable
             data={orders}
             search={search}

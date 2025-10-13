@@ -20,7 +20,7 @@ type CustomerDetails = {
   phoneNum: string;
 };
 
-type mockDataType ={
+export type mockDataType ={
         items:[ItemsType],
         customerDetails:CustomerDetails
 }

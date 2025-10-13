@@ -60,26 +60,22 @@ export function Apps() {
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
     navigate({
-      search: (prev) => ({
-        ...prev,
-        filter: e.target.value || undefined,
-      }),
+      search: true,
     })
   }
 
   const handleTypeChange = (value: AppType) => {
     setAppType(value)
     navigate({
-      search: (prev) => ({
-        ...prev,
-        type: value === 'all' ? undefined : value,
-      }),
+      search: true,
     })
   }
 
   const handleSortChange = (sort: 'asc' | 'desc') => {
     setSort(sort)
-    navigate({ search: (prev) => ({ ...prev, sort }) })
+    navigate({ 
+      search: true,
+    })
   }
 
   return (

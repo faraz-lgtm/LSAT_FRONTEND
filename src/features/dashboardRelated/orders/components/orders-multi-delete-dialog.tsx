@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { sleep } from '@/lib/dashboardRelated/utils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/dashboard/ui/alert'
 import { Input } from '@/components/dashboard/ui/input'
 import { Label } from '@/components/dashboard/ui/label'
@@ -42,10 +41,10 @@ export function OrdersMultiDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={`Delete ${selectedCount} order${selectedCount > 1 ? 's' : ''}`}
-      description='This action cannot be undone. This will permanently delete the selected orders.'
+      desc='This action cannot be undone. This will permanently delete the selected orders.'
       confirmText='Delete'
-      onConfirm={handleDelete}
-      variant='destructive'
+      handleConfirm={handleDelete}
+      destructive={true}
     >
       <Alert variant='destructive'>
         <AlertTriangle className='h-4 w-4' />

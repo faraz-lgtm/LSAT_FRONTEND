@@ -39,7 +39,7 @@ import { useUpdateUserMutation, type IUser } from '@/redux/apiSlices/User/userSl
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   username: z.string().min(1, 'Username is required.'),
-  phone: z.string().min(1, 'Phone number is required.'),
+  phoneNumber: z.string().min(1, 'Phone number is required.'),
   email: z.email({
     error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
   }),
@@ -90,7 +90,7 @@ export function UsersActionDialog({
       ? {
           name: currentRow.name,
           username: currentRow.username,
-          phone: currentRow.phone,
+          phoneNumber: currentRow.phoneNumber,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
           roles: currentRow.roles,
@@ -100,7 +100,7 @@ export function UsersActionDialog({
           name: '',
           username: '',
           email: '',
-          phone: '',
+          phoneNumber: '',
           password: '',
           roles: [],
           isEdit,
@@ -121,7 +121,7 @@ export function UsersActionDialog({
           name: values.name,
           username: values.username,
           email: values.email,
-          phone: values.phone,
+          phoneNumber: values.phoneNumber,
           password: values.password,
           roles: values.roles,
         }
@@ -136,7 +136,7 @@ export function UsersActionDialog({
           name: values.name,
           username: values.username,
           email: values.email,
-          phone: values.phone,
+          phoneNumber: values.phoneNumber,
           roles: values.roles,
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
@@ -237,7 +237,7 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='phone'
+                name='phoneNumber'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
@@ -247,7 +247,7 @@ export function UsersActionDialog({
                       <div className='col-span-4'>
                         <PhoneInput
                           country={"pk"} // default to Pakistan
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={(val) => field.onChange("+" + val)}
                           inputProps={{
                             id: "phone",
