@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { getCookie, setCookie, removeCookie } from '@/lib/dashboardRelated/cookies'
+import type { ROLE } from '@/constants/roles'
 
 // Utility function to decode JWT token
 function decodeJWT(token: string): any {
@@ -21,10 +22,10 @@ function decodeJWT(token: string): any {
 const ACCESS_TOKEN = 'accessToken'
 const REFRESH_TOKEN = 'refreshToken'
 
-interface AuthUser {
+export interface AuthUser {
   id: string
   username: string
-  role: string[]
+  roles: ROLE[]
 }
 
 interface AuthState {
@@ -46,7 +47,7 @@ if (accessToken) {
     user = {
       id: decodedToken.sub?.toString() || '',
       username: decodedToken.username || '',
-      role: decodedToken.roles || []
+      roles: decodedToken.roles || []
     }
   }
 }

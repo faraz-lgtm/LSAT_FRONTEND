@@ -1,3 +1,5 @@
+// used in CX Pages
+
 import * as React from "react";
 // import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
@@ -205,7 +207,7 @@ export function DateTimePicker({
             !date && "text-muted-foreground"
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-3 h-4 w-4" />
 
           {date && date instanceof Date ? (
             selectedSlot ? (

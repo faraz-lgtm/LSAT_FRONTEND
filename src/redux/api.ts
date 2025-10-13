@@ -25,7 +25,7 @@ function decodeJWT(token: string): any {
 let isRefreshing = false;
 let refreshPromise: Promise<any> | null = null;
 
-// Custom base query with token refresh logic
+// Custom base query with token refresh logic and error handling
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   let result = await fetchBaseQuery({
     baseUrl: `${BASE_URL}/api/v1`,
@@ -38,6 +38,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
       return headers;
     },
   })(args, api, extraOptions);
+
   // If we get a 401 error, try to refresh the token
   if (result.error && result.error.status === 401) {
     const state = api.getState() as any;
@@ -121,8 +122,20 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
         console.error("❌ Token refresh failed:", refreshError);
 
         if (refreshError?.status === 401 || refreshError?.status === 403) {
-          console.log("🚪 Refresh token invalid, logging out...");
+          console.log("🚪 Refresh token invalid (401/403), logging out user...");
+          console.log("📝 Refresh error details:", {
+            status: refreshError?.status,
+            message: refreshError?.message,
+            errorName: refreshError?.errorName || 'Unknown'
+          });
+          
+          // Clear main app auth state
           api.dispatch(reset());
+          
+          // Clear Google Calendar tokens
+          localStorage.removeItem('google_calendar_tokens');
+          
+          // Redirect to sign-in
           window.location.href = "/dashboard/sign-in";
         } else {
           console.warn("⚠️ Token refresh failed due to network error");
@@ -134,8 +147,86 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
       }
     } else {
       console.log("🚪 No refresh token available, logging out...");
+      
+      // Clear main app auth state
       api.dispatch(reset());
+      
+      // Clear Google Calendar tokens
+      localStorage.removeItem('google_calendar_tokens');
+      
+      // Redirect to sign-in
       window.location.href = "/dashboard/sign-in";
+    }
+  }
+
+  // Handle different error types (after 401 handling)
+  if (result.error) {
+    const error = result.error as any;
+    
+    // Handle 400 Bad Request
+    if (error.status === 400) {
+      console.error("❌ Bad Request (400):", error.data);
+      // Transform error to include user-friendly message
+      result.error = {
+        ...error,
+        data: {
+          message: error.data?.message || "Invalid request. Please check your input.",
+          status: 400,
+          ...error.data
+        }
+      };
+    }
+    
+    // Handle 403 Forbidden
+    if (error.status === 403) {
+      console.error("❌ Forbidden (403):", error.data);
+      result.error = {
+        ...error,
+        data: {
+          message: error.data?.message || "You don't have permission to perform this action.",
+          status: 403,
+          ...error.data
+        }
+      };
+    }
+    
+    // Handle 404 Not Found
+    if (error.status === 404) {
+      console.error("❌ Not Found (404):", error.data);
+      result.error = {
+        ...error,
+        data: {
+          message: error.data?.message || "The requested resource was not found.",
+          status: 404,
+          ...error.data
+        }
+      };
+    }
+    
+    // Handle 500 Server Error
+    if (error.status === 500) {
+      console.error("❌ Server Error (500):", error.data);
+      result.error = {
+        ...error,
+        data: {
+          message: error.data?.message || "Server error occurred. Please try again later.",
+          status: 500,
+          ...error.data
+        }
+      };
+    }
+    
+    // Handle other server errors (502, 503, 504)
+    if (error.status >= 502 && error.status <= 504) {
+      console.error(`❌ Server Error (${error.status}):`, error.data);
+      result.error = {
+        ...error,
+        data: {
+          message: error.data?.message || "Service temporarily unavailable. Please try again later.",
+          status: error.status,
+          ...error.data
+        }
+      };
     }
   }
 
@@ -156,7 +247,9 @@ async function performTokenRefresh(refreshToken: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Refresh token failed: ${response.status}`);
+    const error = new Error(`Refresh token failed: ${response.status}`) as any;
+    error.status = response.status;
+    throw error;
   }
 
   return await response.json();
@@ -166,6 +259,6 @@ async function performTokenRefresh(refreshToken: string) {
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders"],
+  tagTypes: ["Orders", "Users"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

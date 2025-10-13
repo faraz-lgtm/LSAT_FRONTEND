@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { showSubmittedData } from '@/lib/dashboardRelated/show-submitted-data'
+import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/dashboard/ui/alert'
 import { Input } from '@/components/dashboard/ui/input'
 import { Label } from '@/components/dashboard/ui/label'
 import { ConfirmDialog } from '@/components/dashboard/confirm-dialog'
 import { type User } from '../data/schema'
+import { useDeleteUserMutation } from '@/redux/apiSlices/User/userSlice'
 
 type UserDeleteDialogProps = {
   open: boolean
@@ -21,12 +22,33 @@ export function UsersDeleteDialog({
   currentRow,
 }: UserDeleteDialogProps) {
   const [value, setValue] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteUser] = useDeleteUserMutation()
 
-  const handleDelete = () => {
-    if (value.trim() !== currentRow.username) return
+  // Use name for confirmation instead of username since customers don't have usernames
+  const confirmValue = currentRow.name
+  
+  // Check if user is a customer
+  const isCustomer = currentRow.roles.includes('CUSTOMER')
 
-    onOpenChange(false)
-    showSubmittedData(currentRow, 'The following user has been deleted:')
+  const handleDelete = async () => {
+    if (value.trim() !== confirmValue) return
+
+    setIsDeleting(true)
+    
+    try {
+      console.log("🗑️ Deleting user:", currentRow.id)
+      const result = await deleteUser(currentRow.id).unwrap()
+      console.log("✅ Delete user success:", result)
+      
+      toast.success(`User ${currentRow.name} deleted successfully`)
+      onOpenChange(false)
+    } catch (error: any) {
+      console.error("❌ Delete user error:", error)
+      toast.error(error?.data?.message || 'Failed to delete user')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -34,7 +56,7 @@ export function UsersDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.username}
+      disabled={value.trim() !== confirmValue || isDeleting}
       title={
         <span className='text-destructive'>
           <AlertTriangle
@@ -48,21 +70,33 @@ export function UsersDeleteDialog({
         <div className='space-y-4'>
           <p className='mb-2'>
             Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
+            <span className='font-bold'>{currentRow.name}</span>?
             <br />
             This action will permanently remove the user with the role of{' '}
             <span className='font-bold'>
-              {currentRow.role.toUpperCase()}
+              {currentRow.roles.map((role) => role.toUpperCase()).join(', ')}
             </span>{' '}
             from the system. This cannot be undone.
           </p>
 
+          {isCustomer && (
+            <Alert variant='destructive'>
+              <AlertTriangle className='h-4 w-4' />
+              <AlertTitle>Critical Warning!</AlertTitle>
+              <AlertDescription>
+                <strong>This user is a CUSTOMER.</strong> Deleting this customer will also permanently delete ALL related orders, 
+                order history, and associated data. This action cannot be undone and will affect business records.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Label className='my-2'>
-            Username:
+            Name:
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder='Enter name to confirm deletion.'
+              disabled={isDeleting}
             />
           </Label>
 
@@ -74,7 +108,7 @@ export function UsersDeleteDialog({
           </Alert>
         </div>
       }
-      confirmText='Delete'
+      confirmText={isDeleting ? 'Deleting...' : 'Delete'}
       destructive
     />
   )

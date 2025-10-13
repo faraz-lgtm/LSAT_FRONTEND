@@ -21,6 +21,8 @@ import {
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
+  Calendar,
+  ShoppingCart,
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
@@ -33,20 +35,16 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'Shadcn Admin',
+      name: 'BetterLSAT',
       logo: Command,
-      plan: 'Vite + ShadcnUI',
+      plan: 'Scalebrands.ca',
     },
     {
-      name: 'Acme Inc',
+      name: 'BetterMCAT',
       logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
+      plan: 'Scalebrands.ca',
     },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
+
   ],
   navGroups: [
     {
@@ -77,6 +75,16 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/users',
           icon: Users,
+        },
+        {
+          title: 'Orders',
+          url: '/orders',
+          icon: ShoppingCart,
+        },
+        {
+          title: 'Calendar',
+          url: '/calendar',
+          icon: Calendar,
         },
         {
           title: 'Secured by Clerk',

@@ -23,9 +23,9 @@ import {
 } from '@/components/dashboard/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { roles } from '../data/data'
-import { type User } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
+import type { IUser } from '@/redux/apiSlices/User/userSlice'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,10 +35,10 @@ declare module '@tanstack/react-table' {
 }
 
 type DataTableProps = {
-  data: User[]
+  data: IUser[]
   search: Record<string, unknown>
   navigate: NavigateFn
-}
+} 
 
 export function UsersTable({ data, search, navigate }: DataTableProps) {
   // Local UI-only states
@@ -65,8 +65,8 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     columnFilters: [
       // username per-column text filter
       { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'role', searchKey: 'role', type: 'array' },
+      { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' },
+      { columnId: 'roles', searchKey: 'roles', type: 'array' },
     ],
   })
 
@@ -106,18 +106,16 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
         searchKey='username'
         filters={[
           {
-            columnId: 'status',
+            columnId: 'isAccountDisabled',
             title: 'Status',
             options: [
               { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
+              { label: 'Disabled', value: 'disabled' },
             ],
           },
           {
-            columnId: 'role',
-            title: 'Role',
+            columnId: 'roles',
+            title: 'Roles',
             options: roles.map((role) => ({ ...role })),
           },
         ]}

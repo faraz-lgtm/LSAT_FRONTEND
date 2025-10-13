@@ -1,3 +1,10 @@
+import { ConfigDrawer } from '@/components/dashboard/config-drawer'
+import { Header } from '@/components/dashboard/layout/header'
+import { Main } from '@/components/dashboard/layout/main'
+import { TopNav } from '@/components/dashboard/layout/top-nav'
+import { ProfileDropdown } from '@/components/dashboard/profile-dropdown'
+import { Search } from '@/components/dashboard/search'
+import { ThemeSwitch } from '@/components/dashboard/theme-switch'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   Card,
@@ -7,25 +14,11 @@ import {
   CardTitle,
 } from '@/components/dashboard/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/dashboard/ui/tabs'
-import { ConfigDrawer } from '@/components/dashboard/config-drawer'
-import { Header } from '@/components/dashboard/layout/header'
-import { Main } from '@/components/dashboard/layout/main'
-import { TopNav } from '@/components/dashboard/layout/top-nav'
-import { ProfileDropdown } from '@/components/dashboard/profile-dropdown'
-import { Search } from '@/components/dashboard/search'
-import { ThemeSwitch } from '@/components/dashboard/theme-switch'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
-import { useGetOrdersQuery } from '@/redux/apiSlices/Order/orderSlice'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/redux/store'
 
 export function Dashboard() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
-  const { data: ordersData } = useGetOrdersQuery(undefined, {
-    skip: !isAuthenticated, // Skip the query if not authenticated
-  });
-  console.log('ordersData', ordersData);
+
   return (
     <>
       {/* ===== Top Heading ===== */}

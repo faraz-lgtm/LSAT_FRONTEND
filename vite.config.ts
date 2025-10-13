@@ -15,10 +15,21 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-   resolve: {
+  resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library']
+  },
+  build: {
+    rollupOptions: {
+      external: ['solid-js', 'solid-js/web', 'googleapis', 'google-auth-library']
+    }
   }
 })
 

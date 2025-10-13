@@ -41,7 +41,7 @@ const cartSlice = createSlice({
         return;
       }
 
-      // Create a copy of product and assign DateTimes
+      // Create a copy of product and assign DateTimes based on quantity
       const productCopy: Product = {
         ...action.payload,
         DateTime: Array.from({ length: requiredSlots }, () => undefined),
@@ -64,6 +64,26 @@ const cartSlice = createSlice({
       const item = state.items.find((i) => i.id === action.payload);
       if (item) {
         item.quantity -= 1;
+        
+        // Update DateTime array based on new quantity
+        const requiredSlots = bookingConfig[item.id];
+        if (requiredSlots) {
+          const totalSlotsNeeded = requiredSlots * item.quantity;
+          console.log(`Decreasing quantity for item ${item.id}: quantity=${item.quantity}, requiredSlots=${requiredSlots}, totalSlotsNeeded=${totalSlotsNeeded}, currentDateTimeLength=${item.DateTime?.length}`);
+          
+          if (item.DateTime && item.DateTime.length > totalSlotsNeeded) {
+            // Remove excess slots
+            item.DateTime = item.DateTime.slice(0, totalSlotsNeeded);
+            console.log(`Removed excess slots. New DateTime length: ${item.DateTime.length}`);
+          } else if (item.DateTime && item.DateTime.length < totalSlotsNeeded) {
+            // Add more slots
+            const currentLength = item.DateTime.length;
+            const newSlots = Array.from({ length: totalSlotsNeeded - currentLength }, () => undefined);
+            item.DateTime = [...item.DateTime, ...newSlots];
+            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime.length}`);
+          }
+        }
+        
         if (item.quantity <= 0) {
           state.items = state.items.filter((i) => i.id !== action.payload);
         }
@@ -75,6 +95,21 @@ const cartSlice = createSlice({
       const item = state.items.find((i) => i.id === action.payload);
       if (item) {
         item.quantity += 1;
+        
+        // Update DateTime array based on new quantity
+        const requiredSlots = bookingConfig[item.id];
+        if (requiredSlots) {
+          const totalSlotsNeeded = requiredSlots * item.quantity;
+          console.log(`Increasing quantity for item ${item.id}: quantity=${item.quantity}, requiredSlots=${requiredSlots}, totalSlotsNeeded=${totalSlotsNeeded}, currentDateTimeLength=${item.DateTime?.length}`);
+          
+          if (item.DateTime && item.DateTime.length < totalSlotsNeeded) {
+            // Add more slots
+            const currentLength = item.DateTime.length;
+            const newSlots = Array.from({ length: totalSlotsNeeded - currentLength }, () => undefined);
+            item.DateTime = [...item.DateTime, ...newSlots];
+            console.log(`Added ${newSlots.length} new slots. New DateTime length: ${item.DateTime.length}`);
+          }
+        }
       }
     },
 

@@ -4,11 +4,11 @@ import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { LongText } from '@/components/dashboard/long-text'
-import { callTypes, roles } from '../data/data'
-import { type User } from '../data/schema'
+import { roles } from '../data/data'
+import { type IUser } from '@/redux/apiSlices/User/userSlice'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export const usersColumns: ColumnDef<User>[] = [
+export const usersColumns: ColumnDef<IUser>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -53,15 +53,13 @@ export const usersColumns: ColumnDef<User>[] = [
     enableHiding: false,
   },
   {
-    id: 'fullName',
+    accessorKey: 'name',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
-    cell: ({ row }) => {
-      const { firstName, lastName } = row.original
-      const fullName = `${firstName} ${lastName}`
-      return <LongText className='max-w-36'>{fullName}</LongText>
-    },
+    cell: ({ row }) => (
+      <LongText className='max-w-36'>{row.getValue('name')}</LongText>
+    ),
     meta: { className: 'w-36' },
   },
   {
@@ -74,59 +72,73 @@ export const usersColumns: ColumnDef<User>[] = [
     ),
   },
   {
-    accessorKey: 'phoneNumber',
+    accessorKey: 'phone',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Phone Number' />
     ),
-    cell: ({ row }) => <div>{row.getValue('phoneNumber')}</div>,
+    cell: ({ row }) => <div>{row.getValue('phone')}</div>,
     enableSorting: false,
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'isAccountDisabled',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Status' />
     ),
     cell: ({ row }) => {
-      const { status } = row.original
-      const badgeColor = callTypes.get(status)
+      const isDisabled = row.getValue('isAccountDisabled') as boolean
+      const status = isDisabled ? 'disabled' : 'active'
+      const badgeColor = isDisabled 
+        ? 'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10'
+        : 'bg-teal-100/30 text-teal-900 dark:text-teal-200 border-teal-200'
+      
       return (
         <div className='flex space-x-2'>
           <Badge variant='outline' className={cn('capitalize', badgeColor)}>
-            {row.getValue('status')}
+            {status}
           </Badge>
         </div>
       )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      const isDisabled = row.getValue(id) as boolean
+      const status = isDisabled ? 'disabled' : 'active'
+      return value.includes(status)
     },
     enableHiding: false,
     enableSorting: false,
   },
   {
-    accessorKey: 'role',
+    accessorKey: 'roles',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Role' />
+      <DataTableColumnHeader column={column} title='Roles' />
     ),
     cell: ({ row }) => {
-      const { role } = row.original
-      const userType = roles.find(({ value }) => value === role)
-
-      if (!userType) {
-        return null
+      const userRoles = row.getValue('roles') as string[]
+      
+      if (!userRoles || userRoles.length === 0) {
+        return <span className='text-sm text-muted-foreground'>No roles</span>
       }
 
       return (
-        <div className='flex items-center gap-x-2'>
-          {userType.icon && (
-            <userType.icon size={16} className='text-muted-foreground' />
-          )}
-          <span className='text-sm capitalize'>{row.getValue('role')}</span>
+        <div className='flex flex-wrap gap-1'>
+          {userRoles.map((role, index) => {
+            const userType = roles.find(({ value }) => value === role.toLowerCase())
+            
+            return (
+              <div key={index} className='flex items-center gap-x-1'>
+                {userType?.icon && (
+                  <userType.icon size={12} className='text-muted-foreground' />
+                )}
+                <span className='text-xs capitalize'>{role}</span>
+              </div>
+            )
+          })}
         </div>
       )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      const userRoles = row.getValue(id) as string[]
+      return userRoles.some(role => value.includes(role.toLowerCase()))
     },
     enableSorting: false,
     enableHiding: false,

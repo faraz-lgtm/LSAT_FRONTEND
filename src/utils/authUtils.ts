@@ -3,7 +3,13 @@ import { reset } from '@/redux/authSlice'
 
 // Utility function to manually logout user
 export function logoutUser() {
+  // Clear main app auth state
   store.dispatch(reset())
+  
+  // Clear Google Calendar tokens
+  localStorage.removeItem('google_calendar_tokens')
+  
+  // Redirect to sign-in
   window.location.href = '/dashboard/sign-in'
 }
 

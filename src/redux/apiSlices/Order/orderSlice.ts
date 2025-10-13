@@ -1,7 +1,44 @@
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
-import type { WooCommerceOrderResponse } from "./types/orderPost.type";
+import type { StripeOrderResponse } from "./types/orderPost.type";
+import type { BaseApiResponse } from "@/shared/BaseApiResponse";
+
+// Order interfaces based on API structure
+export interface OrderItem {
+  id: number;
+  price: number;
+  name: string;
+  Duration: string;
+  Description: string;
+  DateTime: string[];
+  quantity: number;
+  assignedEmployeeId: number;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  password: string | null;
+  username: string | null;
+  roles: string[];
+  isAccountDisabled: boolean;
+  ghlUserId: string | null;
+  email: string;
+  phone: string;
+  workHours: Record<string, string[]>;
+  serviceIds: string[];
+  lastAssignedOrderCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Order {
+  id: number;
+  customer: Customer;
+  customerId: number;
+  items: OrderItem[];
+}
 
 // Define types for slots API
 // Expected API response format:
@@ -46,11 +83,13 @@ export interface SlotsQueryParams {
 
 export const ordersApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getOrders: builder.query<any[], void>({
+    getOrders: builder.query<BaseApiResponse<Order[]>, void>({
       query: () => "order",
+      providesTags: ['Orders'],
     }),
-    getOrderById: builder.query<any, number>({
+    getOrderById: builder.query<BaseApiResponse<Order>, number>({
       query: (id) => `order/${id}`,
+      providesTags: ['Orders'],
     }),
     
     // New endpoint for fetching available slots
@@ -63,7 +102,7 @@ export const ordersApi = api.injectEndpoints({
 
     //Mutations
     createOrder: builder.mutation<
-      WooCommerceOrderResponse, // 👈 replace `any` with your API response type
+      StripeOrderResponse, // 👈 replace `any` with your API response type
       { items: CartItem[]; user: InformationState } // 👈 request body type
     >({
       query: (orderData) => ({
@@ -73,6 +112,14 @@ export const ordersApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Orders"], // optional: auto-refetch queries
     }),
+
+    deleteOrder: builder.mutation<BaseApiResponse<{ message: string }>, number>({
+      query: (id) => ({
+        url: `order/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Orders'],
+    }),
   }),
 });
 
@@ -80,5 +127,6 @@ export const {
   useGetOrdersQuery, 
   useGetOrderByIdQuery, 
   useCreateOrderMutation,
+  useDeleteOrderMutation,
   useGetAvailableSlotsQuery 
 } = ordersApi;

@@ -10,15 +10,34 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
-import { type User } from '../data/schema'
+import { type IUser } from '@/redux/apiSlices/User/userSlice'
 import { useUsers } from './users-provider'
+import { useSelector } from 'react-redux'
+import type { RootState } from '@/redux/store'
+import { canEditOrDeleteUser } from '@/utils/rbac'
+import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 
 type DataTableRowActionsProps = {
-  row: Row<User>
+  row: Row<IUser>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUsers()
+  
+  // Get current user from auth state
+  const currentUser = useSelector((state: RootState) => state.auth.user)
+  
+  // Convert AuthUser to IUser format for RBAC functions
+  const currentUserForRBAC = convertAuthUserToIUser(currentUser)
+  
+  // Check if current user can edit/delete this user
+  const canEditDelete = canEditOrDeleteUser(currentUserForRBAC, row.original)
+  
+  // Don't show actions if user can't edit/delete
+  if (!canEditDelete) {
+    return null
+  }
+  
   return (
     <>
       <DropdownMenu modal={false}>

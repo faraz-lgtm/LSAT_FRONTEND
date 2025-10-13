@@ -85,3 +85,12 @@
     height: 0;
   }
 }
+
+/* PhoneInput styling */
+.react-tel-input {
+  width: 100% !important;
+}
+
+.react-tel-input .form-control {
+  width: 100% !important;
+}
