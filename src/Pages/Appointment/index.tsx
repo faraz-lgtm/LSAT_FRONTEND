@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import { DateTimePicker } from "@/components/ui/dateTimerPicker";
 import { updateBookingDate } from "@/redux/cartSlice";
 import { addInfo, type InformationState } from "@/redux/informationSlice";
@@ -12,7 +13,7 @@ import PhoneInput from "react-phone-input-2";
 import RightPanel from "./AppointmentRightSidebar";
 import { AppointmentSideBar } from "./Sidebar";
 
-export default () => {
+const Appointment =() => {
   // const navigate = useNavigate();
   const [createOrder] = useCreateOrderMutation();
   const [error, setError] = useState("");
@@ -87,8 +88,8 @@ export default () => {
           user: { firstName, lastName, email, phone },
         }).unwrap(); // unwrap() lets us use try/catch
         console.log("✅ Order created:", result);
-        if (result?.url) {
-          window.location.href = result.url;
+        if (result?.data?.url) {
+          window.location.href = result.data.url;
         }
       } catch (err) {
         console.error("❌ Failed to create order:", err);
@@ -375,3 +376,5 @@ export default () => {
     </div>
   );
 };
+
+export default Appointment

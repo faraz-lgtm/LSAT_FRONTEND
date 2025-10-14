@@ -26,12 +26,8 @@ export function Orders() {
   let orders: Order[] = [];
 
   if (isSuccess && ordersData) {
+    console.log("setting orders", ordersData);
     orders = ordersData.data;
-    console.log("orders array:", orders);
-    console.log("orders length:", orders.length);
-    console.log("first order:", orders[0]);
-    console.log("first order customer:", orders[0]?.customer);
-    console.log("first order items:", orders[0]?.items);
   } else {
     console.log("NOT setting orders - isSuccess:", isSuccess, "ordersData:", ordersData);
   }
@@ -76,6 +72,7 @@ export function Orders() {
           <OrdersTable
             data={orders}
             search={search}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigate={navigate as any}
           />
         </div>

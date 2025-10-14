@@ -70,7 +70,7 @@ export function UserAuthForm({
       dispatch(setUser({
         id: result.data.user.id,
         username: result.data.user.username,
-        roles: result.data.user.role || []
+        roles: result.data.user.roles || []
       }))
       dispatch(setTokens({
         accessToken: result.data.auth.accessToken,
@@ -84,6 +84,7 @@ export function UserAuthForm({
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Login error:', error)
       

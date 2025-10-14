@@ -32,11 +32,3 @@ export const EVENT_COLORS = {
   '10': '#51b749', // Basil
   '11': '#dc2127', // Tomato
 } as const;
-
-// Debug logging for environment variables
-console.log('🔧 Google Calendar Config:', {
-  clientId: GOOGLE_CALENDAR_CONFIG.clientId ? '✅ Set' : '❌ Missing',
-  clientSecret: GOOGLE_CALENDAR_CONFIG.clientSecret ? '✅ Set' : '❌ Missing',
-  redirectUri: GOOGLE_CALENDAR_CONFIG.redirectUri,
-  scopes: GOOGLE_CALENDAR_CONFIG.scopes
-});

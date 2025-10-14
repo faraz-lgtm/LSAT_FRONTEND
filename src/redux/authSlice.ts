@@ -23,7 +23,7 @@ const ACCESS_TOKEN = 'accessToken'
 const REFRESH_TOKEN = 'refreshToken'
 
 export interface AuthUser {
-  id: string
+  id: number;
   username: string
   roles: ROLE[]
 }

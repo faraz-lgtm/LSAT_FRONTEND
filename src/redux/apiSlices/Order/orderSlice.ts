@@ -71,6 +71,7 @@ export interface AvailableSlot {
 
 export interface SlotsResponse {
   availableSlots: AvailableSlot[];
+  bookedSlots:string[],
   slotDurationMinutes: number;
 }
 
@@ -81,10 +82,20 @@ export interface SlotsQueryParams {
   date: string; // Day number as string (e.g., "03")
 }
 
+// Query parameters interface for getOrders
+export interface GetOrdersQueryParams {
+  orderStatus?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export const ordersApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getOrders: builder.query<BaseApiResponse<Order[]>, void>({
-      query: () => "order",
+    getOrders: builder.query<BaseApiResponse<Order[]>, GetOrdersQueryParams | void>({
+      query: (params) => ({
+        url: "order",
+        params: params || {},
+      }),
       providesTags: ['Orders'],
     }),
     getOrderById: builder.query<BaseApiResponse<Order>, number>({
@@ -93,7 +104,7 @@ export const ordersApi = api.injectEndpoints({
     }),
     
     // New endpoint for fetching available slots
-    getAvailableSlots: builder.query<SlotsResponse, SlotsQueryParams>({
+    getAvailableSlots: builder.query<BaseApiResponse<SlotsResponse>, SlotsQueryParams>({
       query: ({ month, year, packageId, date }) => ({
         url: `order/slots`,
         params: { month, year, packageId, date , customerTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone},
@@ -102,7 +113,7 @@ export const ordersApi = api.injectEndpoints({
 
     //Mutations
     createOrder: builder.mutation<
-      StripeOrderResponse, // 👈 replace `any` with your API response type
+      BaseApiResponse<StripeOrderResponse>, // 👈 replace `any` with your API response type
       { items: CartItem[]; user: InformationState } // 👈 request body type
     >({
       query: (orderData) => ({

@@ -23,7 +23,7 @@ export function Users() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
 
-  console.log("usersData", usersData);
+  console.log("usersData", usersData?.data);
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
@@ -32,7 +32,7 @@ export function Users() {
   let filteredUsers: IUser[] = [];
 
   // Filter users based on current user's role
-  console.log("check2", usersData,currentUserForRBAC);
+  console.log("check2", usersData?.data,currentUserForRBAC);
   if (isSuccess) {
     filteredUsers = filterUsersByRole(
       usersData?.data || [],
@@ -66,6 +66,7 @@ export function Users() {
           <UsersTable
             data={filteredUsers}
             search={search}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigate={navigate as any}
           />
         </div>

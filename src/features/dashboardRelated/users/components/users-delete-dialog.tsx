@@ -29,7 +29,7 @@ export function UsersDeleteDialog({
   const confirmValue = currentRow.name
   
   // Check if user is a customer
-  const isCustomer = currentRow.roles.includes('CUSTOMER')
+  const isCustomer = currentRow.roles.includes('CUST')
 
   const handleDelete = async () => {
     if (value.trim() !== confirmValue) return
@@ -43,6 +43,7 @@ export function UsersDeleteDialog({
       
       toast.success(`User ${currentRow.name} deleted successfully`)
       onOpenChange(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Delete user error:", error)
       toast.error(error?.data?.message || 'Failed to delete user')

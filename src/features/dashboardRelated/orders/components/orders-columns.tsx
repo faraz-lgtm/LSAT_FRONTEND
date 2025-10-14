@@ -146,22 +146,6 @@ export const ordersColumns: ColumnDef<Order>[] = [
     enableSorting: false,
   },
   {
-    id: 'orderDate',
-    accessorKey: 'customer',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Order Date' />
-    ),
-    cell: ({ row }) => {
-      const date = new Date(row.original.customer.createdAt)
-      return (
-        <div className='text-sm'>
-          {date.toLocaleDateString()}
-        </div>
-      )
-    },
-    enableHiding: false,
-  },
-  {
     id: 'actions',
     cell: DataTableRowActions,
   },

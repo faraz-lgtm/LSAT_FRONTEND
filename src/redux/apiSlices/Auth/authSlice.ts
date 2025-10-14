@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 import type { IUser } from "../User/userSlice";
@@ -16,9 +17,9 @@ export interface LoginResponse {
       refreshToken: string;
     };
     user: {
-      id: string;
+      id: number;
       username: string;
-      role: ROLE[];
+      roles: ROLE[];
     };
   };
   meta: {};
@@ -40,7 +41,7 @@ export interface IRegisterUserRequest {
   name: string;
   username: string;
   email: string;
-  phoneNumber: string;
+  phone: string; // Reverted back to phone
   password: string;
   roles: ROLE[];
 }

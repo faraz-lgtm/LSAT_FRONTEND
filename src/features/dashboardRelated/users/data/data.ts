@@ -19,8 +19,8 @@ export const roles = [
     icon: UserCheck,
   },
   {
-    label: "CUSTOMER",
-    value: "customer",
+    label: ROLE.CUSTOMER,
+    value: "cust",
     icon: Users,
   },
   // {

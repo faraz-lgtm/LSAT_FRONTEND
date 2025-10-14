@@ -39,7 +39,7 @@ import { useUpdateUserMutation, type IUser } from '@/redux/apiSlices/User/userSl
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   username: z.string().min(1, 'Username is required.'),
-  phoneNumber: z.string().min(1, 'Phone number is required.'),
+  phone: z.string().min(1, 'Phone number is required.'),
   email: z.email({
     error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
   }),
@@ -90,7 +90,7 @@ export function UsersActionDialog({
       ? {
           name: currentRow.name,
           username: currentRow.username,
-          phoneNumber: currentRow.phoneNumber,
+          phone: currentRow.phone,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
           roles: currentRow.roles,
@@ -100,7 +100,7 @@ export function UsersActionDialog({
           name: '',
           username: '',
           email: '',
-          phoneNumber: '',
+          phone: '',
           password: '',
           roles: [],
           isEdit,
@@ -121,7 +121,7 @@ export function UsersActionDialog({
           name: values.name,
           username: values.username,
           email: values.email,
-          phoneNumber: values.phoneNumber,
+          phone: values.phone,
           password: values.password,
           roles: values.roles,
         }
@@ -136,18 +136,19 @@ export function UsersActionDialog({
           name: values.name,
           username: values.username,
           email: values.email,
-          phoneNumber: values.phoneNumber,
+          phone: values.phone,
           roles: values.roles,
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
         const result = await updateUser({id: currentRow.id, userData}).unwrap()
-        console.log("✅ updateUser success:", result);
+        console.log("✅ updateUser success:", result.data);
         
         toast.success("User updated successfully!")
       }
       
       form.reset()
       setOpen(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log("❌ Error:", error);
       toast.error(error?.data?.error.message || `Failed to ${isEdit ? 'update' : 'create'} user`)
@@ -237,7 +238,7 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='phoneNumber'
+                name='phone'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
@@ -301,7 +302,7 @@ export function UsersActionDialog({
                           const roleMap: Record<string, string> = {
                             [ROLE.ADMIN]: 'admin',
                             [ROLE.USER]: 'user',
-                            [ROLE.CUSTOMER]: 'customer'
+                            [ROLE.CUSTOMER]: 'cust'
                           }
                           return roleMap[role] || role.toLowerCase()
                         }) || []}
@@ -310,7 +311,7 @@ export function UsersActionDialog({
                           const roleMap: Record<string, string> = {
                             'admin': ROLE.ADMIN,
                             'user': ROLE.USER,
-                            'customer': ROLE.CUSTOMER
+                            'cust': ROLE.CUSTOMER
                           }
                           field.onChange(values.map(value => roleMap[value] || value.toUpperCase()))
                         }}

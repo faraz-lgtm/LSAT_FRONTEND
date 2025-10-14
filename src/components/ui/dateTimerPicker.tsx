@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // used in CX Pages
 
 import * as React from "react";
@@ -67,7 +68,7 @@ export function DateTimePicker({
 
 
   // Generate slots from backend API data
-  function generateSlots(
+  const generateSlots = React.useCallback(function generateSlots(
     slotsData: any // API response data
   ): Slot[] {
     if (!slotsData?.availableSlots) {
@@ -127,7 +128,7 @@ export function DateTimePicker({
     //   onChange(newDate);
     // }
     return slots;
-  }
+  }, [items]);
 
   function formatTime(date: Date): string {
     return date.toLocaleTimeString("en-US", {
@@ -139,8 +140,8 @@ export function DateTimePicker({
 
   const availableSlots: Slot[] = React.useMemo(() => {
     if (!slotsData) return [];
-    return generateSlots(slotsData);
-  }, [slotsData]);
+    return generateSlots(slotsData.data);
+  }, [slotsData,generateSlots]);
 
 
 

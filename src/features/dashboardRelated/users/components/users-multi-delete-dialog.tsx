@@ -32,8 +32,8 @@ export function UsersMultiDeleteDialog<TData>({
   
   // Check if any selected users are customers
   const selectedUsers = selectedRows.map((row) => row.original as User)
-  const hasCustomers = selectedUsers.some(user => user.roles.includes('CUSTOMER'))
-  const customerCount = selectedUsers.filter(user => user.roles.includes('CUSTOMER')).length
+  const hasCustomers = selectedUsers.some(user => user.roles.includes('CUST'))
+  const customerCount = selectedUsers.filter(user => user.roles.includes('CUST')).length
 
   const handleDelete = async () => {
     if (value.trim() !== CONFIRM_WORD) {
@@ -57,6 +57,7 @@ export function UsersMultiDeleteDialog<TData>({
       toast.success(`Successfully deleted ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`)
       table.resetRowSelection()
       onOpenChange(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Bulk delete error:", error)
       toast.error(error?.data?.message || 'Failed to delete users')

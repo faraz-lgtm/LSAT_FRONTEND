@@ -14,7 +14,7 @@ dist-ssr
 
 .env
 .env.local
-.package-lock.json
+package-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +26,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test files and data
+src/test/
+test-results/
+coverage/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test-backup/
+test-restore/

@@ -20,7 +20,7 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): IUser | null 
     roles: authUser.roles || [], // Convert string[] to ROLE[], handle undefined case
     email: '', // AuthUser doesn't have email
     isAccountDisabled: false,
-    phoneNumber: '',
+    phone: '',
     createdAt: new Date(),
     updatedAt: new Date(),
   }
