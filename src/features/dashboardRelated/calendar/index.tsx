@@ -55,6 +55,8 @@ export default function Calendar() {
     createEvent,
     deleteEvent,
     updateEvent,
+    selectedCalendarId,
+    calendars,
   } = useGoogleCalendarContext();
 
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -93,6 +95,8 @@ export default function Calendar() {
   console.log("🔄 Calendar render - googleEvents:", {
     count: googleEvents.length,
     isAuthenticated,
+    selectedCalendarId,
+    calendarsCount: calendars.length,
     events: googleEvents.map((e: any) => ({ id: e.id, summary: e.summary })),
   });
 

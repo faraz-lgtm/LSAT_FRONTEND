@@ -42,6 +42,7 @@ import {
 import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/tabs";
 import { EventCreateForm } from "@/components/google-calendar/EventCreateForm";
+import { CalendarSelector } from "@/components/google-calendar/CalendarSelector";
 import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
 
 interface CalendarNavProps {
@@ -60,6 +61,9 @@ export default function CalendarNav({
   // Google Calendar integration
   const {
     isAuthenticated,
+    calendars,
+    selectedCalendarId,
+    setSelectedCalendarId,
     createEvent,
     signOut,
   } = useGoogleCalendarContext();
@@ -314,6 +318,18 @@ export default function CalendarNav({
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Calendar selector */}
+        {isAuthenticated && calendars.length > 0 && (
+          <div className="w-48 md:w-56">
+            <CalendarSelector
+              calendars={calendars}
+              selectedCalendarId={selectedCalendarId}
+              onCalendarSelect={setSelectedCalendarId}
+              disabled={false}
+            />
+          </div>
+        )}
 
         {/* Add event button  */}
         {isAuthenticated ? (
