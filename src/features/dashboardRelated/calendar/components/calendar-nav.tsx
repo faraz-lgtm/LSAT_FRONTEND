@@ -42,6 +42,7 @@ import {
 import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/tabs";
 import { EventCreateForm } from "@/components/google-calendar/EventCreateForm";
+import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { CalendarSelector } from "@/components/google-calendar/CalendarSelector";
 import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
 
@@ -64,36 +65,11 @@ export default function CalendarNav({
     calendars,
     selectedCalendarId,
     setSelectedCalendarId,
-    createEvent,
     signOut,
   } = useGoogleCalendarContext();
 
-  // Event creation form state
+  // Order creation form state
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
-  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
-
-  const handleCreateEvent = async (eventData: {
-    summary: string;
-    description?: string;
-    start: { dateTime: string; timeZone: string };
-    end: { dateTime: string; timeZone: string };
-    location?: string;
-  }) => {
-    console.log('🚀 Creating event from CalendarNav:', eventData);
-    setIsCreatingEvent(true);
-    
-    try {
-      await createEvent(eventData);
-      console.log('✅ Event created successfully from CalendarNav!');
-      console.log('🔄 Events should be refreshed by useGoogleCalendar hook');
-      setIsEventFormOpen(false);
-    } catch (error) {
-      console.error('❌ Error creating event from CalendarNav:', error);
-      throw error;
-    } finally {
-      setIsCreatingEvent(false);
-    }
-  };
   const [currentView, setCurrentView] = useState("timeGridWeek");
 
   const selectedMonth = viewedDate.getMonth() + 1;
@@ -340,7 +316,7 @@ export default function CalendarNav({
               variant="default"
             >
               <PlusIcon className="md:h-5 md:w-5 h-3 w-3" />
-              <p>Add Event</p>
+              <p>Create Order</p>
             </Button>
             
             <Button
@@ -355,14 +331,9 @@ export default function CalendarNav({
               <p>Disconnect</p>
             </Button>
             
-            <EventCreateForm
+            <OrderCreateForm
               isOpen={isEventFormOpen}
               onClose={() => setIsEventFormOpen(false)}
-              onCreateEvent={handleCreateEvent}
-              selectedDate={start}
-              selectedStartTime={start}
-              selectedEndTime={end}
-              loading={isCreatingEvent}
             />
           </>
         ) : (

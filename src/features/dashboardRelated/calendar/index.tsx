@@ -27,7 +27,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Button } from "@/components/ui/button";
 
 // Import Google Calendar integration
-import { EventCreateForm } from "@/components/google-calendar/EventCreateForm";
+import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { GoogleCalendarEventEditForm } from "@/components/google-calendar/GoogleCalendarEventEditForm";
 import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
 
@@ -52,7 +52,6 @@ export default function Calendar() {
     error: googleError,
     authUrl,
     fetchEvents,
-    createEvent,
     deleteEvent,
     updateEvent,
     selectedCalendarId,
@@ -81,7 +80,6 @@ export default function Calendar() {
   const [selectedEndTimeForEvent, setSelectedEndTimeForEvent] = useState<
     Date | undefined
   >();
-  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   // Event editing state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -413,29 +411,6 @@ export default function Calendar() {
     setIsEventFormOpen(true);
   };
 
-  const handleCreateEvent = async (eventData: {
-    summary: string;
-    description?: string;
-    start: { dateTime: string; timeZone: string };
-    end: { dateTime: string; timeZone: string };
-    location?: string;
-  }) => {
-    console.log("🚀 Creating event:", eventData);
-    setIsCreatingEvent(true);
-
-    try {
-      await createEvent(eventData);
-      console.log("✅ Event created successfully!");
-      console.log("🔄 Events should be refreshed by useGoogleCalendar hook");
-
-      setIsEventFormOpen(false);
-    } catch (error) {
-      console.error("❌ Error creating event:", error);
-      throw error; // Re-throw to let the form handle the error
-    } finally {
-      setIsCreatingEvent(false);
-    }
-  };
 
   const handleDeleteEvent = async () => {
     if (!selectedEvent) return;
@@ -690,15 +665,10 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Event Creation Form */}
-      <EventCreateForm
+      {/* Order Creation Form */}
+      <OrderCreateForm
         isOpen={isEventFormOpen}
         onClose={() => setIsEventFormOpen(false)}
-        onCreateEvent={handleCreateEvent}
-        selectedDate={selectedDateForEvent}
-        selectedStartTime={selectedStartTimeForEvent}
-        selectedEndTime={selectedEndTimeForEvent}
-        loading={isCreatingEvent}
       />
 
       {/* Event View Dialog */}

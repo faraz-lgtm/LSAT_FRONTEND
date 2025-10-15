@@ -44,8 +44,8 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Calendar selection state
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string>('primary');
+  // Calendar selection state - Default to BetterLSAT shared calendar
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string>('c_41f0af94200759137f30305f470ef7853a4020e41c5b160eedf7dea7cae3db9a@group.calendar.google.com');
   const [calendars, setCalendars] = useState<Array<{ id: string; summary: string; primary?: boolean }>>([]);
 
   // Initialize service

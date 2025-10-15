@@ -25,7 +25,7 @@ export const GoogleCalendarProvider: React.FC<GoogleCalendarProviderProps> = ({ 
     authUrl: null,
     authenticate: async () => {},
     signOut: () => {},
-    selectedCalendarId: 'primary',
+    selectedCalendarId: 'c_41f0af94200759137f30305f470ef7853a4020e41c5b160eedf7dea7cae3db9a@group.calendar.google.com',
     calendars: [],
     setSelectedCalendarId: () => {},
     fetchCalendars: async () => {},
