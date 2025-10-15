@@ -13,7 +13,6 @@ export interface OrderItem {
   Description: string;
   DateTime: string[];
   quantity: number;
-  assignedEmployeeId: number;
 }
 
 export interface Customer {
@@ -109,6 +108,7 @@ export const ordersApi = api.injectEndpoints({
         url: `order/slots`,
         params: { month, year, packageId, date , customerTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone},
       }),
+      providesTags: ['AvailableSlots'],
     }),
 
     //Mutations
@@ -121,7 +121,7 @@ export const ordersApi = api.injectEndpoints({
         method: "POST", // since we're creating
         body: orderData, // request payload
       }),
-      invalidatesTags: ["Orders"], // optional: auto-refetch queries
+      invalidatesTags: ["Orders", "AvailableSlots"], // auto-refetch orders and slots
     }),
 
     deleteOrder: builder.mutation<BaseApiResponse<{ message: string }>, number>({
@@ -129,7 +129,7 @@ export const ordersApi = api.injectEndpoints({
         url: `order/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Orders'],
+      invalidatesTags: ['Orders', 'AvailableSlots'],
     }),
   }),
 });
