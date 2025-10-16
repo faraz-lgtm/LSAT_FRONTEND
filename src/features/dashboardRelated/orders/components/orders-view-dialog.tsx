@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { Button } from '@/components/dashboard/ui/button'
@@ -10,10 +11,10 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import { Badge } from '@/components/dashboard/ui/badge'
-import { type Order } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
 
 type OrdersViewDialogProps = {
-  currentRow: Order
+  currentRow: OrderOutput
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -23,8 +24,8 @@ export function OrdersViewDialog({
   open,
   onOpenChange,
 }: OrdersViewDialogProps) {
-  const totalAmount = currentRow.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  const totalItems = currentRow.items.reduce((sum, item) => sum + item.quantity, 0)
+  const totalAmount = currentRow.items.reduce((sum:number, item:any) => sum + (item.price * item.quantity), 0)
+  const totalItems = currentRow.items.reduce((sum:number, item:any) => sum + item.quantity, 0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,7 +82,7 @@ export function OrdersViewDialog({
           <div className='space-y-3'>
             <h3 className='text-lg font-semibold'>Order Items</h3>
             <div className='space-y-3'>
-              {currentRow.items.map((item, index) => (
+              {currentRow.items.map((item:any, index:number) => (
                 <div key={index} className='border rounded-lg p-4 bg-muted/30'>
                   <div className='flex justify-between items-start mb-3'>
                     <h4 className='font-medium text-base'>{item.name}</h4>
@@ -112,7 +113,7 @@ export function OrdersViewDialog({
                         <span className='text-sm font-medium'>Scheduled Sessions ({item.DateTime.length})</span>
                       </div>
                       <div className='space-y-1 max-h-32 overflow-y-auto'>
-                        {item.DateTime.map((dateTime, idx) => (
+                        {item.DateTime.map((dateTime:any, idx:number) => (
                           <div key={idx} className='text-sm text-muted-foreground bg-background/50 rounded px-2 py-1'>
                             {new Date(dateTime).toLocaleString()}
                           </div>

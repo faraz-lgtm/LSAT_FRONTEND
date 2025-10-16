@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/dashboard/ui/tooltip'
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/dashboard/data-table'
-import { type Order, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
 import { OrdersMultiDeleteDialog } from './orders-multi-delete-dialog'
 
 type DataTableBulkActionsProps<TData> = {
@@ -25,7 +25,7 @@ export function DataTableBulkActions<TData>({
   const selectedRows = table.getFilteredSelectedRowModel().rows
 
   const handleBulkDelete = async () => {
-    const selectedOrders = selectedRows.map((row) => row.original as Order)
+    const selectedOrders = selectedRows.map((row) => row.original as OrderOutput)
     
     try {
       console.log("🗑️ Bulk deleting orders:", selectedOrders.map(o => o.id))

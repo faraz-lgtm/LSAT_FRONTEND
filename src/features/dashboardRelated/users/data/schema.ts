@@ -21,8 +21,8 @@ const userSchema = z.object({
   email: z.string(),
   phone: z.string(),
   isAccountDisabled: z.boolean(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  createdAt: z.coerce.string(),
+  updatedAt: z.coerce.string(),
 })
 export type User = z.infer<typeof userSchema>
 

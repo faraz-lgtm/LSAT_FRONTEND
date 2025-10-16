@@ -71,16 +71,19 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
               
               // If we have a specific calendar ID stored, use it; otherwise use primary
               const storedCalendarId = localStorage.getItem('selected_calendar_id');
-              if (storedCalendarId && calendarsList.some(cal => cal.id === storedCalendarId)) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              if (storedCalendarId && calendarsList.some((cal:any) => cal.id === storedCalendarId)) {
                 setSelectedCalendarId(storedCalendarId);
               } else if (calendarsList.length > 0) {
                 // Find primary calendar or use first one
-                const primaryCalendar = calendarsList.find(cal => cal.primary);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const primaryCalendar = calendarsList.find((cal:any) => cal.primary);
                 setSelectedCalendarId(primaryCalendar ? primaryCalendar.id : calendarsList[0].id);
               }
               
               // Log available calendars for debugging
-              console.log('📅 Available calendars:', calendarsList.map(cal => ({ id: cal.id, summary: cal.summary, primary: cal.primary })));
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              console.log('📅 Available calendars:', calendarsList.map((cal:any) => ({ id: cal.id, summary: cal.summary, primary: cal.primary })));
             } catch (err) {
               console.error('Error fetching calendars on init:', err);
             }
@@ -109,11 +112,13 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
       
       // If we have a specific calendar ID stored, use it; otherwise use primary
       const storedCalendarId = localStorage.getItem('selected_calendar_id');
-      if (storedCalendarId && calendarsList.some(cal => cal.id === storedCalendarId)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (storedCalendarId && calendarsList.some((cal:any) => cal.id === storedCalendarId)) {
         setSelectedCalendarId(storedCalendarId);
       } else if (calendarsList.length > 0) {
         // Find primary calendar or use first one
-        const primaryCalendar = calendarsList.find(cal => cal.primary);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const primaryCalendar = calendarsList.find((cal:any) => cal.primary);
         setSelectedCalendarId(primaryCalendar ? primaryCalendar.id : calendarsList[0].id);
       }
     } catch (err) {
@@ -272,7 +277,7 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
     } finally {
       setLoading(false);
     }
-  }, [service, isAuthenticated, fetchEvents]);
+  }, [service, isAuthenticated, fetchEvents,selectedCalendarId]);
 
   // Update event
   const updateEvent = useCallback(async (eventId: string, event: Partial<GoogleCalendarEvent>) => {
@@ -306,7 +311,7 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
     } finally {
       setLoading(false);
     }
-  }, [service, isAuthenticated, fetchEvents]);
+  }, [service, isAuthenticated, fetchEvents,selectedCalendarId]);
 
   // Delete event
   const deleteEvent = useCallback(async (eventId: string) => {
@@ -340,7 +345,7 @@ export const useGoogleCalendar = (): UseGoogleCalendarReturn => {
     } finally {
       setLoading(false);
     }
-  }, [service, isAuthenticated, fetchEvents]);
+  }, [service, isAuthenticated, fetchEvents,selectedCalendarId]);
 
   // Handle calendar selection
   const handleSetSelectedCalendarId = useCallback((calendarId: string) => {

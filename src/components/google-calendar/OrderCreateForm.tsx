@@ -182,8 +182,9 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
           save: selectedPackage.save,
           Duration: selectedPackage.Duration,
           Description: selectedPackage.Description,
-          DateTime: formData.selectedSlots.filter(slot => slot !== undefined).map(slot => slot!),
+          DateTime: formData.selectedSlots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()),
           quantity: 1,
+          assignedEmployeeId: -1,
         }],
         user: formData.customerId 
           ? (() => {

@@ -168,6 +168,7 @@ const Appointment =() => {
                           <div className="grid grid-cols-1 sm:grid-cols-2  gap-4">
                             {packageSlots.map((dateTime, slotIndex) => {
                               const globalIndex = startIndex + slotIndex;
+                              console.log('dateTime', dateTime);
                               return (
                                 <div key={`${item.id}-${globalIndex}`} className="flex items-center gap-4">
                                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-sm font-medium flex-shrink-0">
@@ -175,7 +176,7 @@ const Appointment =() => {
                                   </span>
                                   <DateTimePicker
                                     packageId={item.id}
-                                    value={dateTime ? new Date(dateTime) : dateTime}
+                                    value={dateTime ? new Date(dateTime) : new Date(dateTime)}
                                     onChange={(date) =>
                                       dispatch(
                                         updateBookingDate({

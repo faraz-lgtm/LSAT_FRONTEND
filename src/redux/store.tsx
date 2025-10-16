@@ -13,6 +13,7 @@ const persistConfig = {
   whitelist: ["cart", "auth"], // 👈 choose which slices to persist
   transforms: [
     {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       in: (state: any) => {
         // Transform state before saving to storage
         if (state.cart?.items) {
@@ -20,6 +21,7 @@ const persistConfig = {
             ...state,
             cart: {
               ...state.cart,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               items: state.cart.items.map((item: any) => ({
                 ...item,
                 DateTime: item.DateTime?.map((date: Date) => date.toISOString())
@@ -29,6 +31,7 @@ const persistConfig = {
         }
         return state;
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       out: (state: any) => {
         // Transform state after loading from storage
         if (state.cart?.items) {
@@ -36,6 +39,7 @@ const persistConfig = {
             ...state,
             cart: {
               ...state.cart,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               items: state.cart.items.map((item: any) => ({
                 ...item,
                 DateTime: item.DateTime?.map((dateString: string) => new Date(dateString))

@@ -25,7 +25,7 @@ import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/da
 import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
-import type { IUser } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,7 +35,7 @@ declare module '@tanstack/react-table' {
 }
 
 type DataTableProps = {
-  data: IUser[]
+  data: UserOutput[]
   search: Record<string, unknown>
   navigate: NavigateFn
 } 

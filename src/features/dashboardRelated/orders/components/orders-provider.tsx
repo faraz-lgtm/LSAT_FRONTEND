@@ -1,21 +1,21 @@
 import React, { useState } from 'react'
 import useDialogState from '@/hooks/dashboardRelated/use-dialog-state'
-import { type Order } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
 
 type OrdersDialogType = 'view' | 'delete'
 
 type OrdersContextType = {
   open: OrdersDialogType | null
   setOpen: (str: OrdersDialogType | null) => void
-  currentRow: Order | null
-  setCurrentRow: React.Dispatch<React.SetStateAction<Order | null>>
+  currentRow: OrderOutput | null
+  setCurrentRow: React.Dispatch<React.SetStateAction<OrderOutput | null>>
 }
 
 const OrdersContext = React.createContext<OrdersContextType | null>(null)
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useDialogState<OrdersDialogType>(null)
-  const [currentRow, setCurrentRow] = useState<Order | null>(null)
+  const [currentRow, setCurrentRow] = useState<OrderOutput | null>(null)
 
   return (
     <OrdersContext value={{ open, setOpen, currentRow, setCurrentRow }}>

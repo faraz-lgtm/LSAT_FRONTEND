@@ -1,35 +1,37 @@
-import type { ROLE } from "@/constants/roles";
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 
-export interface IUser{
+export interface UserOutput{
     id: number;
     name: string;
     username: string;
-    roles: ROLE[];
+    roles: ("USER" | "ADMIN" | "CUST")[];
     email: string;
     phone: string;
     isAccountDisabled: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    workHours?: Record<string, string[]>;
+    createdAt: string;
+    updatedAt: string;
 }
 
-export interface IUpdateUser {
+export interface UpdateUserInput {
   name: string;
   username: string;
   email: string;
   phone: string;
-  roles: ROLE[];
+  roles: ("USER" | "ADMIN" | "CUST")[];
+  workHours?: Record<string, string[]>;
+  isAccountDisabled?: boolean;
 }
 
 
 export const usersApi=api.injectEndpoints({
   endpoints: (builder) => ({
-    getUsers: builder.query<BaseApiResponse<IUser[]>, void>({
+    getUsers: builder.query<BaseApiResponse<UserOutput[]>, void>({
       query: () => '/users',
       providesTags: ['Users'],
     }),
-    updateUser:builder.mutation<BaseApiResponse<IUser>,{id: number, userData: IUpdateUser}>({
+    updateUser:builder.mutation<BaseApiResponse<UserOutput>,{id: number, userData: UpdateUserInput}>({
       query:({id, userData})=>({
         url: `/users/${id}`,
         method:'PATCH',

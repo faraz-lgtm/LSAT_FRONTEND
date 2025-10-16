@@ -10,11 +10,11 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
-import { type Order } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
 import { useOrders } from './orders-provider'
 
 type DataTableRowActionsProps = {
-  row: Row<Order>
+  row: Row<OrderOutput>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

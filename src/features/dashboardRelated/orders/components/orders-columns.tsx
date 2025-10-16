@@ -4,10 +4,10 @@ import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { LongText } from '@/components/dashboard/long-text'
-import { type Order } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export const ordersColumns: ColumnDef<Order>[] = [
+export const ordersColumns: ColumnDef<OrderOutput>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -84,8 +84,9 @@ export const ordersColumns: ColumnDef<Order>[] = [
       <DataTableColumnHeader column={column} title='Items' />
     ),
     cell: ({ row }) => {
-      const items = row.getValue('items') as Order['items']
-      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+      const items = row.getValue('items') as OrderOutput['items']
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const totalItems = items.reduce((sum:number, item:any) => sum + item.quantity, 0)
       
       return (
         <div className='flex flex-col'>
@@ -105,8 +106,9 @@ export const ordersColumns: ColumnDef<Order>[] = [
       <DataTableColumnHeader column={column} title='Total Amount' />
     ),
     cell: ({ row }) => {
-      const items = row.getValue('items') as Order['items']
-      const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      const items = row.getValue('items') as OrderOutput['items']
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const totalAmount = items.reduce((sum:number, item:any) => sum + (item.price * item.quantity), 0)
       
       return (
         <div className='font-medium text-green-600 dark:text-green-400'>

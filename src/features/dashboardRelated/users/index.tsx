@@ -9,7 +9,7 @@ import { UsersDialogs } from "./components/users-dialogs";
 import { UsersPrimaryButtons } from "./components/users-primary-buttons";
 import { UsersProvider } from "./components/users-provider";
 import { UsersTable } from "./components/users-table";
-import { useGetUsersQuery, type IUser } from "@/redux/apiSlices/User/userSlice";
+import { useGetUsersQuery, type UserOutput } from "@/redux/apiSlices/User/userSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { filterUsersByRole } from "@/utils/rbac";
@@ -27,9 +27,9 @@ export function Users() {
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
-  // Convert AuthUser to IUser format for RBAC functions
+  // Convert AuthUser to UserOutput format for RBAC functions
   const currentUserForRBAC = convertAuthUserToIUser(currentUser);
-  let filteredUsers: IUser[] = [];
+  let filteredUsers: UserOutput[] = [];
 
   // Filter users based on current user's role
   console.log("check2", usersData?.data,currentUserForRBAC);

@@ -1,11 +1,11 @@
+import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
 import type { StripeOrderResponse } from "./types/orderPost.type";
-import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 
 // Order interfaces based on API structure
-export interface OrderItem {
+export interface ItemOutput {
   id: number;
   price: number;
   name: string;
@@ -13,30 +13,36 @@ export interface OrderItem {
   Description: string;
   DateTime: string[];
   quantity: number;
+  assignedEmployeeId: number;
+  badge?: {
+    text: string;
+    color: string;
+  };
+  save?: number;
 }
 
-export interface Customer {
+export interface UserOutput {
   id: number;
   name: string;
-  password: string | null;
-  username: string | null;
-  roles: string[];
+  // password: string | null;
+  username: string;
+  roles: ("USER" | "ADMIN" | "CUST")[];
   isAccountDisabled: boolean;
-  ghlUserId: string | null;
+  // ghlUserId: string | null;
   email: string;
   phone: string;
-  workHours: Record<string, string[]>;
-  serviceIds: string[];
-  lastAssignedOrderCount: number;
+  workHours?: Record<string, string[]>;
+  // serviceIds: string[];
+  // lastAssignedOrderCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Order {
+export interface OrderOutput {
   id: number;
-  customer: Customer;
-  customerId: number;
-  items: OrderItem[];
+  // user: Customer;
+  customer: UserOutput;
+  items: ItemOutput[];
 }
 
 // Define types for slots API
@@ -57,7 +63,7 @@ export interface Order {
 //   ],
 //   "slotDurationMinutes": 15
 // }
-export interface Employee {
+export interface AvailableEmployee {
   id: number;
   name: string;
   email: string;
@@ -65,20 +71,21 @@ export interface Employee {
 
 export interface AvailableSlot {
   slot: string; // ISO string format
-  availableEmployees: Employee[];
+  availableEmployees: AvailableEmployee[];
 }
 
-export interface SlotsResponse {
+export interface Slot {
   availableSlots: AvailableSlot[];
   bookedSlots:string[],
   slotDurationMinutes: number;
+  warning?: string;
 }
 
 export interface SlotsQueryParams {
   month: number;
   year: number;
   packageId: number;
-  date: string; // Day number as string (e.g., "03")
+  date: number; // Day number as string (e.g., "03")
 }
 
 // Query parameters interface for getOrders
@@ -90,20 +97,20 @@ export interface GetOrdersQueryParams {
 
 export const ordersApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getOrders: builder.query<BaseApiResponse<Order[]>, GetOrdersQueryParams | void>({
+    getOrders: builder.query<BaseApiResponse<OrderOutput[]>, GetOrdersQueryParams | void>({
       query: (params) => ({
         url: "order",
         params: params || {},
       }),
       providesTags: ['Orders'],
     }),
-    getOrderById: builder.query<BaseApiResponse<Order>, number>({
+    getOrderById: builder.query<BaseApiResponse<OrderOutput>, number>({
       query: (id) => `order/${id}`,
       providesTags: ['Orders'],
     }),
     
     // New endpoint for fetching available slots
-    getAvailableSlots: builder.query<BaseApiResponse<SlotsResponse>, SlotsQueryParams>({
+    getAvailableSlots: builder.query<BaseApiResponse<Slot>, SlotsQueryParams>({
       query: ({ month, year, packageId, date }) => ({
         url: `order/slots`,
         params: { month, year, packageId, date , customerTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone},

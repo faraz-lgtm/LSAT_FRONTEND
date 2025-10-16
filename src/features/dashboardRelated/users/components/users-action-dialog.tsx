@@ -32,7 +32,8 @@ import { getAvailableRolesForNewUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 import { toast } from 'sonner';
 import PhoneInput from "react-phone-input-2";
-import { useUpdateUserMutation, type IUser } from '@/redux/apiSlices/User/userSlice'
+import { useUpdateUserMutation, type UserOutput } from '@/redux/apiSlices/User/userSlice'
+import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
 
 
 
@@ -46,10 +47,12 @@ const formSchema = z.object({
   password: z.string().optional(),
   roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER]))
     .min(1, 'At least one role is required.'),
+  workHours: z.record(z.string(), z.array(z.string())).optional(),
   isEdit: z.boolean(),
 }).refine((data) => {
-  // Password is required only for new users (not edit mode)
-  if (!data.isEdit && (!data.password || data.password.length < 6)) {
+  // Password is required only for new users (not edit mode) and not for CUSTOMER role
+  const isCustomerOnly = data.roles.length === 1 && data.roles.includes(ROLE.CUSTOMER);
+  if (!data.isEdit && !isCustomerOnly && (!data.password || data.password.length < 6)) {
     return false;
   }
   return true;
@@ -61,7 +64,7 @@ const formSchema = z.object({
 type UserForm = z.infer<typeof formSchema>
 
 type UserActionDialogProps = {
-  currentRow?: IUser
+  currentRow?: UserOutput
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -78,7 +81,7 @@ export function UsersActionDialog({
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user)
   
-  // Convert AuthUser to IUser format for RBAC functions
+  // Convert AuthUser to UserOutput format for RBAC functions
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   
   // Get available roles based on current user's permissions
@@ -94,6 +97,7 @@ export function UsersActionDialog({
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
           roles: currentRow.roles,
+          workHours: currentRow.workHours || {},
           isEdit,
         }
       : {
@@ -103,17 +107,24 @@ export function UsersActionDialog({
           phone: '',
           password: '',
           roles: [],
+          workHours: {},
           isEdit,
         },
   })
+
+  // Watch roles to determine if user is customer-only
+  const watchedRoles = form.watch('roles')
+  const isCustomerOnly = watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)
 
   const onSubmit = async (values: UserForm) => {
     console.log("🚀 onSubmit called with values:", values);
     try {
       if (!isEdit) {
         // Create new user
-        if (!values.password) {
-          toast.error("Password is required for new users.")
+        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
+        
+        if (!isCustomerOnly && !values.password) {
+          toast.error("Password is required for non-customer users.")
           return
         }
         
@@ -124,6 +135,7 @@ export function UsersActionDialog({
           phone: values.phone,
           password: values.password,
           roles: values.roles,
+          workHours: isCustomerOnly ? undefined : values.workHours,
         }
         
         await registerUser(userData).unwrap()
@@ -132,12 +144,14 @@ export function UsersActionDialog({
       } else {
         console.log("📝 Edit user - values:", values);
         console.log("📝 Edit user - currentRow:", currentRow);
+        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
         const userData = {
           name: values.name,
           username: values.username,
           email: values.email,
           phone: values.phone,
           roles: values.roles,
+          workHours: isCustomerOnly ? undefined : values.workHours,
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
         const result = await updateUser({id: currentRow.id, userData}).unwrap()
@@ -163,7 +177,7 @@ export function UsersActionDialog({
         onOpenChange(state)
       }}
     >
-      <DialogContent className='sm:max-w-lg'>
+      <DialogContent className='sm:max-w-2xl max-h-[80vh]'>
         <DialogHeader className='text-start'>
           <DialogTitle>{isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
           <DialogDescription>
@@ -171,7 +185,7 @@ export function UsersActionDialog({
             Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <div className='h-[26.25rem] w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
+        <div className='h-[60vh] w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
           <Form {...form}>
             <form
               id='user-form'
@@ -266,7 +280,7 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              {!isEdit && (
+              {!isEdit && !isCustomerOnly && (
                 <FormField
                   control={form.control}
                   name='password'
@@ -330,6 +344,24 @@ export function UsersActionDialog({
                   )
                 }}
               />
+              {!isCustomerOnly && (
+                <FormField
+                  control={form.control}
+                  name='workHours'
+                  render={({ field }) => (
+                    <FormItem className='space-y-2'>
+                      <FormLabel className='text-sm font-medium'>Work Hours</FormLabel>
+                      <FormControl>
+                        <WorkHoursSelector
+                          value={field.value || {}}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </form>
           </Form>
         </div>

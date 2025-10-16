@@ -5,10 +5,10 @@ import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { LongText } from '@/components/dashboard/long-text'
 import { roles } from '../data/data'
-import { type IUser } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/redux/apiSlices/User/userSlice'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export const usersColumns: ColumnDef<IUser>[] = [
+export const usersColumns: ColumnDef<UserOutput>[] = [
   {
     id: 'select',
     header: ({ table }) => (

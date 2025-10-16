@@ -13,10 +13,10 @@ import {
 } from '@/components/dashboard/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/dashboard/ui/alert'
 import { AlertTriangle } from 'lucide-react'
-import { type Order, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { type OrderOutput, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
 
 type OrdersDeleteDialogProps = {
-  currentRow: Order
+  currentRow: OrderOutput
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -39,6 +39,7 @@ export function OrdersDeleteDialog({
       
       toast.success(`Order #${currentRow.id} deleted successfully`)
       onOpenChange(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Delete order error:", error)
       toast.error(error?.data?.message || 'Failed to delete order')
@@ -47,7 +48,8 @@ export function OrdersDeleteDialog({
     }
   }
 
-  const totalAmount = currentRow.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totalAmount = currentRow.items.reduce((sum:number, item:any) => sum + (item.price * item.quantity), 0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

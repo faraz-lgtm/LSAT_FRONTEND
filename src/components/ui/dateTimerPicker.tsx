@@ -38,6 +38,7 @@ export function DateTimePicker({
   const { items } = useSelector((state: RootState) => state.cart);
 
   const [date, setDate] = React.useState<Date | undefined>(value);
+  console.log('date', date);
   const [selectedSlot, setSelectedSlot] = React.useState<Slot | undefined>(date?{
     start: date,
     label: "",
@@ -49,7 +50,7 @@ export function DateTimePicker({
     month: date && date instanceof Date ? date.getMonth() + 1 : 0, // JavaScript months are 0-based, API expects 1-based
     year: date && date instanceof Date ? date.getFullYear() : 0,
     packageId: packageId,
-    date: date && date instanceof Date ? date.getDate().toString().padStart(2, '0') : '', // Day as string with leading zero
+    date: date && date instanceof Date ? date.getDate() : 0, // Day as number
   }, {
     skip: !date || !(date instanceof Date), // Only fetch when date is selected and is a valid Date
   });

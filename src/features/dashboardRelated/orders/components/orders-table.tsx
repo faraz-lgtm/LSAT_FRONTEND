@@ -24,7 +24,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { ordersColumns as columns } from './orders-columns'
-import type { Order } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,7 +34,7 @@ declare module '@tanstack/react-table' {
 }
 
 type DataTableProps = {
-  data: Order[]
+  data: OrderOutput[]
   search: Record<string, unknown>
   navigate: NavigateFn
 } 

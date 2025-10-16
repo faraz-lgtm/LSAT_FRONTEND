@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { IUser } from "../User/userSlice";
+import type { UserOutput } from "../User/userSlice";
 import type { ROLE } from "@/constants/roles";
 
 // Types for auth endpoints
-export interface LoginRequest {
+export interface LoginInput {
   email: string;
   password: string;
 }
@@ -25,7 +25,7 @@ export interface LoginResponse {
   meta: {};
 }
 
-export interface RefreshTokenRequest {
+export interface RefreshTokenInput {
   refreshToken: string;
 }
 
@@ -37,33 +37,34 @@ export interface RefreshTokenResponse {
   meta: {};
 }
 
-export interface IRegisterUserRequest {
+export interface RegisterInput {
   name: string;
   username: string;
   email: string;
   phone: string; // Reverted back to phone
-  password: string;
-  roles: ROLE[];
+  password?: string; // Made optional for customer-only users
+  roles: ("USER" | "ADMIN" | "CUST")[];
+  workHours?: Record<string, string[]>; // Added workHours field
 }
 
 // Inject auth endpoints into the base API
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginRequest>({
+    login: builder.mutation<LoginResponse, LoginInput>({
       query: (credentials) => ({
         url: "auth/login",
         method: "POST",
         body: credentials,
       }),
     }),
-    refreshToken: builder.mutation<RefreshTokenResponse, RefreshTokenRequest>({
+    refreshToken: builder.mutation<RefreshTokenResponse, RefreshTokenInput>({
       query: (body) => ({
         url: "auth/refresh-token", // ✅ Correct endpoint from user's specification
         method: "POST",
         body,
       }),
     }),
-    registerUser: builder.mutation<BaseApiResponse<IUser>, IRegisterUserRequest>({
+    registerUser: builder.mutation<BaseApiResponse<UserOutput>, RegisterInput>({
       query: (userData) => ({
         url: '/auth/register',
         method: 'POST',

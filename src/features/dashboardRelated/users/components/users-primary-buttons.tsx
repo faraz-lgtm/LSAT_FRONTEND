@@ -12,7 +12,7 @@ export function UsersPrimaryButtons() {
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user)
   
-  // Convert AuthUser to IUser format for RBAC functions
+  // Convert AuthUser to UserOutput format for RBAC functions
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   
   // Check if current user can add users

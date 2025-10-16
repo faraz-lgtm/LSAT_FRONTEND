@@ -1,30 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { months } from "@/utils/calendar/data";
-import type { calendarRef } from "@/utils/calendar/data";
-import { Button } from "@/components/ui/button";
-import {
-  generateDaysInMonth,
-  goNext,
-  goPrev,
-  goToday,
-  handleDayChange,
-  handleMonthChange,
-  handleYearChange,
-  setView,
-} from "@/utils/calendar/calendar-utils";
-import { useState } from "react";
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsUpDown,
-  GalleryVertical,
-  Table,
-  Tally3,
-  PlusIcon,
-} from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -38,12 +13,36 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/dashboard/ui/calendarRelatedUI/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  generateDaysInMonth,
+  goNext,
+  goPrev,
+  goToday,
+  handleDayChange,
+  handleMonthChange,
+  handleYearChange,
+  setView,
+} from "@/utils/calendar/calendar-utils";
+import type { calendarRef } from "@/utils/calendar/data";
+import { months } from "@/utils/calendar/data";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  GalleryVertical,
+  PlusIcon,
+  Table,
+  Tally3,
+} from "lucide-react";
+import { useState } from "react";
 
 import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/tabs";
-import { EventCreateForm } from "@/components/google-calendar/EventCreateForm";
-import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { CalendarSelector } from "@/components/google-calendar/CalendarSelector";
+import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
 
 interface CalendarNavProps {
@@ -55,8 +54,6 @@ interface CalendarNavProps {
 
 export default function CalendarNav({
   calendarRef,
-  start,
-  end,
   viewedDate,
 }: CalendarNavProps) {
   // Google Calendar integration

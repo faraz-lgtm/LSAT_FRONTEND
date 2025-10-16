@@ -1,5 +1,5 @@
 import { ROLE } from '@/constants/roles'
-import type { IUser } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
 
 /**
  * Check if current user can edit/delete a target user based on role-based access control
@@ -13,7 +13,7 @@ import type { IUser } from '@/redux/apiSlices/User/userSlice'
  * @param targetUser - The user being targeted for edit/delete
  * @returns boolean indicating if the action is allowed
  */
-export function canEditOrDeleteUser(currentUser: IUser | null, targetUser: IUser): boolean {
+export function canEditOrDeleteUser(currentUser: UserOutput | null, targetUser: UserOutput): boolean {
   if (!currentUser || !currentUser.roles) {
     return false
   }
@@ -51,7 +51,7 @@ export function canEditOrDeleteUser(currentUser: IUser | null, targetUser: IUser
  * @param currentUser - The currently authenticated user
  * @returns boolean indicating if adding users is allowed
  */
-export function canAddUser(currentUser: IUser | null): boolean {
+export function canAddUser(currentUser: UserOutput | null): boolean {
   if (!currentUser || !currentUser.roles) {
     return false
   }
@@ -83,7 +83,7 @@ export function canAddUser(currentUser: IUser | null): boolean {
  * @param currentUser - The currently authenticated user
  * @returns Array of roles that can be assigned
  */
-export function getAvailableRolesForNewUser(currentUser: IUser | null): ROLE[] {
+export function getAvailableRolesForNewUser(currentUser: UserOutput | null): ROLE[] {
   if (!currentUser || !currentUser.roles) {
     return []
   }
@@ -116,7 +116,7 @@ export function getAvailableRolesForNewUser(currentUser: IUser | null): ROLE[] {
  * @param currentUser - The currently authenticated user
  * @returns Filtered array of users
  */
-export function filterUsersByRole(users: IUser[], currentUser: IUser | null): IUser[] {
+export function filterUsersByRole(users: UserOutput[], currentUser: UserOutput | null): UserOutput[] {
   if (!currentUser || !currentUser.roles) {
     return []
   }

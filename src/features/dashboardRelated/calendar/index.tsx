@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import "@/styles/calendar.css";
@@ -71,15 +72,15 @@ export default function Calendar() {
 
   // Event creation form state
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
-  const [selectedDateForEvent, setSelectedDateForEvent] = useState<
-    Date | undefined
-  >();
-  const [selectedStartTimeForEvent, setSelectedStartTimeForEvent] = useState<
-    Date | undefined
-  >();
-  const [selectedEndTimeForEvent, setSelectedEndTimeForEvent] = useState<
-    Date | undefined
-  >();
+  // const [selectedDateForEvent, setSelectedDateForEvent] = useState<
+  //   Date | undefined
+  // >();
+  // const [selectedStartTimeForEvent, setSelectedStartTimeForEvent] = useState<
+  //   Date | undefined
+  // >();
+  // const [selectedEndTimeForEvent, setSelectedEndTimeForEvent] = useState<
+  //   Date | undefined
+  // >();
 
   // Event editing state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -95,11 +96,13 @@ export default function Calendar() {
     isAuthenticated,
     selectedCalendarId,
     calendarsCount: calendars.length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     events: googleEvents.map((e: any) => ({ id: e.id, summary: e.summary })),
   });
 
   // Convert Google Calendar events to FullCalendar format
   const convertGoogleEventsToCalendarEvents = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     googleEvents: any[]
   ): CalendarEvent[] => {
     console.log(
@@ -384,9 +387,7 @@ export default function Calendar() {
     setSelectedEnd(info.end);
 
     // Set the selected date and times for event creation
-    setSelectedDateForEvent(info.start);
-    setSelectedStartTimeForEvent(info.start);
-    setSelectedEndTimeForEvent(info.end);
+ 
 
     // Open the event creation form
     setIsEventFormOpen(true);
@@ -403,9 +404,6 @@ export default function Calendar() {
     const endTime = new Date(startTime);
     endTime.setHours(startTime.getHours() + 1);
 
-    setSelectedDateForEvent(clickedDate);
-    setSelectedStartTimeForEvent(startTime);
-    setSelectedEndTimeForEvent(endTime);
 
     // Open the event creation form
     setIsEventFormOpen(true);

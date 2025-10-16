@@ -1,14 +1,14 @@
 import type { AuthUser } from '@/redux/authSlice'
-import type { IUser } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
 
 /**
- * Convert AuthUser from auth state to IUser format for RBAC functions
- * This is needed because AuthUser has a different structure than IUser
+ * Convert AuthUser from auth state to UserOutput format for RBAC functions
+ * This is needed because AuthUser has a different structure than UserOutput
  * 
  * @param authUser - The user from auth state
- * @returns IUser format or null if authUser is null
+ * @returns UserOutput format or null if authUser is null
  */
-export function convertAuthUserToIUser(authUser: AuthUser | null): IUser | null {
+export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | null {
   if (!authUser) {
     return null
   }
@@ -21,7 +21,7 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): IUser | null 
     email: '', // AuthUser doesn't have email
     isAccountDisabled: false,
     phone: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 }

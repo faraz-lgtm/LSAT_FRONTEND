@@ -8,7 +8,7 @@ import { ThemeSwitch } from "@/components/dashboard/theme-switch";
 import { OrdersDialogs } from "./components/orders-dialogs";
 import { OrdersProvider } from "./components/orders-provider";
 import { OrdersTable } from "./components/orders-table";
-import { useGetOrdersQuery, type Order } from "@/redux/apiSlices/Order/orderSlice";
+import { useGetOrdersQuery, type OrderOutput } from "@/redux/apiSlices/Order/orderSlice";
 
 const route = getRouteApi("/_authenticated/orders/");
 
@@ -23,7 +23,7 @@ export function Orders() {
   console.log("error:", error);
   console.log("ordersData?.data:", ordersData?.data);
 
-  let orders: Order[] = [];
+  let orders: OrderOutput[] = [];
 
   if (isSuccess && ordersData) {
     console.log("setting orders", ordersData);

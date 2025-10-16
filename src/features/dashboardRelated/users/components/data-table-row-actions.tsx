@@ -10,7 +10,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
-import { type IUser } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/redux/apiSlices/User/userSlice'
 import { useUsers } from './users-provider'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
@@ -18,7 +18,7 @@ import { canEditOrDeleteUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 
 type DataTableRowActionsProps = {
-  row: Row<IUser>
+  row: Row<UserOutput>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
@@ -27,7 +27,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user)
   
-  // Convert AuthUser to IUser format for RBAC functions
+  // Convert AuthUser to UserOutput format for RBAC functions
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   
   // Check if current user can edit/delete this user
