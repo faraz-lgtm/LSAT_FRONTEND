@@ -76,13 +76,6 @@ export interface UpdateUserInput {
    */
   phone: string;
   /**
-   * User password
-   * @minLength 6
-   * @maxLength 100
-   * @example "securePassword123"
-   */
-  password: string;
-  /**
    * User email address
    * @maxLength 100
    * @example "john.doe@example.com"
@@ -155,7 +148,7 @@ export interface RegisterInput {
   name: string;
   phone: string;
   username: string;
-  password: string;
+  password?: string;
   email: string;
   /**
    * User roles
@@ -197,6 +190,48 @@ export interface RefreshTokenInput {
 export interface SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken {
   meta: object;
   data: AuthTokenOutput;
+}
+
+export interface GetOrdersQueryParams {
+  /** Optional, defaults to 100 */
+  limit?: number;
+  /** Optional, defaults to 0 */
+  offset?: number;
+  /**
+   * Filter orders by payment status
+   * @example "succeeded"
+   */
+  orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
+}
+
+export interface SlotsQueryDto {
+  /**
+   * Day of the month (1-31)
+   * @min 1
+   * @max 31
+   * @example 15
+   */
+  date: number;
+  /**
+   * Month (1-12)
+   * @min 1
+   * @max 12
+   * @example 1
+   */
+  month: number;
+  /**
+   * Year (2020-2030)
+   * @min 2025
+   * @max 2050
+   * @example 2025
+   */
+  year: number;
+  /**
+   * Service/package ID
+   * @min 1
+   * @example 5
+   */
+  packageId: number;
 }
 
 export interface ItemInput {

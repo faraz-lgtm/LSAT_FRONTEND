@@ -3,47 +3,48 @@ import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
 import type { StripeOrderResponse } from "./types/orderPost.type";
+import type { GetOrdersQueryParams, OrderOutput, Slot, SlotsQueryDto } from "@/types/api/data-contracts";
 
 // Order interfaces based on API structure
-export interface ItemOutput {
-  id: number;
-  price: number;
-  name: string;
-  Duration: string;
-  Description: string;
-  DateTime: string[];
-  quantity: number;
-  assignedEmployeeId: number;
-  badge?: {
-    text: string;
-    color: string;
-  };
-  save?: number;
-}
+// export interface ItemOutput {
+//   id: number;
+//   price: number;
+//   name: string;
+//   Duration: string;
+//   Description: string;
+//   DateTime: string[];
+//   quantity: number;
+//   assignedEmployeeId: number;
+//   badge?: {
+//     text: string;
+//     color: string;
+//   };
+//   save?: number;
+// }
 
-export interface UserOutput {
-  id: number;
-  name: string;
-  // password: string | null;
-  username: string;
-  roles: ("USER" | "ADMIN" | "CUST")[];
-  isAccountDisabled: boolean;
-  // ghlUserId: string | null;
-  email: string;
-  phone: string;
-  workHours?: Record<string, string[]>;
-  // serviceIds: string[];
-  // lastAssignedOrderCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface UserOutput {
+//   id: number;
+//   name: string;
+//   // password: string | null;
+//   username: string;
+//   roles: ("USER" | "ADMIN" | "CUST")[];
+//   isAccountDisabled: boolean;
+//   // ghlUserId: string | null;
+//   email: string;
+//   phone: string;
+//   workHours?: Record<string, string[]>;
+//   // serviceIds: string[];
+//   // lastAssignedOrderCount: number;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
-export interface OrderOutput {
-  id: number;
-  // user: Customer;
-  customer: UserOutput;
-  items: ItemOutput[];
-}
+// export interface OrderOutput {
+//   id: number;
+//   // user: Customer;
+//   customer: UserOutput;
+//   items: ItemOutput[];
+// }
 
 // Define types for slots API
 // Expected API response format:
@@ -63,37 +64,37 @@ export interface OrderOutput {
 //   ],
 //   "slotDurationMinutes": 15
 // }
-export interface AvailableEmployee {
-  id: number;
-  name: string;
-  email: string;
-}
+// export interface AvailableEmployee {
+//   id: number;
+//   name: string;
+//   email: string;
+// }
 
-export interface AvailableSlot {
-  slot: string; // ISO string format
-  availableEmployees: AvailableEmployee[];
-}
+// export interface AvailableSlot {
+//   slot: string; // ISO string format
+//   availableEmployees: AvailableEmployee[];
+// }
 
-export interface Slot {
-  availableSlots: AvailableSlot[];
-  bookedSlots:string[],
-  slotDurationMinutes: number;
-  warning?: string;
-}
+// export interface Slot {
+//   availableSlots: AvailableSlot[];
+//   bookedSlots:string[],
+//   slotDurationMinutes: number;
+//   warning?: string;
+// }
 
-export interface SlotsQueryParams {
-  month: number;
-  year: number;
-  packageId: number;
-  date: number; // Day number as string (e.g., "03")
-}
+// export interface SlotsQueryParams {
+//   month: number;
+//   year: number;
+//   packageId: number;
+//   date: number; // Day number as string (e.g., "03")
+// }
 
-// Query parameters interface for getOrders
-export interface GetOrdersQueryParams {
-  orderStatus?: string;
-  limit?: number;
-  offset?: number;
-}
+// // Query parameters interface for getOrders
+// export interface GetOrdersQueryParams {
+//   orderStatus?: string;
+//   limit?: number;
+//   offset?: number;
+// }
 
 export const ordersApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -110,7 +111,7 @@ export const ordersApi = api.injectEndpoints({
     }),
     
     // New endpoint for fetching available slots
-    getAvailableSlots: builder.query<BaseApiResponse<Slot>, SlotsQueryParams>({
+    getAvailableSlots: builder.query<BaseApiResponse<Slot>, SlotsQueryDto>({
       query: ({ month, year, packageId, date }) => ({
         url: `order/slots`,
         params: { month, year, packageId, date , customerTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone},

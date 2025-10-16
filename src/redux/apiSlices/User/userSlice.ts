@@ -1,28 +1,29 @@
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
+import type { UpdateUserInput, UserOutput } from "@/types/api/data-contracts";
 
-export interface UserOutput{
-    id: number;
-    name: string;
-    username: string;
-    roles: ("USER" | "ADMIN" | "CUST")[];
-    email: string;
-    phone: string;
-    isAccountDisabled: boolean;
-    workHours?: Record<string, string[]>;
-    createdAt: string;
-    updatedAt: string;
-}
+// export interface UserOutput{
+//     id: number;
+//     name: string;
+//     username: string;
+//     roles: ("USER" | "ADMIN" | "CUST")[];
+//     email: string;
+//     phone: string;
+//     isAccountDisabled: boolean;
+//     workHours?: Record<string, string[]>;
+//     createdAt: string;
+//     updatedAt: string;
+// }
 
-export interface UpdateUserInput {
-  name: string;
-  username: string;
-  email: string;
-  phone: string;
-  roles: ("USER" | "ADMIN" | "CUST")[];
-  workHours?: Record<string, string[]>;
-  isAccountDisabled?: boolean;
-}
+// export interface UpdateUserInput {
+//   name: string;
+//   username: string;
+//   email: string;
+//   phone: string;
+//   roles: ("USER" | "ADMIN" | "CUST")[];
+//   workHours?: Record<string, string[]>;
+//   isAccountDisabled?: boolean;
+// }
 
 
 export const usersApi=api.injectEndpoints({

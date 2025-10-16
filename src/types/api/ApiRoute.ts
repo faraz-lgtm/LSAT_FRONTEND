@@ -261,7 +261,7 @@ export namespace Api {
        * Year (2020-2030)
        * @min 2025
        * @max 2050
-       * @example 2024
+       * @example 2025
        */
       year: number;
       /**
