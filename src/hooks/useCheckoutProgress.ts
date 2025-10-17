@@ -1,10 +1,8 @@
 import { useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../redux/store';
 
 export function useCheckoutProgress(): 1 | 2 | 3 | 4 | 5 {
   const location = useLocation();
-  const { items } = useSelector((state: RootState) => state.cart);
+  // const { items } = useSelector((state: RootState) => state.cart);
   
   // Determine step based on location and state
   if (location.pathname === '/' || location.pathname.includes('home')) {

@@ -13,7 +13,8 @@ import {
 } from '@/components/dashboard/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/dashboard/ui/alert'
 import { AlertTriangle } from 'lucide-react'
-import { type OrderOutput, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import {  useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 
 type OrdersDeleteDialogProps = {
   currentRow: OrderOutput

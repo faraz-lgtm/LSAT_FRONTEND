@@ -22,8 +22,8 @@ import {
   TableRow,
 } from '@/components/dashboard/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
-import { DataTableBulkActions } from './data-table-bulk-actions'
-import { packagesColumns as columns } from './packages-columns'
+import { DataTableBulkActions } from './data-table-bulk-actions.tsx'
+import { packagesColumns as columns } from './packages-columns.tsx'
 import type { ProductOutput } from '@/types/api/data-contracts'
 
 declare module '@tanstack/react-table' {
@@ -42,6 +42,19 @@ type DataTableProps = {
 export function PackagesTable({ data, search, navigate }: DataTableProps) {
   console.log("PackagesTable received data:", data);
   console.log("PackagesTable data length:", data?.length);
+  
+  // Validate data structure
+  const isValidData = Array.isArray(data) && data.every(item => 
+    item && 
+    typeof item.id === 'number' && 
+    typeof item.name === 'string' && 
+    typeof item.price === 'number'
+  );
+  
+  console.log("Data validation result:", isValidData);
+  
+  // Use validated data or empty array
+  const tableData = isValidData ? data : [];
   
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
@@ -67,7 +80,7 @@ export function PackagesTable({ data, search, navigate }: DataTableProps) {
   })
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     state: {
       sorting,
@@ -99,21 +112,14 @@ export function PackagesTable({ data, search, navigate }: DataTableProps) {
   console.log("Table rows length:", table.getRowModel().rows?.length);
   console.log("Table column filters:", columnFilters);
   console.log("Table pagination:", pagination);
+  console.log("Table data validation:", { isValidData, originalDataLength: data?.length, tableDataLength: tableData.length });
 
   return (
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
-        filterColumns={[
-          {
-            columnId: 'name',
-            title: 'Name',
-          },
-          {
-            columnId: 'price',
-            title: 'Price',
-          },
-        ]}
+        searchKey="name"
+        searchPlaceholder="Filter packages..."
       />
       <div className="rounded-md border">
         <Table>
@@ -164,7 +170,13 @@ export function PackagesTable({ data, search, navigate }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No packages found.
+                  {!isValidData ? (
+                    <div className="text-red-500">
+                      Invalid data format. Please check the API response.
+                    </div>
+                  ) : (
+                    "No packages found."
+                  )}
                 </TableCell>
               </TableRow>
             )}

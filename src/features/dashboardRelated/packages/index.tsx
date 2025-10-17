@@ -9,7 +9,8 @@ import { PackagesDialogs } from "./components/packages-dialogs";
 import { PackagesProvider } from "./components/packages-provider";
 import { PackagesTable } from "./components/packages-table";
 import { PackagesPrimaryButtons } from "./components/packages-primary-buttons";
-import { useGetProductsQuery, type ProductOutput } from "@/redux/apiSlices/Product/productSlice";
+import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
+import type { ProductOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/packages/");
 
@@ -23,6 +24,12 @@ export function Packages() {
   console.log("isLoading:", isLoading);
   console.log("error:", error);
   console.log("productsData?.data:", productsData?.data);
+  console.log("productsData?.data type:", typeof productsData?.data);
+  console.log("productsData?.data isArray:", Array.isArray(productsData?.data));
+  if (productsData?.data && Array.isArray(productsData.data)) {
+    console.log("First product sample:", productsData.data[0]);
+    console.log("Product keys:", productsData.data[0] ? Object.keys(productsData.data[0]) : 'No products');
+  }
 
   let products: ProductOutput[] = [];
 

@@ -354,6 +354,24 @@ export interface OrderInput {
   user: UserInput;
 }
 
+export interface StripeCheckoutSession {
+  /**
+   * Stripe checkout session URL for payment processing
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  url: string;
+  /**
+   * Stripe checkout session ID
+   * @example "cs_test_123456789"
+   */
+  sessionId: string;
+}
+
+export interface SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId {
+  meta: MetaResponse;
+  data: StripeCheckoutSession;
+}
+
 export interface Badge {
   /**
    * Badge text
@@ -444,11 +462,6 @@ export interface OrderOutput {
 
 export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
   meta: MetaResponse;
-  data: OrderOutput;
-}
-
-export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
-  meta: MetaResponse;
   data: OrderOutput[];
 }
 
@@ -503,6 +516,29 @@ export interface Slot {
 export interface SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning {
   meta: MetaResponse;
   data: Slot;
+}
+
+export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
+  meta: MetaResponse;
+  data: OrderOutput;
+}
+
+export interface StripePaymentIntent {
+  /**
+   * Stripe payment intent client secret for frontend confirmation
+   * @example "pi_123456789_secret_abcdef"
+   */
+  clientSecret: string;
+  /**
+   * Stripe payment intent ID
+   * @example "pi_123456789"
+   */
+  paymentIntentId: string;
+}
+
+export interface SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId {
+  meta: MetaResponse;
+  data: StripePaymentIntent;
 }
 
 export interface ProductOutput {

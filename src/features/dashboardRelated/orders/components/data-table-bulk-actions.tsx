@@ -10,7 +10,8 @@ import {
   TooltipTrigger,
 } from '@/components/dashboard/ui/tooltip'
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/dashboard/data-table'
-import { type OrderOutput, useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import {  useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 import { OrdersMultiDeleteDialog } from './orders-multi-delete-dialog'
 
 type DataTableBulkActionsProps<TData> = {

@@ -88,6 +88,16 @@ export const packagesColumns: ColumnDef<ProductOutput>[] = [
     },
   },
   {
+    accessorKey: 'sessions',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Sessions' />
+    ),
+    cell: ({ row }) => {
+      const sessions = row.getValue('sessions') as number
+      return <div className='font-medium'>{sessions}</div>
+    },
+  },
+  {
     accessorKey: 'Duration',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Duration' />

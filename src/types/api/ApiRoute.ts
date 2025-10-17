@@ -23,6 +23,8 @@ import {
   SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning,
+  SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId,
+  SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount,
   UpdateProductInput,
   UpdateUserInput,
@@ -227,7 +229,7 @@ export namespace Api {
     export type RequestBody = OrderInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
+      SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId;
   }
 
   /**
@@ -367,7 +369,8 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId;
   }
 
   /**
@@ -384,7 +387,8 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId;
   }
 
   /**

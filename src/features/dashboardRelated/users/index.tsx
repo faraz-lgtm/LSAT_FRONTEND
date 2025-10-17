@@ -9,11 +9,12 @@ import { UsersDialogs } from "./components/users-dialogs";
 import { UsersPrimaryButtons } from "./components/users-primary-buttons";
 import { UsersProvider } from "./components/users-provider";
 import { UsersTable } from "./components/users-table";
-import { useGetUsersQuery, type UserOutput } from "@/redux/apiSlices/User/userSlice";
+import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { filterUsersByRole } from "@/utils/rbac";
 import { convertAuthUserToIUser } from "@/utils/authUserConverter";
+import type { UserOutput } from "@/types/api/data-contracts";
 // import { users } from './data/users'
 
 const route = getRouteApi("/_authenticated/users/");

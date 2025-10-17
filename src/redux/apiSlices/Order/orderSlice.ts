@@ -2,8 +2,7 @@ import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
-import type { StripeOrderResponse } from "./types/orderPost.type";
-import type { GetOrdersQueryParams, OrderOutput, Slot, SlotsQueryDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, Slot, SlotsQueryDto, StripeCheckoutSession } from "@/types/api/data-contracts";
 
 // Order interfaces based on API structure
 // export interface ItemOutput {
@@ -121,7 +120,7 @@ export const ordersApi = api.injectEndpoints({
 
     //Mutations
     createOrder: builder.mutation<
-      BaseApiResponse<StripeOrderResponse>, // 👈 replace `any` with your API response type
+      BaseApiResponse<StripeCheckoutSession>, // 👈 replace `any` with your API response type
       { items: CartItem[]; user: InformationState } // 👈 request body type
     >({
       query: (orderData) => ({

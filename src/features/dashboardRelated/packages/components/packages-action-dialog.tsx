@@ -1,8 +1,5 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from 'sonner'
+import { Badge } from '@/components/dashboard/ui/badge'
+import { Button } from '@/components/dashboard/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -21,14 +18,16 @@ import {
 } from '@/components/dashboard/ui/form'
 import { Input } from '@/components/dashboard/ui/input'
 import { Textarea } from '@/components/dashboard/ui/textarea'
-import { Button } from '@/components/dashboard/ui/button'
-import { Badge } from '@/components/dashboard/ui/badge'
-import { X } from 'lucide-react'
-import type { ProductOutput, CreateProductInput, UpdateProductInput } from '@/types/api/data-contracts'
-import { 
-  useCreateProductMutation, 
-  useUpdateProductMutation 
+import {
+  useCreateProductMutation,
+  useUpdateProductMutation
 } from '@/redux/apiSlices/Product/productSlice'
+import type { CreateProductInput, ProductOutput, UpdateProductInput } from '@/types/api/data-contracts'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -126,6 +125,7 @@ export function PackagesActionDialog({
 
       form.reset()
       onOpenChange(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error:', error)
       toast.error(error?.data?.error?.message || `Failed to ${isEdit ? 'update' : 'create'} package`)

@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import { Badge } from '@/components/dashboard/ui/badge'
-import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 
 type OrdersViewDialogProps = {
   currentRow: OrderOutput

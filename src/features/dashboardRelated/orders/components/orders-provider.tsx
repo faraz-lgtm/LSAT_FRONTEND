@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import useDialogState from '@/hooks/dashboardRelated/use-dialog-state'
-import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 
 type OrdersDialogType = 'view' | 'delete'
 

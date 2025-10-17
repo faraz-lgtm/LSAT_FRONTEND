@@ -8,7 +8,8 @@ import { ThemeSwitch } from "@/components/dashboard/theme-switch";
 import { OrdersDialogs } from "./components/orders-dialogs";
 import { OrdersProvider } from "./components/orders-provider";
 import { OrdersTable } from "./components/orders-table";
-import { useGetOrdersQuery, type OrderOutput } from "@/redux/apiSlices/Order/orderSlice";
+import { useGetOrdersQuery } from "@/redux/apiSlices/Order/orderSlice";
+import type { OrderOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/orders/");
 
