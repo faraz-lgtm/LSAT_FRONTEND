@@ -226,9 +226,17 @@ if (ENV !== "DEVELOPMENT") {
   sidebarData.navGroups = sidebarData.navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) =>
-        ["/", "/users", "/orders", "/calendar", cartUrl].includes(item.url)
-      ),
+      items: group.items.filter((item) => {
+        // Allow items with direct URLs
+        if (item.url && ["/", "/users", "/orders", "/calendar", "/packages","/help-center", cartUrl].includes(item.url)) {
+          return true;
+        }
+        // Allow Settings (collapsible item without direct URL)
+        if (item.title === "Settings") {
+          return true;
+        }
+        return false;
+      }),
     }))
     .filter((group) => group.items.length > 0);
 }
