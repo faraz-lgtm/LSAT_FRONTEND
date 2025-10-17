@@ -11,17 +11,22 @@
  */
 
 import {
+  CreateProductInput,
   LoginInput,
   OrderInput,
   RefreshTokenInput,
   RegisterInput,
   SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken,
+  SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt,
   SwaggerBaseApiResponseForClassLoginOutputAuthUser,
-  SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems,
+  SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus,
+  SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning,
-  SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours,
+  SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount,
+  UpdateProductInput,
   UpdateUserInput,
+  UserInput,
 } from "./data-contracts";
 
 export namespace Api {
@@ -65,7 +70,23 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
+  }
+
+  /**
+   * @description Public endpoint to get existing customer by email or create a new one
+   * @tags users
+   * @name UserControllerGetOrCreateCustomer
+   * @summary Get or create customer API
+   * @request POST:/api/v1/users/get-or-create-customer
+   */
+  export namespace UserControllerGetOrCreateCustomer {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = UserInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt;
   }
 
   /**
@@ -87,7 +108,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
   }
 
   /**
@@ -105,7 +126,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
   }
 
   /**
@@ -124,7 +145,7 @@ export namespace Api {
     export type RequestBody = UpdateUserInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
   }
 
   /**
@@ -206,7 +227,7 @@ export namespace Api {
     export type RequestBody = OrderInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems;
+      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
   }
 
   /**
@@ -230,7 +251,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems;
+      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
   }
 
   /**
@@ -293,7 +314,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems;
+      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
   }
 
   /**
@@ -407,6 +428,106 @@ export namespace Api {
    */
   export namespace OrderControllerGetReservationStats {
     export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieve a list of all available products. This endpoint is public and does not require authentication.
+   * @tags products
+   * @name ProductControllerFindAll
+   * @summary Get all products
+   * @request GET:/api/v1/products
+   */
+  export namespace ProductControllerFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+  }
+
+  /**
+   * @description Create a new product. This endpoint requires admin authentication.
+   * @tags products
+   * @name ProductControllerCreate
+   * @summary Create a new product
+   * @request POST:/api/v1/products
+   * @secure
+   */
+  export namespace ProductControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateProductInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+  }
+
+  /**
+   * @description Retrieve a specific product by its ID. This endpoint is public and does not require authentication.
+   * @tags products
+   * @name ProductControllerFindOne
+   * @summary Get product by ID
+   * @request GET:/api/v1/products/{id}
+   */
+  export namespace ProductControllerFindOne {
+    export type RequestParams = {
+      /**
+       * Product ID
+       * @example 5
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+  }
+
+  /**
+   * @description Update an existing product. This endpoint requires admin authentication.
+   * @tags products
+   * @name ProductControllerUpdate
+   * @summary Update a product
+   * @request PATCH:/api/v1/products/{id}
+   * @secure
+   */
+  export namespace ProductControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Product ID
+       * @example 5
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateProductInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+  }
+
+  /**
+   * @description Delete a product. This endpoint requires admin authentication.
+   * @tags products
+   * @name ProductControllerDelete
+   * @summary Delete a product
+   * @request DELETE:/api/v1/products/{id}
+   * @secure
+   */
+  export namespace ProductControllerDelete {
+    export type RequestParams = {
+      /**
+       * Product ID
+       * @example 5
+       */
+      id: number;
+    };
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};

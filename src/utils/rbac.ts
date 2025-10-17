@@ -1,5 +1,5 @@
 import { ROLE } from '@/constants/roles'
-import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/types/api/data-contracts'
 
 /**
  * Check if current user can edit/delete a target user based on role-based access control

@@ -1,7 +1,8 @@
-import { decreaseQuantity, increaseQuantity } from "@/redux/cartSlice";
+import { decreaseQuantity, increaseQuantityAsync } from "@/redux/cartSlice";
 import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/redux/store";
 
 interface QuantityControllerProps {
   initial?: number;
@@ -10,11 +11,11 @@ interface QuantityControllerProps {
 
 const QuantityController: React.FC<QuantityControllerProps> = ({ initial = 1 ,id}) => {
 
-  const dispatch = useDispatch();
-
+  const dispatch = useDispatch<AppDispatch>();
+  const { isLoading } = useSelector((state: RootState) => state.cart);
 
   const handleIncreaseQuantity = (id:number) => {
-    dispatch(increaseQuantity(id));
+    dispatch(increaseQuantityAsync(id));
   };
   const handleDecreaseQuantity = (id:number) => {
     dispatch(decreaseQuantity(id));
@@ -37,19 +38,31 @@ const QuantityController: React.FC<QuantityControllerProps> = ({ initial = 1 ,id
       <button
         type="button"
         onClick={() => updateQuantity(quantity - 1,false,true)}
-        className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100"
+        disabled={isLoading}
+        className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
+          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
-        <Minus size={16} />
+        <Minus size={14} className="text-gray-600 dark:text-gray-300" />
       </button>
 
-      <span className="w-8 text-center font-medium">{quantity}</span>
+      <span className="w-10 text-center font-semibold text-gray-900 dark:text-white">
+        {quantity}
+      </span>
 
       <button
         type="button"
         onClick={() => updateQuantity(quantity + 1,true,false)}
-        className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100"
+        disabled={isLoading}
+        className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
+          isLoading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
-        <Plus size={16} />
+        {isLoading ? (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+        ) : (
+          <Plus size={14} className="text-gray-600 dark:text-gray-300" />
+        )}
       </button>
     </div>
   );

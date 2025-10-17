@@ -25,7 +25,7 @@ import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/da
 import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
-import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/types/api/data-contracts'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -67,6 +67,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       { columnId: 'username', searchKey: 'username', type: 'string' },
       { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' },
       { columnId: 'roles', searchKey: 'roles', type: 'array' },
+      { columnId: 'ordersCount', searchKey: 'leads', type: 'array' },
     ],
   })
 
@@ -118,6 +119,14 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
             title: 'Roles',
             options: roles.map((role) => ({ ...role })),
           },
+          {
+            columnId: 'ordersCount',
+            title: 'Customer Type',
+            options: [
+              { label: 'Leads', value: 'leads' },
+              { label: 'Customers', value: 'customers' },
+            ],
+          },
         ]}
       />
       <div className='overflow-hidden rounded-md border'>
@@ -131,7 +140,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted text-left',
                         header.column.columnDef.meta?.className ?? ''
                       )}
                     >
@@ -159,7 +168,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted text-left',
                         cell.column.columnDef.meta?.className ?? ''
                       )}
                     >

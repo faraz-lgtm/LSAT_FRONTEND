@@ -10,6 +10,24 @@
  * ---------------------------------------------------------------
  */
 
+export interface MetaResponse {
+  /**
+   * Current page number
+   * @example 1
+   */
+  page?: number;
+  /**
+   * Number of items per page
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Total number of items
+   * @example 100
+   */
+  total?: number;
+}
+
 export interface UserOutput {
   id: number;
   name: string;
@@ -29,10 +47,15 @@ export interface UserOutput {
    * @example {"Monday":["09:00-17:00"],"Tuesday":["09:00-17:00"]}
    */
   workHours?: Record<string, string[]>;
+  /**
+   * Total count of orders for this user
+   * @example 5
+   */
+  ordersCount: number;
 }
 
-export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours {
-  meta: object;
+export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount {
+  meta: MetaResponse;
   data: UserOutput;
 }
 
@@ -51,8 +74,52 @@ export interface BaseApiErrorResponse {
   error: BaseApiErrorObject;
 }
 
-export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHours {
-  meta: object;
+export interface UserInput {
+  /**
+   * First name
+   * @example "John"
+   */
+  firstName: string;
+  /**
+   * Last name
+   * @example "Doe"
+   */
+  lastName: string;
+  /**
+   * Email
+   * @example "john.doe@example.com"
+   */
+  email: string;
+  /**
+   * Phone number
+   * @example "+1234567890"
+   */
+  phone: string;
+}
+
+export interface BaseUserOutput {
+  id: number;
+  name: string;
+  username: string;
+  /**
+   * User roles
+   * @example ["USER"]
+   */
+  roles: ("USER" | "ADMIN" | "CUST")[];
+  email: string;
+  isAccountDisabled: boolean;
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt {
+  meta: MetaResponse;
+  data: BaseUserOutput;
+}
+
+export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount {
+  meta: MetaResponse;
   data: UserOutput[];
 }
 
@@ -140,7 +207,7 @@ export interface LoginOutput {
 }
 
 export interface SwaggerBaseApiResponseForClassLoginOutputAuthUser {
-  meta: object;
+  meta: MetaResponse;
   data: LoginOutput;
 }
 
@@ -179,7 +246,7 @@ export interface RegisterOutput {
 }
 
 export interface SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput {
-  meta: object;
+  meta: MetaResponse;
   data: RegisterOutput;
 }
 
@@ -188,7 +255,7 @@ export interface RefreshTokenInput {
 }
 
 export interface SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken {
-  meta: object;
+  meta: MetaResponse;
   data: AuthTokenOutput;
 }
 
@@ -271,33 +338,15 @@ export interface ItemInput {
    */
   quantity: number;
   /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
    * ID of assigned employee
    * @example 5
    */
   assignedEmployeeId?: number;
-}
-
-export interface UserInput {
-  /**
-   * First name
-   * @example "John"
-   */
-  firstName: string;
-  /**
-   * Last name
-   * @example "Doe"
-   */
-  lastName: string;
-  /**
-   * Email
-   * @example "john.doe@example.com"
-   */
-  email: string;
-  /**
-   * Phone number
-   * @example "+1234567890"
-   */
-  phone: string;
 }
 
 export interface OrderInput {
@@ -344,6 +393,11 @@ export interface ItemOutput {
   /** Optional save discount number */
   save?: number;
   /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
    * Item description
    * @example "Comprehensive prep session"
    */
@@ -375,15 +429,26 @@ export interface OrderOutput {
   customer: UserOutput;
   /** Order items */
   items: ItemOutput[];
+  /**
+   * Slot reservation expiration timestamp
+   * @format date-time
+   * @example "2024-01-15T14:30:00.000Z"
+   */
+  slot_reservation_expires_at?: string | null;
+  /**
+   * Slot reservation status indicating the current state of the reservation
+   * @example "RESERVED"
+   */
+  slot_reservation_status?: "RESERVED" | "CONFIRMED" | "EXPIRED" | null;
 }
 
-export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems {
-  meta: object;
+export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
+  meta: MetaResponse;
   data: OrderOutput;
 }
 
-export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItems {
-  meta: object;
+export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
+  meta: MetaResponse;
   data: OrderOutput[];
 }
 
@@ -436,6 +501,164 @@ export interface Slot {
 }
 
 export interface SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning {
-  meta: object;
+  meta: MetaResponse;
   data: Slot;
+}
+
+export interface ProductOutput {
+  /**
+   * Product ID
+   * @example 5
+   */
+  id: number;
+  /**
+   * Product name
+   * @example "60-Minute Single Prep"
+   */
+  name: string;
+  /**
+   * Product price in dollars
+   * @example 125
+   */
+  price: number;
+  /**
+   * Savings amount in dollars (optional)
+   * @default 0
+   * @example 75
+   */
+  save?: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * Session duration
+   * @example "Unlimited"
+   */
+  Duration: string;
+  /**
+   * Product description
+   * @example "Need flexibility? Book individual LSAT tutoring sessions as you go"
+   */
+  Description: string;
+  /**
+   * Optional badge information
+   * @example {"text":"Most Popular","color":"bg-blue-600"}
+   */
+  badge?: Badge;
+  /**
+   * Product creation timestamp
+   * @example "2025-01-15T10:30:00Z"
+   */
+  createdAt: string;
+  /**
+   * Product last update timestamp
+   * @example "2025-01-15T10:30:00Z"
+   */
+  updatedAt: string;
+}
+
+export interface SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt {
+  meta: MetaResponse;
+  data: ProductOutput[];
+}
+
+export interface SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt {
+  meta: MetaResponse;
+  data: ProductOutput;
+}
+
+export interface CreateProductInput {
+  /**
+   * Product name
+   * @example "60-Minute Single Prep"
+   */
+  name: string;
+  /**
+   * Product price in dollars
+   * @min 0
+   * @example 125
+   */
+  price: number;
+  /**
+   * Savings amount in dollars (optional)
+   * @min 0
+   * @default 0
+   * @example 75
+   */
+  save?: number;
+  /**
+   * Session duration
+   * @example "Unlimited"
+   */
+  Duration: string;
+  /**
+   * Number of sessions included
+   * @min 1
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * Product description
+   * @example "Need flexibility? Book individual LSAT tutoring sessions as you go"
+   */
+  Description: string;
+  /**
+   * Optional badge information
+   * @example {"text":"Most Popular","color":"bg-blue-600"}
+   */
+  badge?: {
+    /** @example "Most Popular" */
+    text?: string;
+    /** @example "bg-blue-600" */
+    color?: string;
+  };
+}
+
+export interface UpdateProductInput {
+  /**
+   * Product name
+   * @example "60-Minute Single Prep"
+   */
+  name?: string;
+  /**
+   * Product price in dollars
+   * @min 0
+   * @example 125
+   */
+  price?: number;
+  /**
+   * Savings amount in dollars (optional)
+   * @min 0
+   * @default 0
+   * @example 75
+   */
+  save?: number;
+  /**
+   * Session duration
+   * @example "Unlimited"
+   */
+  Duration?: string;
+  /**
+   * Number of sessions included
+   * @min 1
+   * @example 1
+   */
+  sessions?: number;
+  /**
+   * Product description
+   * @example "Need flexibility? Book individual LSAT tutoring sessions as you go"
+   */
+  Description?: string;
+  /**
+   * Optional badge information
+   * @example {"text":"Most Popular","color":"bg-blue-600"}
+   */
+  badge?: {
+    /** @example "Most Popular" */
+    text?: string;
+    /** @example "bg-blue-600" */
+    color?: string;
+  };
 }

@@ -5,8 +5,9 @@ import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { LongText } from '@/components/dashboard/long-text'
 import { roles } from '../data/data'
-import { type UserOutput } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
+import { ClickableOrderBadge } from './clickable-order-badge'
 
 export const usersColumns: ColumnDef<UserOutput>[] = [
   {
@@ -39,7 +40,9 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
   {
     accessorKey: 'username',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Username' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Username' />
+      </div>
     ),
     cell: ({ row }) => (
       <LongText className='max-w-36 ps-3'>{row.getValue('username')}</LongText>
@@ -55,7 +58,9 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
   {
     accessorKey: 'name',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Name' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Name' />
+      </div>
     ),
     cell: ({ row }) => (
       <LongText className='max-w-36'>{row.getValue('name')}</LongText>
@@ -65,24 +70,56 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
   {
     accessorKey: 'email',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Email' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Email' />
+      </div>
     ),
     cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.getValue('email')}</div>
+      <div className='w-fit text-nowrap text-left'>{row.getValue('email')}</div>
     ),
   },
   {
     accessorKey: 'phone',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Phone Number' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Phone Number' />
+      </div>
     ),
-    cell: ({ row }) => <div>{row.getValue('phone')}</div>,
+    cell: ({ row }) => <div className='text-left'>{row.getValue('phone')}</div>,
     enableSorting: false,
+  },
+  {
+    accessorKey: 'ordersCount',
+    header: ({ column }) => (
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Orders' />
+      </div>
+    ),
+    cell: ({ row }) => {
+      const ordersCount = row.getValue('ordersCount') as number
+      const user = row.original
+      
+      return <ClickableOrderBadge user={user} ordersCount={ordersCount} />
+    },
+    filterFn: (row, id, value) => {
+      const ordersCount = row.getValue(id) as number
+      const userRoles = row.getValue('roles') as string[]
+      const isLead = ordersCount === 0 && userRoles.includes('CUST')
+      const isCustomer = ordersCount > 0 && userRoles.includes('CUST')
+      
+      if (value.includes('leads') && isLead) return true
+      if (value.includes('customers') && isCustomer) return true
+      return false
+    },
+    enableSorting: true,
+    enableHiding: false,
   },
   {
     accessorKey: 'isAccountDisabled',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Status' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Status' />
+      </div>
     ),
     cell: ({ row }) => {
       const isDisabled = row.getValue('isAccountDisabled') as boolean
@@ -92,7 +129,7 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
         : 'bg-teal-100/30 text-teal-900 dark:text-teal-200 border-teal-200'
       
       return (
-        <div className='flex space-x-2'>
+        <div className='flex space-x-2 justify-start'>
           <Badge variant='outline' className={cn('capitalize', badgeColor)}>
             {status}
           </Badge>
@@ -110,17 +147,19 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
   {
     accessorKey: 'roles',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Roles' />
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Roles' />
+      </div>
     ),
     cell: ({ row }) => {
       const userRoles = row.getValue('roles') as string[]
       
       if (!userRoles || userRoles.length === 0) {
-        return <span className='text-sm text-muted-foreground'>No roles</span>
+        return <span className='text-sm text-muted-foreground text-left'>No roles</span>
       }
 
       return (
-        <div className='flex flex-wrap gap-1'>
+        <div className='flex flex-wrap gap-1 justify-start'>
           {userRoles.map((role, index) => {
             const userType = roles.find(({ value }) => value === role.toLowerCase())
             

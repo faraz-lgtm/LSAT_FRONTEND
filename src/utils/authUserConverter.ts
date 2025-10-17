@@ -1,5 +1,5 @@
 import type { AuthUser } from '@/redux/authSlice'
-import type { UserOutput } from '@/redux/apiSlices/User/userSlice'
+import type { UserOutput } from '@/types/api/data-contracts'
 
 /**
  * Convert AuthUser from auth state to UserOutput format for RBAC functions
@@ -23,5 +23,6 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | 
     phone: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    ordersCount: 0, // AuthUser doesn't have orders data, default to 0
   }
 }

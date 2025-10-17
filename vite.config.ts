@@ -16,6 +16,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: [
+      'lecia-subaerial-dingily.ngrok-free.dev' //ngroks
+    ]
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

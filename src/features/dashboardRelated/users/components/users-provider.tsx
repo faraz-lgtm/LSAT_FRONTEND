@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import useDialogState from '@/hooks/dashboardRelated/use-dialog-state'
-import { type UserOutput } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/types/api/data-contracts'
 
 type UsersDialogType = 'invite' | 'add' | 'edit' | 'delete'
 

@@ -4,7 +4,7 @@ import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { LongText } from '@/components/dashboard/long-text'
-import { type OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 
 export const ordersColumns: ColumnDef<OrderOutput>[] = [
@@ -66,6 +66,19 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
         </div>
       )
     },
+    filterFn: (row, _id, value) => {
+      const customer = row.original.customer
+      const searchValue = value.toLowerCase()
+      
+      // Search in customer name, email, and phone
+      return (
+        customer.name.toLowerCase().includes(searchValue) ||
+        customer.email.toLowerCase().includes(searchValue) ||
+        customer.phone.toLowerCase().includes(searchValue) ||
+        // Also search for partial matches in name and email combined
+        `${customer.name} ${customer.email}`.toLowerCase().includes(searchValue)
+      )
+    },
     meta: { className: 'w-40' },
   },
   {
@@ -119,33 +132,47 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
     enableSorting: false,
   },
   {
-    id: 'customerStatus',
-    accessorKey: 'customer',
+    id: 'orderStatus',
+    accessorKey: 'slot_reservation_status',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Customer Status' />
+      <DataTableColumnHeader column={column} title='Reservation Status' />
     ),
     cell: ({ row }) => {
-      const isDisabled = row.original.customer.isAccountDisabled
-      const status = isDisabled ? 'disabled' : 'active'
-      const badgeColor = isDisabled 
-        ? 'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10'
-        : 'bg-teal-100/30 text-teal-900 dark:text-teal-200 border-teal-200'
+      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
+      
+      if (!status) {
+        return (
+          <div className='flex space-x-2 justify-start'>
+            <Badge variant='outline' className='bg-gray-100/30 text-gray-900 dark:text-gray-200 border-gray-200'>
+              No Status
+            </Badge>
+          </div>
+        )
+      }
+      
+      const statusColors = {
+        RESERVED: 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200',
+        CONFIRMED: 'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
+        EXPIRED: 'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200',
+      }
       
       return (
-        <div className='flex space-x-2'>
-          <Badge variant='outline' className={cn('capitalize', badgeColor)}>
-            {status}
+        <div className='flex space-x-2 justify-start'>
+          <Badge variant='outline' className={cn('capitalize', statusColors[status])}>
+            {status.toLowerCase()}
           </Badge>
         </div>
       )
     },
     filterFn: (row, _id, value) => {
-      const isDisabled = row.original.customer.isAccountDisabled
-      const status = isDisabled ? 'disabled' : 'active'
-      return value.includes(status)
+      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
+      if (!status) {
+        return value.includes('no-status')
+      }
+      return value.includes(status.toLowerCase())
     },
-    enableHiding: false,
     enableSorting: false,
+    enableHiding: false,
   },
   {
     id: 'actions',

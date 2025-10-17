@@ -32,7 +32,8 @@ import { getAvailableRolesForNewUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 import { toast } from 'sonner';
 import PhoneInput from "react-phone-input-2";
-import { useUpdateUserMutation, type UserOutput } from '@/redux/apiSlices/User/userSlice'
+import { useUpdateUserMutation } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/types/api/data-contracts'
 import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
 
 

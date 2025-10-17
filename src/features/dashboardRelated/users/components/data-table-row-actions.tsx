@@ -10,7 +10,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
-import { type UserOutput } from '@/redux/apiSlices/User/userSlice'
+import { type UserOutput } from '@/types/api/data-contracts'
 import { useUsers } from './users-provider'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'

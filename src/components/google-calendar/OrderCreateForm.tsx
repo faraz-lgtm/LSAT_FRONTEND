@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, User, Package } from 'lucide-react';
-import { products } from '@/constants/products';
+import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice';
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice';
 import { useCreateOrderMutation } from '@/redux/apiSlices/Order/orderSlice';
 import { OrderSuccessModal } from '@/components/google-calendar/OrderSuccessModal';
@@ -60,6 +60,26 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
 
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Get products from API
+  const { data: productsData, isSuccess: productsSuccess } = useGetProductsQuery();
+  const products = productsSuccess && productsData ? productsData.data : [];
+
+  // Utility function to convert ProductOutput to Product for cart compatibility
+//   const convertProductOutputToProduct = (productOutput: any) => {
+//     return {
+//       id: productOutput.id,
+//       name: productOutput.name,
+//       price: productOutput.price,
+//       save: productOutput.save || 0,
+//       Duration: productOutput.Duration,
+//       Description: productOutput.Description,
+//       badge: productOutput.badge,
+//       DateTime: [],
+//       quantity: 1,
+//       assignedEmployeeId: 1,
+//     };
+//   };
   const [orderResult, setOrderResult] = useState<{
     data: {
       url: string;
@@ -185,6 +205,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
           DateTime: formData.selectedSlots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()),
           quantity: 1,
           assignedEmployeeId: -1,
+          sessions: selectedPackage.sessions,
         }],
         user: formData.customerId 
           ? (() => {

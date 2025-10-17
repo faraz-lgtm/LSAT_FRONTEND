@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run typegen && vite",
     "build:local": "npm run typegen && ./node_modules/.bin/tsc -b && vite build",
-    "build": "npm run typegen && tsc -b && vite build",
+    "build": "tsc -b && vite build",
     "typeCheck": "./node_modules/.bin/tsc --noEmit",
     "typegen": "swagger-typescript-api generate -p http://localhost:3000/swagger-json -o ./src/types/api -n api.ts --modular --route-types --no-client",
     "lint": "eslint .",

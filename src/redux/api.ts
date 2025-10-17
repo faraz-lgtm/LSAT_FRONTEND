@@ -254,6 +254,6 @@ async function performTokenRefresh(refreshToken: string): Promise<RefreshTokenRe
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders", "Users", "AvailableSlots"],
+  tagTypes: ["Orders", "Users", "AvailableSlots", "Products"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

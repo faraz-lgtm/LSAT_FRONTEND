@@ -24,7 +24,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { ordersColumns as columns } from './orders-columns'
-import type { OrderOutput } from '@/redux/apiSlices/Order/orderSlice'
+import type { OrderOutput } from '@/types/api/data-contracts'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -61,9 +61,8 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      // Temporarily disable filters to debug
-      // { columnId: 'customer', searchKey: 'customer', type: 'string' },
-      // { columnId: 'customerStatus', searchKey: 'status', type: 'array' },
+      { columnId: 'customer', searchKey: 'customer', type: 'string' },
+      { columnId: 'orderStatus', searchKey: 'orderStatus', type: 'array' },
     ],
   })
 
@@ -105,18 +104,19 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter orders...'
+        searchPlaceholder='Search by customer name, email, or phone...'
         searchKey='customer'
         filters={[
-          // Temporarily disable filters to debug
-          // {
-          //   columnId: 'customerStatus',
-          //   title: 'Customer Status',
-          //   options: [
-          //     { label: 'Active', value: 'active' },
-          //     { label: 'Disabled', value: 'disabled' },
-          //   ],
-          // },
+          {
+            columnId: 'orderStatus',
+            title: 'Reservation Status',
+            options: [
+              { label: 'Reserved', value: 'reserved' },
+              { label: 'Confirmed', value: 'confirmed' },
+              { label: 'Expired', value: 'expired' },
+              { label: 'No Status', value: 'no-status' },
+            ],
+          },
         ]}
       />
       <div className='overflow-hidden rounded-md border'>

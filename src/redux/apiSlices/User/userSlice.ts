@@ -1,6 +1,6 @@
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { UpdateUserInput, UserOutput } from "@/types/api/data-contracts";
+import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput } from "@/types/api/data-contracts";
 
 // export interface UserOutput{
 //     id: number;
@@ -47,8 +47,17 @@ export const usersApi=api.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: ['Users'],
+    }),
+    
+    getOrCreateCustomer: builder.mutation<BaseApiResponse<BaseUserOutput>, UserInput>({
+      query: (userData) => ({
+        url: '/users/get-or-create-customer',
+        method: 'POST',
+        body: userData,
+      }),
+      invalidatesTags: ['Users'],
     })
   }),
 })
 
-export const { useGetUsersQuery, useUpdateUserMutation, useDeleteUserMutation } = usersApi;
+export const { useGetUsersQuery, useUpdateUserMutation, useDeleteUserMutation, useGetOrCreateCustomerMutation } = usersApi;

@@ -164,6 +164,10 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
                                 ))}
                               </SelectContent>
                             </Select>
+                            
+                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md font-medium">
+                              UTC
+                            </span>
                           </div>
                           
                           {timeSlots.length > 1 && (

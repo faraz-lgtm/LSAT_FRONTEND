@@ -2,6 +2,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { ThemeSwitch } from "../components/dashboard/theme-switch";
+import { Logo } from "../assets/logo";
 
 const Layout = () => {
   const { items } = useSelector((state: RootState) => state.cart);
@@ -11,8 +12,9 @@ const Layout = () => {
     <div className="min-h-screen flex flex-col">
       {/* Header / Cart bar */}
       <header className="bg-gray-800 dark:bg-gray-900 text-white p-4 flex justify-between items-center">
-        <Link to="/" className="text-lg font-bold">
-          🛒 My Shop
+        <Link to="/" className="flex items-center space-x-3 text-lg font-bold">
+          <Logo className="text-white" />
+          <span>Better LSAT MCAT</span>
         </Link>
         <div className="flex items-center space-x-4">
           <Link to="/cart" className="hover:underline">
@@ -30,7 +32,7 @@ const Layout = () => {
 
       {/* Footer */}
       <footer className="bg-gray-200 dark:bg-gray-800 p-4 text-center text-gray-800 dark:text-gray-200">
-        © {new Date().getFullYear()} My Shop
+        © {new Date().getFullYear()} Better LSAT MCAT
       </footer>
     </div>
   );

@@ -12,9 +12,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { products } from "@/constants/products";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Edit } from "lucide-react";
 import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
 import type { RootState } from "../../redux/store";
 
@@ -31,7 +30,7 @@ export function DateTimePicker({
   onChange,
 }: {
   value?: Date | undefined;
-  packageId: (typeof products)[number]["id"];
+  packageId: number;
   onChange: (date: Date) => void;
 }) {
 
@@ -200,30 +199,35 @@ export function DateTimePicker({
   // };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full sm:w-60 justify-start text-left font-normal",
-            !date && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-3 h-4 w-4" />
+    <div className="flex items-center gap-2">
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "flex-1 justify-start text-left font-normal text-xs sm:text-sm min-w-0",
+              !date && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
 
-          {date && date instanceof Date ? (
-            selectedSlot ? (
-              format(new Date(date.getFullYear(), date.getMonth(), date.getDate(), selectedSlot.start.getHours(), selectedSlot.start.getMinutes()), "MM/dd/yyyy hh:mm aa")
+            {date && date instanceof Date ? (
+              selectedSlot ? (
+                <span className="truncate">
+                  {format(new Date(date.getFullYear(), date.getMonth(), date.getDate(), selectedSlot.start.getHours(), selectedSlot.start.getMinutes()), "MM/dd/yyyy hh:mm aa")}
+                </span>
+              ) : (
+                <span className="truncate">
+                  {format(date, "MM/dd/yyyy")}
+                </span>
+              )
             ) : (
-              format(date, "MM/dd/yyyy")
-            )
-          ) : (
-            <span>MM/DD/YYYY hh:mm aa</span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <div className="sm:flex">
+              <span className="truncate">MM/DD/YYYY hh:mm aa</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 max-w-[90vw] sm:max-w-none">
+        <div className="flex flex-col sm:flex-row">
           <Calendar
             mode="single"
             selected={date}
@@ -254,9 +258,9 @@ export function DateTimePicker({
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
             {availableSlots.length === 0 && !slotsLoading ? (
-              <div className="col-span-3 p-4 text-center text-gray-500">
+              <div className="col-span-2 sm:col-span-3 p-4 text-center text-gray-500">
                 No available slots for this date
               </div>
             ) : (
@@ -271,7 +275,7 @@ export function DateTimePicker({
                   variant={isSelected ? "default" : "ghost"}
                   style={{ backgroundColor: isSelected ? "blue" : "white" }}
                   onClick={() => handleSlotSelect(slot)}
-                  className="justify-center"
+                  className="justify-center text-xs sm:text-sm"
                 >
                   {slot.label}
                  </Button>
@@ -349,5 +353,16 @@ export function DateTimePicker({
         </div>
       </PopoverContent>
     </Popover>
+    {date && (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className="h-8 w-8 p-0 flex-shrink-0 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
+      >
+        <Edit className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+      </Button>
+    )}
+    </div>
   );
 }

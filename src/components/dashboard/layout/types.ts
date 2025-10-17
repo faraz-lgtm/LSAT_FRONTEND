@@ -36,7 +36,7 @@ type NavGroup = {
 }
 
 type SidebarData = {
-  user: User
+  user?: User // Optional since NavUser now gets data from Redux
   teams: Team[]
   navGroups: NavGroup[]
 }

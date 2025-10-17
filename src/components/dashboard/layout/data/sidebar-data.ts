@@ -22,17 +22,14 @@ import {
   GalleryVerticalEnd,
   Calendar,
   ShoppingCart,
+  ShoppingBag,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
 const ENV = import.meta.env.VITE_ENV;
 
 const sidebarData: SidebarData = {
-  user: {
-    name: "satnaing",
-    email: "satnaingdev@gmail.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  // user field removed - now handled by NavUser component via Redux
   teams: [
     {
       name: "BetterLSAT",
@@ -79,6 +76,16 @@ const sidebarData: SidebarData = {
           title: "Orders",
           url: "/orders",
           icon: ShoppingCart,
+        },
+        {
+          title: "Cart",
+          url: import.meta.env.VITE_CART_ || "/cart",
+          icon: ShoppingBag,
+        },
+        {
+          title: "Packages",
+          url: "/packages",
+          icon: Package,
         },
         {
           title: "Calendar",
@@ -215,11 +222,12 @@ console.log("ENV", ENV);
 
 if (ENV !== "DEVELOPMENT") {
   // Filter navGroups to only show production-ready pages
+  const cartUrl = import.meta.env.VITE_CART_ || "http://booking.betterlsat.com"
   sidebarData.navGroups = sidebarData.navGroups
     .map((group) => ({
       ...group,
       items: group.items.filter((item) =>
-        ["/", "/users", "/orders", "/calendar"].includes(item.url)
+        ["/", "/users", "/orders", "/calendar", cartUrl].includes(item.url)
       ),
     }))
     .filter((group) => group.items.length > 0);

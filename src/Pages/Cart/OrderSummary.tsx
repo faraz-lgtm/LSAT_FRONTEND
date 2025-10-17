@@ -8,58 +8,73 @@ const OrderSummary = ({totalPrice}:OrderSummaryProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full bg-blue-600 text-white rounded-xl p-6 shadow-lg">
-      <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+    <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-xl">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <span className="text-lg">📋</span>
+        </div>
+        <h3 className="text-xl font-bold">Order Summary</h3>
+      </div>
       
-      <div className="space-y-2 mb-6">
-        <div className="flex justify-between text-sm">
-          <span>Subtotal</span>
-          <span>${totalPrice}</span>
+      <div className="space-y-3 mb-6">
+        <div className="flex justify-between items-center py-2 border-b border-blue-500/30">
+          <span className="text-blue-100">Subtotal</span>
+          <span className="font-semibold">${totalPrice}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span>Tax</span>
-          <span>$0.00</span>
+        <div className="flex justify-between items-center py-2 border-b border-blue-500/30">
+          <span className="text-blue-100">Tax</span>
+          <span className="font-semibold">$0.00</span>
         </div>
-        <div className="flex justify-between text-lg font-bold border-t border-blue-500 pt-2">
-          <span>Total</span>
-          <span>${totalPrice}</span>
-        </div>
-      </div>
-
-      <div className="space-y-2 mb-6">
-        <div className="flex items-center space-x-2 text-sm">
-          <span className="text-green-300">✓</span>
-          <span>Flexible scheduling</span>
-        </div>
-        <div className="flex items-center space-x-2 text-sm">
-          <span className="text-green-300">✓</span>
-          <span>Expert LSAT tutors</span>
-        </div>
-        <div className="flex items-center space-x-2 text-sm">
-          <span className="text-green-300">✓</span>
-          <span>Personalized study plans</span>
+        <div className="flex justify-between items-center py-3 bg-white/10 rounded-lg px-3">
+          <span className="text-lg font-bold">Total</span>
+          <span className="text-xl font-bold">${totalPrice}</span>
         </div>
       </div>
 
-      <div className="flex flex-col justify-end h-32">
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center space-x-3 text-sm">
+          <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+            <span className="text-green-800 text-xs">✓</span>
+          </div>
+          <span className="text-blue-100">Flexible scheduling</span>
+        </div>
+        <div className="flex items-center space-x-3 text-sm">
+          <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+            <span className="text-green-800 text-xs">✓</span>
+          </div>
+          <span className="text-blue-100">Expert LSAT tutors</span>
+        </div>
+        <div className="flex items-center space-x-3 text-sm">
+          <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+            <span className="text-green-800 text-xs">✓</span>
+          </div>
+          <span className="text-blue-100">Personalized study plans</span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
         <button 
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors" 
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg" 
           onClick={() => navigate("/Appointment")}
         >
-          Make Appointment
+          Continue to Checkout
         </button>
-        <p className="text-xs mt-2 text-center opacity-80">
-          🔒 Secure Checkout
-        </p>
+        
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2 text-xs text-blue-200">
+            <span>🔒</span>
+            <span>Secure Checkout</span>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-4 p-3 bg-blue-700 rounded-lg">
-        <div className="flex items-center space-x-2 text-sm">
-          <span>⏰</span>
-          <span className="font-medium">Quick Setup</span>
+      <div className="mt-6 p-4 bg-white/10 rounded-xl border border-white/20">
+        <div className="flex items-center space-x-3 mb-2">
+          <span className="text-lg">⚡</span>
+          <span className="font-semibold text-sm">Quick Setup</span>
         </div>
-        <p className="text-xs mt-1 opacity-90">
-          Book your first session within 24 hours
+        <p className="text-xs text-blue-200 leading-relaxed">
+          Book your first session within 30 minutes of checkout
         </p>
       </div>
     </div>

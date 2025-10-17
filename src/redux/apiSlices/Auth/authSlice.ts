@@ -50,14 +50,14 @@ import type { AuthTokenOutput, LoginInput, LoginOutput, RefreshTokenInput, Regis
 // Inject auth endpoints into the base API
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginOutput, LoginInput>({
+    login: builder.mutation<BaseApiResponse<LoginOutput>, LoginInput>({
       query: (credentials) => ({
         url: "auth/login",
         method: "POST",
         body: credentials,
       }),
     }),
-    refreshToken: builder.mutation<AuthTokenOutput, RefreshTokenInput>({
+    refreshToken: builder.mutation<BaseApiResponse<AuthTokenOutput>, RefreshTokenInput>({
       query: (body) => ({
         url: "auth/refresh-token", // ✅ Correct endpoint from user's specification
         method: "POST",

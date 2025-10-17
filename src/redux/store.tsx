@@ -10,7 +10,7 @@ import { api } from "@/redux/api";
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "auth"], // 👈 choose which slices to persist
+  whitelist: ["cart", "auth", "info"], // 👈 choose which slices to persist
   transforms: [
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
