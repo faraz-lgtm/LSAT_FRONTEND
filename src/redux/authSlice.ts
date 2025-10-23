@@ -3,18 +3,20 @@ import { getCookie, setCookie, removeCookie } from '@/lib/dashboardRelated/cooki
 import type { ROLE } from '@/constants/roles'
 
 // Utility function to decode JWT token
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function decodeJWT(token: string): any {
   try {
     const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/')
     const jsonPayload = decodeURIComponent(
-      atob(base64)
+      atob(base64!)
         .split('')
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
     return JSON.parse(jsonPayload)
   } catch (error) {
+    console.error('Failed to decode JWT:', error)
     return null
   }
 }
@@ -45,7 +47,7 @@ if (accessToken) {
   const decodedToken = decodeJWT(accessToken)
   if (decodedToken) {
     user = {
-      id: decodedToken.sub?.toString() || '',
+      id: Number(decodedToken.sub) || 0,
       username: decodedToken.username || '',
       roles: decodedToken.roles || []
     }

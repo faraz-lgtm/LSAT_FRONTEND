@@ -1,7 +1,20 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Tasks } from '@/features/dashboardRelated/tasks'
-import { priorities, statuses } from '@/features/dashboardRelated/tasks/data/data'
+
+// Define the filter options directly here since we removed the data folder
+const statuses = [
+  { label: 'Pending', value: 'pending' as const },
+  { label: 'In Progress', value: 'in_progress' as const },
+  { label: 'Completed', value: 'completed' as const },
+  { label: 'Cancelled', value: 'cancelled' as const },
+]
+
+const priorities = [
+  { label: 'Low', value: 'low' as const },
+  { label: 'Medium', value: 'medium' as const },
+  { label: 'High', value: 'high' as const },
+]
 
 const taskSearchSchema = z.object({
   page: z.number().optional().catch(1),

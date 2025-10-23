@@ -24,7 +24,7 @@ const Home = ({ showFree = false }: HomeProps) => {
   const { isLoading: isAddingToCart, error: cartError, items: cartItems } = useSelector((state: RootState) => state.cart);
   
   // Get current checkout progress step
-  const currentStep: 1 | 2 | 3 | 4 | 5 = useCheckoutProgress();
+  const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
   
   const handleAddToCart = (product: ItemInput) => {
     console.log("Adding to cart:", product);

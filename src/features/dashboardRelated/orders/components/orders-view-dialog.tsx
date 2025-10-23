@@ -99,11 +99,11 @@ export function OrdersViewDialog({
                   <div className='grid grid-cols-2 gap-3 text-sm mb-3'>
                     <div>
                       <span className='font-medium text-muted-foreground'>Duration:</span>
-                      <div className='text-foreground'>{item.Duration}</div>
+                      <div className='text-foreground'>{item.Duration} minutes</div>
                     </div>
                     <div>
                       <span className='font-medium text-muted-foreground'>Employee ID:</span>
-                      <div className='text-foreground'>{item.assignedEmployeeId}</div>
+                      <div className='text-foreground'>{item.assignedEmployeeIds.join(', ')}</div>
                     </div>
                   </div>
                   

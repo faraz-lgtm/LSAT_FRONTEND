@@ -33,6 +33,13 @@ export function TasksMultiDeleteDialog<TData>({
       return
     }
 
+    // Check if any selected task has ID 0
+    const hasTaskWithIdZero = selectedRows.some((row: any) => row.original.id === 0)
+    if (hasTaskWithIdZero) {
+      toast.warning("Cannot delete tasks with ID 0")
+      return
+    }
+
     onOpenChange(false)
 
     toast.promise(sleep(2000), {

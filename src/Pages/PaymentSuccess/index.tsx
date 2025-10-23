@@ -1,63 +1,73 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
-import { CheckCircle, Home, Package, Calendar } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/dashboard/ui/badge'
-import { Separator } from '@/components/dashboard/ui/separator'
+import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { CheckCircle, Home, Package, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+// import { Badge } from '@/components/dashboard/ui/badge'
+import { Separator } from "@/components/dashboard/ui/separator";
+import { useDispatch } from "react-redux";
+import { clearCart } from "@/redux/cartSlice";
+import { clearInfo } from "@/redux/informationSlice";
 
 interface PaymentDetails {
-  sessionId?: string
-  customerEmail?: string
-  amount?: number
-  currency?: string
-  status?: string
+  sessionId?: string;
+  orderId?: string;
+  checkoutSessionId?: string;
 }
 
 export default function PaymentSuccess() {
-  const [searchParams] = useSearchParams()
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [searchParams] = useSearchParams();
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Extract payment details from URL parameters
-    const sessionId = searchParams.get('session_id')
-    const customerEmail = searchParams.get('customer_email')
-    const amount = searchParams.get('amount')
-    const currency = searchParams.get('currency')
-    const status = searchParams.get('status')
+    const session_id = searchParams.get("session_id");
+    const CHECKOUT_SESSION_ID = searchParams.get("customer_email");
+    const order_id = searchParams.get("amount");
 
     setPaymentDetails({
-      sessionId: sessionId || undefined,
-      customerEmail: customerEmail || undefined,
-      amount: amount ? parseFloat(amount) : undefined,
-      currency: currency || 'usd',
-      status: status || 'succeeded'
-    })
+      sessionId: session_id || undefined,
+      orderId: order_id || undefined,
+      checkoutSessionId: CHECKOUT_SESSION_ID || undefined,
+    });
 
-    setIsLoading(false)
+    setIsLoading(false);
+
+    // Clear cart and user info on successful payment
+
+    console.log("✅ Payment successful - clearing cart and user info");
+    dispatch(clearCart());
+    dispatch(clearInfo());
 
     // Optional: Send confirmation to backend
-    if (sessionId) {
+    if (session_id) {
       // You can make an API call here to verify the payment on your backend
-      console.log('Payment session ID:', sessionId)
+      console.log("Payment session ID:", session_id);
     }
-  }, [searchParams])
+  }, [searchParams, dispatch]);
 
-  const formatAmount = (amount?: number, currency?: string) => {
-    if (!amount) return 'N/A'
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency?.toUpperCase() || 'USD'
-    }).format(amount / 100) // Stripe amounts are in cents
-  }
+  // const formatAmount = (amount?: number, currency?: string) => {
+  //   if (!amount) return 'N/A'
+  //   return new Intl.NumberFormat('en-US', {
+  //     style: 'currency',
+  //     currency: currency?.toUpperCase() || 'USD'
+  //   }).format(amount / 100) // Stripe amounts are in cents
+  // }
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -73,7 +83,8 @@ export default function PaymentSuccess() {
               Payment Successful!
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Thank you for your purchase. Your payment has been processed successfully.
+              Thank you for your purchase. Your payment has been processed
+              successfully.
             </p>
           </div>
 
@@ -89,38 +100,6 @@ export default function PaymentSuccess() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Amount Paid
-                  </label>
-                  <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                    {formatAmount(paymentDetails.amount, paymentDetails.currency)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Status
-                  </label>
-                  <div className="mt-1">
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
-                      {paymentDetails.status?.toUpperCase() || 'SUCCESS'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {paymentDetails.customerEmail && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Email
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100">
-                    {paymentDetails.customerEmail}
-                  </p>
-                </div>
-              )}
-
               {paymentDetails.sessionId && (
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -146,42 +125,51 @@ export default function PaymentSuccess() {
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">1</span>
+                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      1
+                    </span>
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       Confirmation Email
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      You'll receive a confirmation email with your receipt and order details.
+                      You'll receive a confirmation email with your receipt and
+                      order details.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">2</span>
+                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      2
+                    </span>
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       Schedule Your Sessions
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Our team will contact you to schedule your LSAT/MCAT preparation sessions.
+                      Our team will contact you to schedule your LSAT/MCAT
+                      preparation sessions.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">3</span>
+                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      3
+                    </span>
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       Start Learning
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Begin your personalized LSAT/MCAT preparation journey with expert guidance.
+                      Begin your personalized LSAT/MCAT preparation journey with
+                      expert guidance.
                     </p>
                   </div>
                 </div>
@@ -190,7 +178,7 @@ export default function PaymentSuccess() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
             <Button asChild variant="outline" className="px-8">
               <Link to="/">
                 <Home className="w-4 h-4 mr-2" />
@@ -203,9 +191,9 @@ export default function PaymentSuccess() {
           <div className="mt-8 text-center">
             <Separator className="mb-4" />
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Need help? Contact our support team at{' '}
-              <a 
-                href="mailto:support@betterlsatmcat.com" 
+              Need help? Contact our support team at{" "}
+              <a
+                href="mailto:support@betterlsatmcat.com"
                 className="text-green-600 dark:text-green-400 hover:underline"
               >
                 support@betterlsatmcat.com
@@ -215,5 +203,5 @@ export default function PaymentSuccess() {
         </div>
       </div>
     </div>
-  )
+  );
 }

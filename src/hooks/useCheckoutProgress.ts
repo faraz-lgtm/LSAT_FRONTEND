@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 
-export function useCheckoutProgress(): 1 | 2 | 3 | 4 | 5 {
+export function useCheckoutProgress(): 1 | 2 | 3 | 4 {
   const location = useLocation();
   // const { items } = useSelector((state: RootState) => state.cart);
   

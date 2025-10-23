@@ -33,7 +33,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   price: z.number().min(0, 'Price must be non-negative'),
   save: z.number().min(0, 'Save must be non-negative').optional(),
-  Duration: z.string().min(1, 'Duration is required'),
+  sessions: z.number().min(1, 'Sessions must be at least 1'),
+  Duration: z.number().min(1, 'Duration is required'),
   Description: z.string().min(1, 'Description is required'),
   badgeText: z.string().optional(),
   badgeColor: z.string().optional(),
@@ -64,7 +65,8 @@ export function PackagesActionDialog({
       name: '',
       price: 0,
       save: 0,
-      Duration: '',
+      sessions: 1,
+      Duration: 15,
       Description: '',
       badgeText: '',
       badgeColor: '#3b82f6', // Default blue color
@@ -79,6 +81,7 @@ export function PackagesActionDialog({
           name: currentRow.name,
           price: currentRow.price,
           save: currentRow.save || 0,
+          sessions: currentRow.sessions,
           Duration: currentRow.Duration,
           Description: currentRow.Description,
           badgeText: currentRow.badge?.text || '',
@@ -89,7 +92,8 @@ export function PackagesActionDialog({
           name: '',
           price: 0,
           save: 0,
-          Duration: '',
+          sessions: 1,
+          Duration: 5,
           Description: '',
           badgeText: '',
           badgeColor: '#3b82f6',
@@ -104,6 +108,7 @@ export function PackagesActionDialog({
         name: values.name,
         price: values.price,
         save: values.save || 0,
+        sessions: values.sessions,
         Duration: values.Duration,
         Description: values.Description,
         badge: values.badgeText && values.badgeColor ? {
@@ -159,7 +164,7 @@ export function PackagesActionDialog({
                   <FormItem>
                     <FormLabel>Package Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 60-Minute Single Prep" {...field} />
+                      <Input placeholder="e.g., 60-Minute Single Prep"  {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,12 +217,43 @@ export function PackagesActionDialog({
 
               <FormField
                 control={form.control}
+                name="sessions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sessions</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        step="1"
+                        placeholder="1" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <FormField
+                control={form.control}
                 name="Duration"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Duration</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 60 minutes" {...field} />
+                      <Input 
+                        placeholder="e.g., 60 minutes" 
+                        min="1" 
+                        step="1" 
+                        type="number" 
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

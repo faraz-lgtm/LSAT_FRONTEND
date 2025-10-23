@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { type Table } from '@tanstack/react-table'
-import { Trash2, CircleArrowUp, ArrowUpDown, Download } from 'lucide-react'
+import { Trash2, CircleArrowUp, ArrowUpDown, Download, Circle, CheckCircle, Timer, CircleOff, ArrowDown, ArrowRight, ArrowUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep } from '@/lib/dashboardRelated/utils'
 import { Button } from '@/components/dashboard/ui/button'
@@ -16,9 +16,22 @@ import {
   TooltipTrigger,
 } from '@/components/dashboard/ui/tooltip'
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/dashboard/data-table'
-import { priorities, statuses } from '../data/data'
-import { type Task } from '../data/schema'
 import { TasksMultiDeleteDialog } from './tasks-multi-delete-dialog'
+import type { TaskOutputDto } from '@/types/api/data-contracts'
+
+// Define the filter options directly here since we removed the data folder
+const statuses = [
+  { label: 'Pending', value: 'pending' as const, icon: Circle },
+  { label: 'In Progress', value: 'in_progress' as const, icon: Timer },
+  { label: 'Completed', value: 'completed' as const, icon: CheckCircle },
+  { label: 'Cancelled', value: 'cancelled' as const, icon: CircleOff },
+]
+
+const priorities = [
+  { label: 'Low', value: 'low' as const, icon: ArrowDown },
+  { label: 'Medium', value: 'medium' as const, icon: ArrowRight },
+  { label: 'High', value: 'high' as const, icon: ArrowUp },
+]
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
@@ -31,7 +44,7 @@ export function DataTableBulkActions<TData>({
   const selectedRows = table.getFilteredSelectedRowModel().rows
 
   const handleBulkStatusChange = (status: string) => {
-    const selectedTasks = selectedRows.map((row) => row.original as Task)
+    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
     toast.promise(sleep(2000), {
       loading: 'Updating status...',
       success: () => {
@@ -44,7 +57,7 @@ export function DataTableBulkActions<TData>({
   }
 
   const handleBulkPriorityChange = (priority: string) => {
-    const selectedTasks = selectedRows.map((row) => row.original as Task)
+    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
     toast.promise(sleep(2000), {
       loading: 'Updating priority...',
       success: () => {
@@ -57,7 +70,7 @@ export function DataTableBulkActions<TData>({
   }
 
   const handleBulkExport = () => {
-    const selectedTasks = selectedRows.map((row) => row.original as Task)
+    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
     toast.promise(sleep(2000), {
       loading: 'Exporting tasks...',
       success: () => {

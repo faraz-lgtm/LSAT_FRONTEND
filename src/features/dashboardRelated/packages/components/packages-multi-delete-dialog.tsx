@@ -66,6 +66,7 @@ export function PackagesMultiDeleteDialog<TData>({
       if (table && typeof table.toggleAllPageRowsSelected === 'function') {
         table.toggleAllPageRowsSelected(false)
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error:', error)
       toast.error('Failed to delete some packages')
@@ -96,7 +97,7 @@ export function PackagesMultiDeleteDialog<TData>({
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <span>${product.price}</span>
                       {product.save && <span>Save: ${product.save}</span>}
-                      <span>{product.Duration}</span>
+                      <span>{product.Duration} minutes</span>
                     </div>
                   </div>
                   {product.badge && (

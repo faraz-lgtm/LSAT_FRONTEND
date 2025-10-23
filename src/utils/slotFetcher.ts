@@ -14,11 +14,11 @@ const BASE_URL = import.meta.env.VITE_SERVER_URL;
 export async function fetchSlotsForPackage(
   packageId: number,
   requiredSlots: number,
-  startDate: Date = new Date(),
+  startDate: string = new Date().toISOString(),
   excludeSlots: string[] = []
 ): Promise<string[]> {
   const slots: string[] = [];
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   let daysChecked = 0;
   const MAX_DAYS = 30;
 
@@ -27,15 +27,12 @@ export async function fetchSlotsForPackage(
   while (slots.length < requiredSlots && daysChecked < MAX_DAYS) {
     try {
       // Format date for API call
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1; // JavaScript months are 0-based
-      const date = currentDate.getDate();
 
-      console.log(`📅 Checking slots for ${year}-${month.toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`);
+      console.log(`📅 Checking slots for ${currentDate.toISOString()}`);
 
       // Fetch slots for current date
       const response = await fetch(
-        `${BASE_URL}/api/v1/order/slots?month=${month}&year=${year}&packageId=${packageId}&date=${date}&customerTimezone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
+        `${BASE_URL}/api/v1/slots?packageId=${packageId}&date=${currentDate.toISOString()}&customerTimezone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
         {
           method: 'GET',
           headers: {
@@ -45,7 +42,7 @@ export async function fetchSlotsForPackage(
       );
 
       if (!response.ok) {
-        console.warn(`⚠️ Failed to fetch slots for ${currentDate.toDateString()}: ${response.status}`);
+        console.warn(`⚠️ Failed to fetch slots for ${currentDate.toISOString()}: ${response.status}`);
         // Continue to next day instead of throwing error
         currentDate.setDate(currentDate.getDate() + 1);
         daysChecked++;

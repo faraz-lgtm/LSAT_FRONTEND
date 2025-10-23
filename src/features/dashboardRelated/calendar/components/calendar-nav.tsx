@@ -20,10 +20,6 @@ import {
   goNext,
   goPrev,
   goToday,
-  handleDayChange,
-  handleMonthChange,
-  handleYearChange,
-  setView,
 } from "@/utils/calendar/calendar-utils";
 import type { calendarRef } from "@/utils/calendar/data";
 import { months } from "@/utils/calendar/data";
@@ -41,158 +37,98 @@ import { useState } from "react";
 
 import { Input } from "@/components/dashboard/ui/calendarRelatedUI/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/dashboard/ui/calendarRelatedUI/ui/tabs";
-import { CalendarSelector } from "@/components/google-calendar/CalendarSelector";
-import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
-import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/dashboard/ui/dropdown-menu";
 
 interface CalendarNavProps {
   calendarRef: calendarRef;
-  start: Date;
-  end: Date;
   viewedDate: Date;
+  onCreateTask?: () => void;
+  onCreateOrder?: () => void;
 }
 
-export default function CalendarNav({
-  calendarRef,
-  viewedDate,
-}: CalendarNavProps) {
-  // Google Calendar integration
-  const {
-    isAuthenticated,
-    calendars,
-    selectedCalendarId,
-    setSelectedCalendarId,
-    signOut,
-  } = useGoogleCalendarContext();
-
-  // Order creation form state
-  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
-  const [currentView, setCurrentView] = useState("timeGridWeek");
-
-  const selectedMonth = viewedDate.getMonth() + 1;
-  const selectedDay = viewedDate.getDate();
-  const selectedYear = viewedDate.getFullYear();
-
-  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-  const dayOptions = generateDaysInMonth(daysInMonth);
-
-  const [daySelectOpen, setDaySelectOpen] = useState(false);
-  const [monthSelectOpen, setMonthSelectOpen] = useState(false);
+export default function CalendarNav({ calendarRef, viewedDate, onCreateTask, onCreateOrder }: CalendarNavProps) {
+  const [monthOpen, setMonthOpen] = useState(false);
+  const [yearOpen, setYearOpen] = useState(false);
+  const [dayOpen, setDayOpen] = useState(false);
 
   return (
-    <div className="flex flex-wrap min-w-full justify-center gap-3 px-10 ">
-      <div className="flex flex-row space-x-1">
-        {/* Navigate to previous date interval */}
+    <div className="flex flex-col space-y-3">
+      <div className="flex items-center justify-between w-full gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => goPrev(calendarRef)}>
+            <ChevronLeft className="h-4 w-4" />
+            <span className="sr-only">Previous</span>
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => goNext(calendarRef)}>
+            <ChevronRight className="h-4 w-4" />
+            <span className="sr-only">Next</span>
+          </Button>
+          <Button variant="outline" onClick={() => goToday(calendarRef)}>Today</Button>
+        </div>
 
-        <Button
-          variant="ghost"
-          className="w-8"
-          onClick={() => {
-            goPrev(calendarRef);
-          }}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Tabs defaultValue="timeGridWeek">
+            <TabsList>
+              <TabsTrigger value="timeGridDay" onClick={() => {
+                const calendarApi = calendarRef.current!.getApi();
+                calendarApi.changeView("timeGridDay");
+              }}>
+                <Tally3 className="mr-2 h-4 w-4" /> Day
+              </TabsTrigger>
+              <TabsTrigger value="timeGridWeek" onClick={() => {
+                const calendarApi = calendarRef.current!.getApi();
+                calendarApi.changeView("timeGridWeek");
+              }}>
+                <Table className="mr-2 h-4 w-4" /> Week
+              </TabsTrigger>
+              <TabsTrigger value="dayGridMonth" onClick={() => {
+                const calendarApi = calendarRef.current!.getApi();
+                calendarApi.changeView("dayGridMonth");
+              }}>
+                <GalleryVertical className="mr-2 h-4 w-4" /> Month
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
 
-        {/* Day Lookup */}
-
-        {currentView == "timeGridDay" && (
-          <Popover open={daySelectOpen} onOpenChange={setDaySelectOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                className="w-20 justify-between text-xs font-semibold"
-              >
-                {selectedDay
-                  ? dayOptions.find((day) => day.value === String(selectedDay))
-                      ?.label
-                  : "Select day..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder="Search day..." />
-                <CommandList>
-                  <CommandEmpty>No day found.</CommandEmpty>
-                  <CommandGroup>
-                    {dayOptions.map((day) => (
-                      <CommandItem
-                        key={day.value}
-                        value={day.value}
-                        onSelect={(currentValue: string) => {
-                          handleDayChange(
-                            calendarRef,
-                            viewedDate,
-                            currentValue
-                          );
-                          //   setValue(currentValue === selectedMonth ? "" : currentValue);
-                          setDaySelectOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            String(selectedDay) === day.value
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {day.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        )}
-
-        {/* Month Lookup */}
-
-        <Popover open={monthSelectOpen} onOpenChange={setMonthSelectOpen}>
+      <div className="flex items-center gap-2">
+        {/* Month selector */}
+        <Popover open={monthOpen} onOpenChange={setMonthOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
-              className="flex w-[105px] justify-between overflow-hidden p-2 text-xs font-semibold md:text-sm md:w-[120px]"
+              aria-expanded={monthOpen}
+              className="w-[180px] justify-between"
             >
-              {selectedMonth
-                ? months.find((month) => month.value === String(selectedMonth))
-                    ?.label
-                : "Select month..."}
+              {months?.[viewedDate.getMonth()]?.label ?? ""}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
+          <PopoverContent className="w-[180px] p-0">
             <Command>
               <CommandInput placeholder="Search month..." />
+              <CommandEmpty>No month found.</CommandEmpty>
               <CommandList>
-                <CommandEmpty>No month found.</CommandEmpty>
                 <CommandGroup>
                   {months.map((month) => (
                     <CommandItem
                       key={month.value}
-                      value={month.value}
-                      onSelect={(currentValue: string) => {
-                        handleMonthChange(
-                          calendarRef,
-                          viewedDate,
-                          currentValue
-                        );
-                        //   setValue(currentValue === selectedMonth ? "" : currentValue);
-                        setMonthSelectOpen(false);
+                      onSelect={() => {
+                        const calendarApi = calendarRef.current!.getApi();
+                        const newDate = new Date(viewedDate);
+                        newDate.setMonth(Number(month.value) - 1);
+                        calendarApi.gotoDate(newDate);
+                        setMonthOpen(false);
                       }}
                     >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          String(selectedMonth) === month.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
+                      <Check className={cn("mr-2 h-4 w-4", Number(month.value) - 1 === viewedDate.getMonth() ? "opacity-100" : "opacity-0")} />
                       {month.label}
                     </CommandItem>
                   ))}
@@ -202,148 +138,95 @@ export default function CalendarNav({
           </PopoverContent>
         </Popover>
 
-        {/* Year Lookup */}
-
-        <Input
-          className="w-[75px] md:w-[85px] text-xs md:text-sm font-semibold"
-          type="number"
-          value={selectedYear}
-          onChange={(value: React.ChangeEvent<HTMLInputElement>) => handleYearChange(calendarRef, viewedDate, value)}
-        />
-
-        {/* Navigate to next date interval */}
-
-        <Button
-          variant="ghost"
-          className="w-8"
-          onClick={() => {
-            goNext(calendarRef);
-          }}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap gap-3 justify-center">
-        {/* Button to go to current date */}
-
-        <Button
-          className="w-[90px] text-xs md:text-sm"
-          variant="outline"
-          onClick={() => {
-            goToday(calendarRef);
-          }}
-        >
-          {currentView === "timeGridDay"
-            ? "Today"
-            : currentView === "timeGridWeek"
-            ? "This Week"
-            : currentView === "dayGridMonth"
-            ? "This Month"
-            : null}
-        </Button>
-
-        {/* Change view with tabs */}
-
-        <Tabs defaultValue="timeGridWeek">
-          <TabsList className="flex w-44 md:w-64">
-            <TabsTrigger
-              value="timeGridDay"
-              onClick={() =>
-                setView(calendarRef, "timeGridDay", setCurrentView)
-              }
-              className={`space-x-1 ${
-                currentView === "timeGridDay" ? "w-1/2" : "w-1/4"
-              }`}
-            >
-              <GalleryVertical className="h-5 w-5" />
-              {currentView === "timeGridDay" && (
-                <p className="text-xs md:text-sm">Day</p>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="timeGridWeek"
-              onClick={() =>
-                setView(calendarRef, "timeGridWeek", setCurrentView)
-              }
-              className={`space-x-1 ${
-                currentView === "timeGridWeek" ? "w-1/2" : "w-1/4"
-              }`}
-            >
-              <Tally3 className="h-5 w-5" />
-              {currentView === "timeGridWeek" && (
-                <p className="text-xs md:text-sm">Week</p>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="dayGridMonth"
-              onClick={() =>
-                setView(calendarRef, "dayGridMonth", setCurrentView)
-              }
-              className={`space-x-1 ${
-                currentView === "dayGridMonth" ? "w-1/2" : "w-1/4"
-              }`}
-            >
-              <Table className="h-5 w-5 rotate-90" />
-              {currentView === "dayGridMonth" && (
-                <p className="text-xs md:text-sm">Month</p>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Calendar selector */}
-        {isAuthenticated && calendars.length > 0 && (
-          <div className="w-48 md:w-56">
-            <CalendarSelector
-              calendars={calendars}
-              selectedCalendarId={selectedCalendarId}
-              onCalendarSelect={setSelectedCalendarId}
-              disabled={false}
-            />
-          </div>
-        )}
-
-        {/* Add event button  */}
-        {isAuthenticated ? (
-          <>
-            <Button
-              onClick={() => setIsEventFormOpen(true)}
-              className="w-24 md:w-28 text-xs md:text-sm"
-              variant="default"
-            >
-              <PlusIcon className="md:h-5 md:w-5 h-3 w-3" />
-              <p>Create Order</p>
+        {/* Year selector */}
+        <Popover open={yearOpen} onOpenChange={setYearOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" role="combobox" aria-expanded={yearOpen} className="w-[120px] justify-between">
+              {viewedDate.getFullYear()}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
-            
-            <Button
-              onClick={() => {
-                if (confirm('Are you sure you want to disconnect from Google Calendar? You will need to reconnect to access your events.')) {
-                  signOut();
-                }
-              }}
-              className="w-24 md:w-28 text-xs md:text-sm"
-              variant="outline"
-            >
-              <p>Disconnect</p>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search year..." />
+              <CommandEmpty>No year found.</CommandEmpty>
+              <CommandList>
+                <CommandGroup>
+                  {Array.from({ length: 11 }, (_, i) => viewedDate.getFullYear() - 5 + i).map((year) => (
+                    <CommandItem
+                      key={year}
+                      onSelect={() => {
+                        const calendarApi = calendarRef.current!.getApi();
+                        const newDate = new Date(viewedDate);
+                        newDate.setFullYear(year);
+                        calendarApi.gotoDate(newDate);
+                        setYearOpen(false);
+                      }}
+                    >
+                      <Check className={cn("mr-2 h-4 w-4", year === viewedDate.getFullYear() ? "opacity-100" : "opacity-0")} />
+                      {year}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Day selector */}
+        <Popover open={dayOpen} onOpenChange={setDayOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" role="combobox" aria-expanded={dayOpen} className="w-[120px] justify-between">
+              {viewedDate.toLocaleDateString("en-US", { day: "2-digit" })}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
-            
-            <OrderCreateForm
-              isOpen={isEventFormOpen}
-              onClose={() => setIsEventFormOpen(false)}
-            />
-          </>
-        ) : (
-          <Button
-            disabled
-            className="w-24 md:w-28 text-xs md:text-sm"
-            variant="outline"
-          >
-            <PlusIcon className="md:h-5 md:w-5 h-3 w-3" />
-            <p>Connect Calendar</p>
-          </Button>
-        )}
+          </PopoverTrigger>
+          <PopoverContent className="w-[240px] p-0">
+            <Command>
+              <CommandInput placeholder="Search day..." />
+              <CommandEmpty>No day found.</CommandEmpty>
+              <CommandList>
+                <CommandGroup>
+                  {generateDaysInMonth(viewedDate.getDate()).map((day) => (
+                    <CommandItem
+                      key={day.value}
+                      onSelect={() => {
+                        const calendarApi = calendarRef.current!.getApi();
+                        const newDate = new Date(viewedDate);
+                        newDate.setDate(Number(day.value));
+                        calendarApi.gotoDate(newDate);
+                        setDayOpen(false);
+                      }}
+                    >
+                      <Check className={cn("mr-2 h-4 w-4", Number(day.value) === viewedDate.getDate() ? "opacity-100" : "opacity-0")} />
+                      {day.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        <div className="ml-auto flex items-center gap-2">
+          <Input placeholder="Search events" className="w-[200px]" />
+          {/* New Event Dropdown: choose Task or Order */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                New Event
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
+              <DropdownMenuItem onClick={onCreateOrder}>Create Order</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );
 }
+
+

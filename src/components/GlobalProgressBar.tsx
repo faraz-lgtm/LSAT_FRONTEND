@@ -2,7 +2,7 @@ import React from 'react';
 import { CheckCircle } from 'lucide-react';
 
 interface GlobalProgressBarProps {
-  currentStep: 1 | 2 | 3 | 4 | 5;
+  currentStep: 1 | 2 | 3 | 4;
   className?: string;
 }
 
@@ -11,7 +11,6 @@ const steps = [
   { id: 2, label: 'Review Cart', shortLabel: 'Review' },
   { id: 3, label: 'Your Info', shortLabel: 'Info' },
   { id: 4, label: 'Appointments', shortLabel: 'Appt' },
-  { id: 5, label: 'Checkout', shortLabel: 'Check' },
 ];
 
 export const GlobalProgressBar: React.FC<GlobalProgressBarProps> = ({ 

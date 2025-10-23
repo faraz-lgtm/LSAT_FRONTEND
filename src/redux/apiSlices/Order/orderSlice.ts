@@ -1,8 +1,8 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
-import type { GetOrdersQueryParams, OrderOutput, Slot, SlotsQueryDto, StripeCheckoutSession } from "@/types/api/data-contracts";
 
 // Order interfaces based on API structure
 // export interface ItemOutput {
@@ -109,14 +109,7 @@ export const ordersApi = api.injectEndpoints({
       providesTags: ['Orders'],
     }),
     
-    // New endpoint for fetching available slots
-    getAvailableSlots: builder.query<BaseApiResponse<Slot>, SlotsQueryDto>({
-      query: ({ month, year, packageId, date }) => ({
-        url: `order/slots`,
-        params: { month, year, packageId, date , customerTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone},
-      }),
-      providesTags: ['AvailableSlots'],
-    }),
+
 
     //Mutations
     createOrder: builder.mutation<
@@ -146,5 +139,4 @@ export const {
   useGetOrderByIdQuery, 
   useCreateOrderMutation,
   useDeleteOrderMutation,
-  useGetAvailableSlotsQuery 
 } = ordersApi;

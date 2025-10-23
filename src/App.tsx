@@ -26,6 +26,10 @@ function App() {
 
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
+        
+        {/* Fallback routes for current backend configuration */}
+        <Route path="/success" element={<PaymentSuccess />} />
+        <Route path="/cancel" element={<PaymentCancel />} />
          <Route path="/dashboard/*" element={<DashboardApp />} />
       </Routes>
     </div>

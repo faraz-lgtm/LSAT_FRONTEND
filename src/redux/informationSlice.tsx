@@ -21,8 +21,11 @@ const informationSlice = createSlice({
     addInfo: (state, action: PayloadAction<InformationState>) => {
       return { ...state, ...action.payload }; 
     },
+    clearInfo: (state) => {
+      return initialState;
+    },
   },
 });
 
-export const { addInfo } = informationSlice.actions;
+export const { addInfo, clearInfo } = informationSlice.actions;
 export default informationSlice.reducer;

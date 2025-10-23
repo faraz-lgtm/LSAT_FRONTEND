@@ -1,7 +1,4 @@
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/dashboardRelated/show-submitted-data'
+import { SelectDropdown } from '@/components/dashboard/select-dropdown'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   Form,
@@ -22,22 +19,47 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/dashboard/ui/sheet'
-import { SelectDropdown } from '@/components/dashboard/select-dropdown'
-import { type Task } from '../data/schema'
+import { Textarea } from '@/components/dashboard/ui/textarea'
+import { toast } from 'sonner'
+import {
+  useCreateTaskMutation,
+  useUpdateTaskMutation
+} from '@/redux/apiSlices/Task/taskSlice'
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { Resolver } from 'react-hook-form'
+import { format } from 'date-fns'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { type TaskOutputDto } from '@/types/api/data-contracts'
+import type { RootState } from '@/redux/rootReducer'
+import { useSelector } from 'react-redux'
 
 type TaskMutateDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRow?: Task
+  currentRow?: TaskOutputDto
 }
 
+export type TaskForm = {
+  title: string
+  description?: string
+  startDateTime: string
+  endDateTime: string
+  tutorId: number
+  label: 'meeting' | 'personal' | 'preparation' | 'grading'
+  priority: 'low' | 'medium' | 'high'
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+}
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
-  status: z.string().min(1, 'Please select a status.'),
-  label: z.string().min(1, 'Please select a label.'),
-  priority: z.string().min(1, 'Please choose a priority.'),
-})
-type TaskForm = z.infer<typeof formSchema>
+  description: z.string().optional(),
+  startDateTime: z.string().min(1, 'Start date is required.'),
+  endDateTime: z.string().min(1, 'End date is required.'),
+  tutorId: z.coerce.number().min(1, 'Tutor ID is required.'),
+  label: z.enum(['meeting', 'personal', 'preparation', 'grading']),
+  priority: z.enum(['low', 'medium', 'high']),
+  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+}) satisfies z.ZodType<TaskForm>
 
 export function TasksMutateDrawer({
   open,
@@ -45,23 +67,63 @@ export function TasksMutateDrawer({
   currentRow,
 }: TaskMutateDrawerProps) {
   const isUpdate = !!currentRow
+  const [createTask, { isLoading: isCreating }] = useCreateTaskMutation()
+  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation()
+  const {  user } = useSelector((state: RootState) => state.auth)
 
   const form = useForm<TaskForm>({
-    resolver: zodResolver(formSchema),
-    defaultValues: currentRow ?? {
+    resolver: zodResolver(formSchema) as unknown as Resolver<TaskForm>,
+    defaultValues: currentRow ? {
+      title: currentRow.title,
+      description: currentRow.description || '',
+      startDateTime: currentRow.startDateTime ? format(new Date(currentRow.startDateTime), "yyyy-MM-dd'T'HH:mm") : '',
+      endDateTime: currentRow.endDateTime ? format(new Date(currentRow.endDateTime), "yyyy-MM-dd'T'HH:mm") : '',
+      tutorId: currentRow.tutorId,
+      label: currentRow.label,
+      priority: currentRow.priority,
+      status: currentRow.status,
+    } : {
       title: '',
-      status: '',
-      label: '',
-      priority: '',
+      description: '',
+      startDateTime: '',
+      endDateTime: '',
+      tutorId: user?.id ?? 0,
+      label: 'meeting',
+      priority: 'medium',
+      status: 'pending',
     },
   })
 
-  const onSubmit = (data: TaskForm) => {
-    // do something with the form data
-    onOpenChange(false)
-    form.reset()
-    showSubmittedData(data)
+  const onSubmit = async (data: TaskForm) => {
+    try {
+      const taskData = {
+        ...data,
+        startDateTime: new Date(data.startDateTime).toISOString(),
+        endDateTime: new Date(data.endDateTime).toISOString(),
+      }
+
+      if (isUpdate && currentRow) {
+        await updateTask({ id: currentRow.id, data: taskData }).unwrap()
+        toast.success("Task updated successfully")
+      } else {
+        await createTask(taskData).unwrap()
+        toast.success("Task created successfully")
+      }
+      
+      onOpenChange(false)
+      form.reset()
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save task")
+    }
   }
+
+  // Check if required fields are filled
+  const isFormValid = form.formState.isValid && 
+    form.getValues('title')?.trim() !== '' &&
+    form.getValues('startDateTime')?.trim() !== '' &&
+    form.getValues('endDateTime')?.trim() !== '' &&
+    form.getValues('tutorId') > 0;
 
   return (
     <Sheet
@@ -102,6 +164,53 @@ export function TasksMutateDrawer({
             />
             <FormField
               control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder='Enter a description' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='startDateTime'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Date & Time</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="datetime-local"
+                      placeholder='Select start date and time' 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='endDateTime'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>End Date & Time</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="datetime-local"
+                      placeholder='Select end date and time' 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name='status'
               render={({ field }) => (
                 <FormItem>
@@ -111,11 +220,10 @@ export function TasksMutateDrawer({
                     onValueChange={field.onChange}
                     placeholder='Select dropdown'
                     items={[
-                      { label: 'In Progress', value: 'in progress' },
-                      { label: 'Backlog', value: 'backlog' },
-                      { label: 'Todo', value: 'todo' },
-                      { label: 'Canceled', value: 'canceled' },
-                      { label: 'Done', value: 'done' },
+                      { label: 'Pending', value: 'pending' },
+                      { label: 'In Progress', value: 'in_progress' },
+                      { label: 'Completed', value: 'completed' },
+                      { label: 'Cancelled', value: 'cancelled' },
                     ]}
                   />
                   <FormMessage />
@@ -134,25 +242,29 @@ export function TasksMutateDrawer({
                       defaultValue={field.value}
                       className='flex flex-col space-y-1'
                     >
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='documentation' />
+                          <RadioGroupItem value='meeting' id='label-meeting' />
                         </FormControl>
-                        <FormLabel className='font-normal'>
-                          Documentation
-                        </FormLabel>
+                        <FormLabel htmlFor='label-meeting' className='font-normal'>Meeting</FormLabel>
                       </FormItem>
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='feature' />
+                          <RadioGroupItem value='personal' id='label-personal' />
                         </FormControl>
-                        <FormLabel className='font-normal'>Feature</FormLabel>
+                        <FormLabel htmlFor='label-personal' className='font-normal'>Personal</FormLabel>
                       </FormItem>
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='bug' />
+                          <RadioGroupItem value='preparation' id='label-preparation' />
                         </FormControl>
-                        <FormLabel className='font-normal'>Bug</FormLabel>
+                        <FormLabel htmlFor='label-preparation' className='font-normal'>Preparation</FormLabel>
+                      </FormItem>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
+                        <FormControl>
+                          <RadioGroupItem value='grading' id='label-grading' />
+                        </FormControl>
+                        <FormLabel htmlFor='label-grading' className='font-normal'>Grading</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -172,23 +284,23 @@ export function TasksMutateDrawer({
                       defaultValue={field.value}
                       className='flex flex-col space-y-1'
                     >
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='high' />
+                          <RadioGroupItem value='high' id='priority-high' />
                         </FormControl>
-                        <FormLabel className='font-normal'>High</FormLabel>
+                        <FormLabel htmlFor='priority-high' className='font-normal'>High</FormLabel>
                       </FormItem>
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='medium' />
+                          <RadioGroupItem value='medium' id='priority-medium' />
                         </FormControl>
-                        <FormLabel className='font-normal'>Medium</FormLabel>
+                        <FormLabel htmlFor='priority-medium' className='font-normal'>Medium</FormLabel>
                       </FormItem>
-                      <FormItem className='flex items-center'>
+                      <FormItem className='flex items-center space-x-2 space-y-0'>
                         <FormControl>
-                          <RadioGroupItem value='low' />
+                          <RadioGroupItem value='low' id='priority-low' />
                         </FormControl>
-                        <FormLabel className='font-normal'>Low</FormLabel>
+                        <FormLabel htmlFor='priority-low' className='font-normal'>Low</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -202,8 +314,8 @@ export function TasksMutateDrawer({
           <SheetClose asChild>
             <Button variant='outline'>Close</Button>
           </SheetClose>
-          <Button form='tasks-form' type='submit'>
-            Save changes
+          <Button form='tasks-form' type='submit' disabled={isCreating || isUpdating || !isFormValid}>
+            {isCreating || isUpdating ? 'Saving...' : 'Save changes'}
           </Button>
         </SheetFooter>
       </SheetContent>

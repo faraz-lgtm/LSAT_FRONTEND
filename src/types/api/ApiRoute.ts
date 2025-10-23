@@ -16,16 +16,19 @@ import {
   OrderInput,
   RefreshTokenInput,
   RegisterInput,
-  SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken,
-  SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt,
-  SwaggerBaseApiResponseForClassLoginOutputAuthUser,
-  SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus,
-  SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt,
+  Slot,
+  SwaggerBaseApiResponseForClassAuthTokenOutput,
+  SwaggerBaseApiResponseForClassBaseUserOutput,
+  SwaggerBaseApiResponseForClassDashboardOutputDto,
+  SwaggerBaseApiResponseForClassLoginOutput,
+  SwaggerBaseApiResponseForClassOrderOutput,
+  SwaggerBaseApiResponseForClassProductOutput,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
-  SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning,
-  SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId,
-  SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId,
-  SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount,
+  SwaggerBaseApiResponseForClassStripeCheckoutSession,
+  SwaggerBaseApiResponseForClassStripePaymentIntent,
+  SwaggerBaseApiResponseForClassTaskOutputDto,
+  SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  TaskInputDto,
   UpdateProductInput,
   UpdateUserInput,
   UserInput,
@@ -72,7 +75,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput;
   }
 
   /**
@@ -87,8 +90,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = UserInput;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt;
+    export type ResponseBody = SwaggerBaseApiResponseForClassBaseUserOutput;
   }
 
   /**
@@ -110,7 +112,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput;
   }
 
   /**
@@ -119,6 +121,7 @@ export namespace Api {
    * @name UserControllerGetUser
    * @summary Get user by id API
    * @request GET:/api/v1/users/{id}
+   * @secure
    */
   export namespace UserControllerGetUser {
     export type RequestParams = {
@@ -128,7 +131,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput;
   }
 
   /**
@@ -147,7 +150,7 @@ export namespace Api {
     export type RequestBody = UpdateUserInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount;
+      SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput;
   }
 
   /**
@@ -180,8 +183,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = LoginInput;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassLoginOutputAuthUser;
+    export type ResponseBody = SwaggerBaseApiResponseForClassLoginOutput;
   }
 
   /**
@@ -212,8 +214,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = RefreshTokenInput;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken;
+    export type ResponseBody = SwaggerBaseApiResponseForClassAuthTokenOutput;
   }
 
   /**
@@ -229,7 +230,7 @@ export namespace Api {
     export type RequestBody = OrderInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId;
+      SwaggerBaseApiResponseForClassStripeCheckoutSession;
   }
 
   /**
@@ -252,52 +253,7 @@ export namespace Api {
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
-  }
-
-  /**
-   * No description
-   * @tags order
-   * @name OrderControllerFindBookings
-   * @summary Get Slots
-   * @request GET:/api/v1/order/slots
-   */
-  export namespace OrderControllerFindBookings {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Day of the month (1-31)
-       * @min 1
-       * @max 31
-       * @example 15
-       */
-      date: number;
-      /**
-       * Month (1-12)
-       * @min 1
-       * @max 12
-       * @example 1
-       */
-      month: number;
-      /**
-       * Year (2020-2030)
-       * @min 2025
-       * @max 2050
-       * @example 2025
-       */
-      year: number;
-      /**
-       * Service/package ID
-       * @min 1
-       * @example 5
-       */
-      packageId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrderOutput;
   }
 
   /**
@@ -315,8 +271,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrderOutput;
   }
 
   /**
@@ -370,7 +325,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId;
+      SwaggerBaseApiResponseForClassStripeCheckoutSession;
   }
 
   /**
@@ -388,7 +343,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId;
+      SwaggerBaseApiResponseForClassStripePaymentIntent;
   }
 
   /**
@@ -439,6 +394,39 @@ export namespace Api {
   }
 
   /**
+   * @description Returns available and booked slots for the specified date and package. Used by Orders, Tasks, and Appointments.
+   * @tags slots
+   * @name SlotControllerGetAvailableSlots
+   * @summary Get available slots for a package
+   * @request GET:/api/v1/slots
+   */
+  export namespace SlotControllerGetAvailableSlots {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Date in ISO 8601 format (UTC timezone)
+       * @format date-time
+       * @example "2025-01-15T00:00:00.000Z"
+       */
+      date: string;
+      /**
+       * Service/package ID
+       * @min 1
+       * @example 5
+       */
+      packageId: number;
+      /**
+       * Customer timezone (e.g., America/New_York, Europe/London)
+       * @example "America/New_York"
+       */
+      customerTimezone?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Slot;
+  }
+
+  /**
    * @description Retrieve a list of all available products. This endpoint is public and does not require authentication.
    * @tags products
    * @name ProductControllerFindAll
@@ -450,8 +438,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+    export type ResponseBody = SwaggerBaseApiResponseForClassProductOutput;
   }
 
   /**
@@ -467,8 +454,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = CreateProductInput;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+    export type ResponseBody = SwaggerBaseApiResponseForClassProductOutput;
   }
 
   /**
@@ -489,8 +475,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+    export type ResponseBody = SwaggerBaseApiResponseForClassProductOutput;
   }
 
   /**
@@ -512,8 +497,7 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = UpdateProductInput;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt;
+    export type ResponseBody = SwaggerBaseApiResponseForClassProductOutput;
   }
 
   /**
@@ -536,6 +520,198 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerCreate
+   * @summary Create Task
+   * @request POST:/api/v1/task
+   * @secure
+   */
+  export namespace TaskControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = TaskInputDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerFindAll
+   * @summary Get Tasks List
+   * @request GET:/api/v1/task
+   * @secure
+   */
+  export namespace TaskControllerFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Filter by tutor ID
+       * @example 1
+       */
+      tutorId?: number;
+      /** Filter by task status */
+      status?: "pending" | "in_progress" | "completed" | "cancelled";
+      /** Filter by task priority */
+      priority?: "low" | "medium" | "high";
+      /** Filter by task label */
+      label?: "meeting" | "personal" | "preparation" | "grading";
+      /**
+       * Filter tasks from this date
+       * @example "2024-01-15T00:00:00.000Z"
+       */
+      startDate?: string;
+      /**
+       * Filter tasks to this date
+       * @example "2024-01-31T23:59:59.000Z"
+       */
+      endDate?: string;
+      /**
+       * Number of tasks to return
+       * @min 1
+       * @max 100
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Include tasks from Calendar
+       * @example true
+       */
+      googleCalendar?: boolean;
+      /**
+       * Number of tasks to skip
+       * @min 0
+       * @example 0
+       */
+      offset?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerFindByTutor
+   * @summary Get Tasks by Tutor
+   * @request GET:/api/v1/task/tutor/{tutorId}
+   * @secure
+   */
+  export namespace TaskControllerFindByTutor {
+    export type RequestParams = {
+      tutorId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerFindOne
+   * @summary Get Task by ID
+   * @request GET:/api/v1/task/{id}
+   * @secure
+   */
+  export namespace TaskControllerFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerUpdate
+   * @summary Update Task
+   * @request PATCH:/api/v1/task/{id}
+   * @secure
+   */
+  export namespace TaskControllerUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags task
+   * @name TaskControllerRemove
+   * @summary Delete Task
+   * @request DELETE:/api/v1/task/{id}
+   * @secure
+   */
+  export namespace TaskControllerRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieve aggregated dashboard metrics including top customers, revenue, and appointments data with optional toggles for each section.
+   * @tags dashboard
+   * @name DashboardControllerGetDashboardData
+   * @summary Get dashboard data
+   * @request GET:/api/v1/dashboard
+   * @secure
+   */
+  export namespace DashboardControllerGetDashboardData {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Time period for dashboard data
+       * @example "MONTH"
+       */
+      period: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
+      /**
+       * Include top customers data
+       * @default true
+       * @example true
+       */
+      includeTopCustomers?: boolean;
+      /**
+       * Include revenue metrics
+       * @default true
+       * @example true
+       */
+      includeRevenue?: boolean;
+      /**
+       * Include appointments overview
+       * @default true
+       * @example true
+       */
+      includeAppointments?: boolean;
+      /**
+       * Number of top customers to return
+       * @min 1
+       * @max 100
+       * @default 10
+       * @example 10
+       */
+      topCustomersLimit?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassDashboardOutputDto;
   }
 
   /**

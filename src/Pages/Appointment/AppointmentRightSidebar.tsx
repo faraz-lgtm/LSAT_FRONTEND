@@ -1,10 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 
 interface RightPanelProps {
-  title: "Appointments" | "Your Information" | "Payments";
+  title: "Appointments" | "Your Information";
   children?: React.ReactNode;
   footerFn: Function;
-  setSelected:React.Dispatch<React.SetStateAction<"information" | "appointments" | "payments">>;
+  setSelected:React.Dispatch<React.SetStateAction<"information" | "appointments">>;
   isLoading?: boolean;
   onNavigateBack?: () => void;
 }
@@ -14,15 +14,13 @@ const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false,
     <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
       <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b border-gray-200 dark:border-gray-600">
-        {(title === "Your Information" || title === "Appointments" || title === "Payments") && (
+        {(title === "Your Information" || title === "Appointments") && (
           <button
             onClick={() => {
               if (title === "Your Information") {
                 onNavigateBack?.(); // Use the passed navigation function
               } else if (title === "Appointments") {
                 setSelected("information");
-              } else if (title === "Payments") {
-                setSelected("appointments");
               }
             }}
             className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mb-3 transition-colors"
@@ -57,7 +55,7 @@ const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false,
                 <span>Creating Customer...</span>
               </div>
             ) : (
-              'Continue'
+              title === "Appointments" ? "Checkout" : "Continue"
             )}
           </button>
         </div>

@@ -22,7 +22,7 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
       DateTime: [],
       quantity: 1,
       sessions: productOutput.sessions,
-      assignedEmployeeId: 1,
+      // assignedEmployeeId: 1,
     };
   };
 

@@ -19,7 +19,14 @@ export default defineConfig({
   server: {
     allowedHosts: [
       'lecia-subaerial-dingily.ngrok-free.dev' //ngroks
-    ]
+    ],
+    proxy: {
+      '/api': {
+        target: 'https://api.betterlsat.com',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
   },
   resolve: {
     alias: {

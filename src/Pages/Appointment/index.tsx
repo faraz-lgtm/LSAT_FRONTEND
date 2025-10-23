@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import { DateTimePicker } from "@/components/ui/dateTimerPicker";
-import { updateBookingDate } from "@/redux/cartSlice";
+import { updateBookingDate, updateItemSlots } from "@/redux/cartSlice";
 import { addInfo, type InformationState } from "@/redux/informationSlice";
 import type { RootState } from "@/redux/store";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -13,12 +13,17 @@ import { Terminal, ArrowLeft } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import RightPanel from "./AppointmentRightSidebar";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
+import { validateCartItemSlots } from "@/utils/slotValidator";
+import { fetchSlotsForPackage } from "@/utils/slotFetcher";
 
 const Appointment = () => {
   const navigate = useNavigate();
   const [createOrder] = useCreateOrderMutation();
   const [getOrCreateCustomer, { isLoading: isCreatingCustomer }] = useGetOrCreateCustomerMutation();
   const [error, setError] = useState("");
+  const [isValidatingSlots, setIsValidatingSlots] = useState(false);
+  const [slotsRefreshed, setSlotsRefreshed] = useState(false);
+  const [slotUpdateKey, setSlotUpdateKey] = useState(0);
   const { items } = useSelector((state: RootState) => state.cart);
   const { firstName, lastName, email, phone } = useSelector(
     (state: RootState) => state.info
@@ -32,8 +37,6 @@ const Appointment = () => {
       navigate("/cart");
     } else if (selected === "appointments") {
       setSelected("information");
-    } else if (selected === "payments") {
-      setSelected("appointments");
     }
   };
 
@@ -47,13 +50,81 @@ const Appointment = () => {
 
   const dispatch = useDispatch();
   const [selected, setSelected] = useState<
-    "appointments" | "information" | "payments"
+    "appointments" | "information"
   >("information");
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Validate and refresh expired slots when appointments panel is selected
+  useEffect(() => {
+    const validateAndRefreshSlots = async () => {
+      if (items.length === 0) return;
+      
+      setIsValidatingSlots(true);
+      let hasRefreshedSlots = false;
+      
+      try {
+        for (const item of items) {
+          if (!item.DateTime || item.DateTime.length === 0) continue;
+          
+          console.log(`🔍 Validating slots for item ${item.id} (${item.name})`);
+          
+          // Validate slots for this item
+          const validation = await validateCartItemSlots(item);
+          
+          if (!validation.isValid) {
+            console.log(`⚠️ Invalid slots found for item ${item.id}, fetching fresh slots...`);
+            
+            // Get all already booked slots from other cart items
+            const otherItems = items.filter(i => i.id !== item.id);
+            const bookedSlots = otherItems.flatMap((cartItem) => 
+              cartItem.DateTime || []
+            ).filter((slot: string) => slot && slot.trim() !== '');
+            
+            // Fetch fresh slots for this item
+            const requiredSlots = item.sessions || 1;
+            const freshSlots = await fetchSlotsForPackage(
+              item.id, 
+              requiredSlots, 
+              new Date().toISOString(), 
+              bookedSlots
+            );
+            
+            // Update cart with fresh slots
+            dispatch(updateItemSlots({ 
+              itemId: item.id, 
+              newSlots: freshSlots 
+            }));
+            
+            hasRefreshedSlots = true;
+            setSlotUpdateKey(prev => prev + 1); // Force re-render of DateTimePicker components
+            console.log(`✅ Refreshed ${freshSlots.length} slots for item ${item.id}`);
+          } else {
+            console.log(`✅ All slots valid for item ${item.id}`);
+          }
+        }
+        
+        if (hasRefreshedSlots) {
+          setSlotsRefreshed(true);
+          // Auto-hide the notification after 5 seconds
+          setTimeout(() => setSlotsRefreshed(false), 5000);
+        }
+        
+      } catch (error) {
+        console.error("❌ Error validating/refreshing slots:", error);
+        handleError("Failed to validate appointment slots. Please try again.");
+      } finally {
+        setIsValidatingSlots(false);
+      }
+    };
+    
+    if (selected === "appointments") {
+      validateAndRefreshSlots();
+    }
+  }, [selected, items, dispatch]);
+
   const footerFns: Record<
-    "appointments" | "information" | "payments",
+    "appointments" | "information",
     Function
   > = {
     information: async () => {
@@ -84,7 +155,7 @@ const Appointment = () => {
         }
       }
     },
-    appointments: () => {
+    appointments: async () => {
       // add validation to check if all the slots are selected
       const allSlotsSelected = items.every(
         (item) =>
@@ -110,10 +181,8 @@ const Appointment = () => {
         );
         return;
       }
-      setSelected("payments");
-    },
-    payments: async () => {
-      //make the API Call
+      
+      // Create order directly after appointments are selected
       try {
         const result = await createOrder({
           items: items,
@@ -125,12 +194,13 @@ const Appointment = () => {
         }
       } catch (err) {
         console.error("❌ Failed to create order:", err);
+        handleError("Failed to create order. Please try again.");
       }
     },
   };
 
   const panels: Record<
-    "appointments" | "information" | "payments",
+    "appointments" | "information",
     React.ReactNode
   > = {
     appointments: (
@@ -141,6 +211,16 @@ const Appointment = () => {
         onNavigateBack={handleNavigateBack}
       >
         <div className="space-y-6">
+          {isValidatingSlots && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+                <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                  Validating appointment slots...
+                </p>
+              </div>
+            </div>
+          )}
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
               Prep Session Details
@@ -213,9 +293,14 @@ const Appointment = () => {
                   </div>
 
                   <div className="space-y-6">
-                    <h5 className="font-medium text-gray-900 dark:text-white">
+                    <h5 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                       Select Time Slots ({item.DateTime?.length || 0} total
                       sessions):
+                      {slotsRefreshed && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          ✨ Updated
+                        </span>
+                      )}
                     </h5>
 
                     {/* Group DateTime fields by package */}
@@ -256,11 +341,12 @@ const Appointment = () => {
                                     </span>
                                     <div className="flex-1">
                                       <DateTimePicker
+                                        key={`${item.id}-${globalIndex}-${slotUpdateKey}`}
                                         packageId={item.id}
                                         value={
                                           dateTime
                                             ? new Date(dateTime)
-                                            : new Date(dateTime)
+                                            : undefined
                                         }
                                         onChange={(date) =>
                                           dispatch(
@@ -376,84 +462,6 @@ const Appointment = () => {
         </div>
       </RightPanel>
     ),
-
-    payments: (
-      <RightPanel
-        title="Payments"
-        footerFn={footerFns["payments"]}
-        setSelected={setSelected}
-        onNavigateBack={handleNavigateBack}
-      >
-        <div className="space-y-6">
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-            <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-              Payment Summary
-            </h3>
-            <p className="text-green-700 dark:text-green-200 text-sm">
-              Review your order details before proceeding to payment
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-              Order Details
-            </h4>
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {item.name}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Quantity: {item.quantity}
-                    </p>
-                  </div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    ${item.price * item.quantity}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Total Amount
-                </span>
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  $
-                  {items.reduce(
-                    (acc, item) => acc + item.price * item.quantity,
-                    0
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex items-start space-x-3">
-              <span className="text-blue-600 dark:text-blue-400 text-lg">
-                ℹ️
-              </span>
-              <div>
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                  Payment Information
-                </h4>
-                <p className="text-blue-700 dark:text-blue-200 text-sm">
-                  For USA Students, prices will be converted at checkout based
-                  on current exchange rates.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </RightPanel>
-    ),
   };
 
   const total = items.reduce(
@@ -462,10 +470,9 @@ const Appointment = () => {
   );
 
   // Determine current step based on selected state
-  const getCurrentStep = (): 1 | 2 | 3 | 4 | 5 => {
+  const getCurrentStep = (): 1 | 2 | 3 | 4 => {
     if (selected === "information") return 3;
     if (selected === "appointments") return 4;
-    if (selected === "payments") return 5;
     return 3; // Default to step 3
   };
 
@@ -490,8 +497,7 @@ const Appointment = () => {
           <ArrowLeft size={20} />
           <span className="text-sm font-medium">
             {selected === "information" ? "Back to Cart" : 
-             selected === "appointments" ? "Back to Information" : 
-             "Back to Appointments"}
+             "Back to Information"}
           </span>
         </button>
       </div>
@@ -534,6 +540,17 @@ const Appointment = () => {
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Incomplete Form!</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </div>
+          )}
+          {slotsRefreshed && (
+            <div className="fixed top-16 right-4 z-50 w-80 animate-in slide-in-from-top-5">
+              <Alert className="mb-4">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Slots Updated!</AlertTitle>
+                <AlertDescription>
+                  Some appointment slots were no longer available and have been automatically refreshed with new times.
+                </AlertDescription>
               </Alert>
             </div>
           )}

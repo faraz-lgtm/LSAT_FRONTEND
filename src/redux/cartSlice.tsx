@@ -42,7 +42,7 @@ export const addToCartAsync = createAsyncThunk(
       console.log(`📋 Found ${bookedSlots.length} already booked slots in cart:`, bookedSlots);
       
       // Fetch available slots for the package, excluding already booked ones
-      const slots = await fetchSlotsForPackage(item.id, requiredSlots, new Date(), bookedSlots);
+      const slots = await fetchSlotsForPackage(item.id, requiredSlots, new Date().toISOString(), bookedSlots);
       
       // Create the cart item with fetched slots
       const cartItem: ItemInput = {
@@ -95,7 +95,7 @@ export const increaseQuantityAsync = createAsyncThunk(
         console.log(`📋 Found ${bookedSlots.length} already booked slots in cart`);
         
         // Fetch additional slots for the package, excluding already booked ones
-        const additionalSlots = await fetchSlotsForPackage(item.id, additionalSlotsNeeded, new Date(), bookedSlots);
+        const additionalSlots = await fetchSlotsForPackage(item.id, additionalSlotsNeeded, new Date().toISOString(), bookedSlots);
         
         console.log(`✅ Successfully fetched ${additionalSlots.length} additional slots for item ${itemId}`);
         
@@ -196,6 +196,13 @@ const cartSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    updateItemSlots: (state, action: PayloadAction<{itemId: number, newSlots: string[]}>) => {
+      const item = state.items.find(i => i.id === action.payload.itemId);
+      if (item) {
+        item.DateTime = action.payload.newSlots;
+        console.log(`✅ Updated slots for item ${action.payload.itemId}: ${action.payload.newSlots.length} slots`);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -259,6 +266,7 @@ export const {
   updateBookingDate,
   increaseQuantity,
   clearError,
+  updateItemSlots,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

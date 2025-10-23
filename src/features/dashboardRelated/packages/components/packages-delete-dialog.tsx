@@ -33,6 +33,7 @@ export function PackagesDeleteDialog({
       await deleteProduct(currentRow.id).unwrap()
       toast.success('Package deleted successfully!')
       onOpenChange(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error:', error)
       toast.error(error?.data?.error?.message || 'Failed to delete package')
@@ -70,7 +71,7 @@ export function PackagesDeleteDialog({
                 </div>
               )}
               <div>
-                <span className="font-medium">Duration:</span> {currentRow.Duration}
+                <span className="font-medium">Duration:</span> {currentRow.Duration} minutes
               </div>
             </div>
 

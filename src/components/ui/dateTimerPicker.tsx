@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Edit } from "lucide-react";
-import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
+import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Slot"; 
 import type { RootState } from "../../redux/store";
 
 import { useSelector } from "react-redux";
@@ -28,10 +28,12 @@ export function DateTimePicker({
   value,
   packageId,
   onChange,
+  excludedSlots = [],
 }: {
   value?: Date | undefined;
   packageId: number;
   onChange: (date: Date) => void;
+  excludedSlots?: Date[];
 }) {
 
   const { items } = useSelector((state: RootState) => state.cart);
@@ -46,10 +48,9 @@ export function DateTimePicker({
 
   // Fetch available slots from API
   const { data: slotsData, isLoading: slotsLoading, error: slotsError } = useGetAvailableSlotsQuery({
-    month: date && date instanceof Date ? date.getMonth() + 1 : 0, // JavaScript months are 0-based, API expects 1-based
-    year: date && date instanceof Date ? date.getFullYear() : 0,
+
     packageId: packageId,
-    date: date && date instanceof Date ? date.getDate() : 0, // Day as number
+    date: date && date instanceof Date ? new Date(date).toISOString(): new Date().toISOString(), // Day as number using UTC to avoid timezone issues
   }, {
     skip: !date || !(date instanceof Date), // Only fetch when date is selected and is a valid Date
   });
@@ -93,26 +94,25 @@ export function DateTimePicker({
     const bookedSlots = items
       .flatMap((item) => item.DateTime || [])
       .filter((slot) => slot !== undefined && slot !== null ) // Remove undefined values
-      // .filter((slot) => slot !== undefined) // Remove undefined values
-      
       .map((slot) => new Date(slot)); // Ensure they're Date objects
 
- 
-
+    // Combine booked slots with excluded slots
+    const allExcludedSlots = [...bookedSlots, ...excludedSlots];
     
     slots = slots.filter((slot) => {
-      // Exact match - if slot.start time equals any booked slot time, remove it
-
-      return !bookedSlots.some((bookedSlot) => {
+      // Exact match - if slot.start time equals any excluded slot time, remove it
+      return !allExcludedSlots.some((excludedSlot) => {
         console.log('slot.start', slot.start.getTime());
-        console.log('bookedSlot', bookedSlot.getTime());
-        console.log('slot.start.getTime() === bookedSlot.getTime()', slot.start.getTime() === bookedSlot.getTime());
-        return slot.start.getTime() === bookedSlot.getTime();
+        console.log('excludedSlot', excludedSlot.getTime());
+        console.log('slot.start.getTime() === excludedSlot.getTime()', slot.start.getTime() === excludedSlot.getTime());
+        return slot.start.getTime() === excludedSlot.getTime();
       });
     });
 
     console.log('bookedSlots', bookedSlots);
-    console.log('slots', slots);
+    console.log('excludedSlots', excludedSlots);
+    console.log('allExcludedSlots', allExcludedSlots);
+    console.log('available slots after filtering', slots);
     
 
     // Check to which slot the date is closest, only if date is defined and slots is not empty
@@ -128,7 +128,7 @@ export function DateTimePicker({
     //   onChange(newDate);
     // }
     return slots;
-  }, [items]);
+  }, [items, excludedSlots]);
 
   function formatTime(date: Date): string {
     return date.toLocaleTimeString("en-US", {
@@ -226,13 +226,14 @@ export function DateTimePicker({
             )}
           </Button>
         </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 max-w-[90vw] sm:max-w-none">
+      <PopoverContent className="w-auto p-0 max-w-[90vw] sm:max-w-none bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <div className="flex flex-col sm:flex-row">
           <Calendar
             mode="single"
             selected={date}
             onSelect={handleDateSelect}
             initialFocus
+            className="bg-blue-50 dark:bg-blue-950"
             disabled={(d) => {
               // disable past days
               if (d < new Date(new Date().toDateString())) return true;
@@ -247,20 +248,20 @@ export function DateTimePicker({
           />
           {/* Time Picker */}
           {slotsLoading && (
-            <div className="p-4 text-center text-gray-500">
+            <div className="p-4 text-center text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300">
               Loading available slots...
             </div>
           )}
           
           {slotsError && (
-            <div className="p-4 text-center text-red-500">
+            <div className="p-4 text-center text-red-500 bg-red-50 dark:bg-red-950">
               Error loading slots. Please try again.
             </div>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
             {availableSlots.length === 0 && !slotsLoading ? (
-              <div className="col-span-2 sm:col-span-3 p-4 text-center text-gray-500">
+              <div className="col-span-2 sm:col-span-3 p-4 text-center text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300">
                 No available slots for this date
               </div>
             ) : (
@@ -273,9 +274,12 @@ export function DateTimePicker({
                 <Button
                   key={index}
                   variant={isSelected ? "default" : "ghost"}
-                  style={{ backgroundColor: isSelected ? "blue" : "white" }}
                   onClick={() => handleSlotSelect(slot)}
-                  className="justify-center text-xs sm:text-sm"
+                  className={`justify-center text-xs sm:text-sm ${
+                    isSelected 
+                      ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                      : "bg-white hover:bg-blue-100 text-gray-700 border border-blue-200 hover:border-blue-300"
+                  }`}
                 >
                   {slot.label}
                  </Button>

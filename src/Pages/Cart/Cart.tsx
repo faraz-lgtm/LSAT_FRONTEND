@@ -12,7 +12,7 @@ const Cart = () => {
   const navigate = useNavigate();
   
   // Get current checkout progress step
-  const currentStep: 1 | 2 | 3 | 4 | 5 = useCheckoutProgress();
+  const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,

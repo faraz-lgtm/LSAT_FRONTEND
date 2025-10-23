@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { setTokens, setUser, reset } from "./authSlice";
 
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? '' : 'https://api.betterlsat.com');
 
 // JWT decode utility
 function decodeJWT(token: string): any {
@@ -254,6 +254,6 @@ async function performTokenRefresh(refreshToken: string): Promise<RefreshTokenRe
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders", "Users", "AvailableSlots", "Products"],
+  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard","AvailableSlots"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

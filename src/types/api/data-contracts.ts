@@ -52,9 +52,14 @@ export interface UserOutput {
    * @example 5
    */
   ordersCount: number;
+  /**
+   * Last assigned order count for round-robin assignment
+   * @example 5
+   */
+  lastAssignedOrderCount: number;
 }
 
-export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount {
+export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
   meta: MetaResponse;
   data: UserOutput;
 }
@@ -113,12 +118,12 @@ export interface BaseUserOutput {
   updatedAt: string;
 }
 
-export interface SwaggerBaseApiResponseForClassBaseUserOutputIdNameUsernameRolesEmailIsAccountDisabledPhoneCreatedAtUpdatedAt {
+export interface SwaggerBaseApiResponseForClassBaseUserOutput {
   meta: MetaResponse;
   data: BaseUserOutput;
 }
 
-export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutputWorkHoursOrdersCount {
+export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
   meta: MetaResponse;
   data: UserOutput[];
 }
@@ -163,6 +168,11 @@ export interface UpdateUserInput {
    * @example {"Monday":["09:00-17:00"],"Tuesday":["09:00-17:00"]}
    */
   workHours?: Record<string, string[]>;
+  /**
+   * Last assigned order count for round-robin assignment
+   * @example 5
+   */
+  lastAssignedOrderCount?: number;
 }
 
 export interface LoginInput {
@@ -206,7 +216,7 @@ export interface LoginOutput {
   user: UserAccessTokenClaims;
 }
 
-export interface SwaggerBaseApiResponseForClassLoginOutputAuthUser {
+export interface SwaggerBaseApiResponseForClassLoginOutput {
   meta: MetaResponse;
   data: LoginOutput;
 }
@@ -254,7 +264,7 @@ export interface RefreshTokenInput {
   refreshToken: string;
 }
 
-export interface SwaggerBaseApiResponseForClassAuthTokenOutputAccessTokenRefreshToken {
+export interface SwaggerBaseApiResponseForClassAuthTokenOutput {
   meta: MetaResponse;
   data: AuthTokenOutput;
 }
@@ -269,36 +279,6 @@ export interface GetOrdersQueryParams {
    * @example "succeeded"
    */
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
-}
-
-export interface SlotsQueryDto {
-  /**
-   * Day of the month (1-31)
-   * @min 1
-   * @max 31
-   * @example 15
-   */
-  date: number;
-  /**
-   * Month (1-12)
-   * @min 1
-   * @max 12
-   * @example 1
-   */
-  month: number;
-  /**
-   * Year (2020-2030)
-   * @min 2025
-   * @max 2050
-   * @example 2025
-   */
-  year: number;
-  /**
-   * Service/package ID
-   * @min 1
-   * @example 5
-   */
-  packageId: number;
 }
 
 export interface ItemInput {
@@ -318,10 +298,10 @@ export interface ItemInput {
    */
   name: string;
   /**
-   * Session duration
-   * @example "60 minutes"
+   * Session duration in minutes
+   * @example 60
    */
-  Duration: string;
+  Duration: number;
   /**
    * Item description
    * @example "Comprehensive prep session"
@@ -346,7 +326,7 @@ export interface ItemInput {
    * ID of assigned employee
    * @example 5
    */
-  assignedEmployeeId?: number;
+  assignedEmployeeIds?: string[];
 }
 
 export interface OrderInput {
@@ -367,7 +347,7 @@ export interface StripeCheckoutSession {
   sessionId: string;
 }
 
-export interface SwaggerBaseApiResponseForClassStripeCheckoutSessionUrlSessionId {
+export interface SwaggerBaseApiResponseForClassStripeCheckoutSession {
   meta: MetaResponse;
   data: StripeCheckoutSession;
 }
@@ -402,10 +382,10 @@ export interface ItemOutput {
    */
   name: string;
   /**
-   * Session duration
-   * @example "60 minutes"
+   * Session duration in minutes
+   * @example 60
    */
-  Duration: string;
+  Duration: number;
   /** Optional badge information */
   badge?: Badge;
   /** Optional save discount number */
@@ -431,10 +411,10 @@ export interface ItemOutput {
    */
   quantity: number;
   /**
-   * Assigned employee ID
-   * @example 5
+   * Assigned employee IDs
+   * @example [5,6]
    */
-  assignedEmployeeId: number;
+  assignedEmployeeIds: string[];
 }
 
 export interface OrderOutput {
@@ -457,12 +437,60 @@ export interface OrderOutput {
    * Slot reservation status indicating the current state of the reservation
    * @example "RESERVED"
    */
-  slot_reservation_status?: "RESERVED" | "CONFIRMED" | "EXPIRED" | null;
+  slot_reservation_status?:
+    | "RESERVED"
+    | "CONFIRMED"
+    | "EXPIRED"
+    | "FAILED"
+    | null;
 }
 
-export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
+export interface SwaggerBaseApiResponseForClassOrderOutput {
   meta: MetaResponse;
   data: OrderOutput[];
+}
+
+export interface SwaggerBaseApiResponseForClassOrderOutput {
+  meta: MetaResponse;
+  data: OrderOutput;
+}
+
+export interface StripePaymentIntent {
+  /**
+   * Stripe payment intent client secret for frontend confirmation
+   * @example "pi_123456789_secret_abcdef"
+   */
+  clientSecret: string;
+  /**
+   * Stripe payment intent ID
+   * @example "pi_123456789"
+   */
+  paymentIntentId: string;
+}
+
+export interface SwaggerBaseApiResponseForClassStripePaymentIntent {
+  meta: MetaResponse;
+  data: StripePaymentIntent;
+}
+
+export interface SlotsQueryDto {
+  /**
+   * Date in ISO 8601 format (UTC timezone)
+   * @format date-time
+   * @example "2025-01-15T00:00:00.000Z"
+   */
+  date: string;
+  /**
+   * Service/package ID
+   * @min 1
+   * @example 5
+   */
+  packageId: number;
+  /**
+   * Customer timezone (e.g., America/New_York, Europe/London)
+   * @example "America/New_York"
+   */
+  customerTimezone?: string;
 }
 
 export interface AvailableEmployee {
@@ -513,34 +541,6 @@ export interface Slot {
   warning?: string;
 }
 
-export interface SwaggerBaseApiResponseForClassSlotBookedSlotsAvailableSlotsSlotDurationMinutesWarning {
-  meta: MetaResponse;
-  data: Slot;
-}
-
-export interface SwaggerBaseApiResponseForClassOrderOutputIdCustomerItemsSlotReservationExpiresAtSlotReservationStatus {
-  meta: MetaResponse;
-  data: OrderOutput;
-}
-
-export interface StripePaymentIntent {
-  /**
-   * Stripe payment intent client secret for frontend confirmation
-   * @example "pi_123456789_secret_abcdef"
-   */
-  clientSecret: string;
-  /**
-   * Stripe payment intent ID
-   * @example "pi_123456789"
-   */
-  paymentIntentId: string;
-}
-
-export interface SwaggerBaseApiResponseForClassStripePaymentIntentClientSecretPaymentIntentId {
-  meta: MetaResponse;
-  data: StripePaymentIntent;
-}
-
 export interface ProductOutput {
   /**
    * Product ID
@@ -569,10 +569,10 @@ export interface ProductOutput {
    */
   sessions: number;
   /**
-   * Session duration
-   * @example "Unlimited"
+   * Session duration in minutes
+   * @example 60
    */
-  Duration: string;
+  Duration: number;
   /**
    * Product description
    * @example "Need flexibility? Book individual LSAT tutoring sessions as you go"
@@ -595,12 +595,12 @@ export interface ProductOutput {
   updatedAt: string;
 }
 
-export interface SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt {
+export interface SwaggerBaseApiResponseForClassProductOutput {
   meta: MetaResponse;
   data: ProductOutput[];
 }
 
-export interface SwaggerBaseApiResponseForClassProductOutputIdNamePriceSaveSessionsDurationDescriptionBadgeCreatedAtUpdatedAt {
+export interface SwaggerBaseApiResponseForClassProductOutput {
   meta: MetaResponse;
   data: ProductOutput;
 }
@@ -625,10 +625,10 @@ export interface CreateProductInput {
    */
   save?: number;
   /**
-   * Session duration
-   * @example "Unlimited"
+   * Session duration in minutes
+   * @example 60
    */
-  Duration: string;
+  Duration: number;
   /**
    * Number of sessions included
    * @min 1
@@ -672,10 +672,10 @@ export interface UpdateProductInput {
    */
   save?: number;
   /**
-   * Session duration
-   * @example "Unlimited"
+   * Session duration in minutes
+   * @example 60
    */
-  Duration?: string;
+  Duration?: number;
   /**
    * Number of sessions included
    * @min 1
@@ -697,4 +697,306 @@ export interface UpdateProductInput {
     /** @example "bg-blue-600" */
     color?: string;
   };
+}
+
+export interface TaskInputDto {
+  /**
+   * Task title
+   * @maxLength 200
+   * @example "Prepare lesson materials"
+   */
+  title: string;
+  /**
+   * Task description
+   * @example "Review chapter 5 and prepare exercises"
+   */
+  description?: string;
+  /**
+   * Task start date and time
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  startDateTime: string;
+  /**
+   * Task end date and time
+   * @example "2024-01-15T15:00:00.000Z"
+   */
+  endDateTime: string;
+  /**
+   * Tutor ID who created this task
+   * @example 1
+   */
+  tutorId: number;
+  /**
+   * Task label
+   * @example "meeting"
+   */
+  label: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Task priority
+   * @example "medium"
+   */
+  priority?: "low" | "medium" | "high";
+  /**
+   * Task status
+   * @example "pending"
+   */
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+}
+
+export interface TaskOutputDto {
+  /**
+   * Task ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Task title
+   * @example "Prepare lesson materials"
+   */
+  title: string;
+  /**
+   * Task description
+   * @example "Review chapter 5 and prepare exercises"
+   */
+  description?: string;
+  /**
+   * Task start date and time
+   * @format date-time
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  startDateTime: string;
+  /**
+   * Task end date and time
+   * @format date-time
+   * @example "2024-01-15T15:00:00.000Z"
+   */
+  endDateTime: string;
+  /**
+   * Tutor ID who created this task
+   * @example 1
+   */
+  tutorId: number;
+  /**
+   * Google Calendar event ID
+   * @example "abc123def456"
+   */
+  googleCalendarEventId?: string;
+  /**
+   * Meeting link (Zoom, Google Meet, etc.)
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  meetingLink?: string;
+  /** List of invitees/attendees */
+  invitees?: {
+    /** @example "john@example.com" */
+    email?: string;
+    /** @example "John Doe" */
+    name?: string;
+    /** @example "accepted" */
+    responseStatus?: string;
+    /** @example 5 */
+    id?: number;
+  }[];
+  /**
+   * Task label
+   * @example "meeting"
+   */
+  label: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Task priority
+   * @example "medium"
+   */
+  priority: "low" | "medium" | "high";
+  /**
+   * Task status
+   * @example "pending"
+   */
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  /**
+   * Task creation timestamp
+   * @format date-time
+   * @example "2024-01-15T10:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Task last update timestamp
+   * @format date-time
+   * @example "2024-01-15T12:00:00.000Z"
+   */
+  updatedAt: string;
+}
+
+export interface TaskQueryDto {
+  /**
+   * Filter by tutor ID
+   * @example 1
+   */
+  tutorId?: number;
+  /** Filter by task status */
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  /** Filter by task priority */
+  priority?: "low" | "medium" | "high";
+  /** Filter by task label */
+  label?: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Filter tasks from this date
+   * @example "2024-01-15T00:00:00.000Z"
+   */
+  startDate?: string;
+  /**
+   * Filter tasks to this date
+   * @example "2024-01-31T23:59:59.000Z"
+   */
+  endDate?: string;
+  /**
+   * Number of tasks to return
+   * @min 1
+   * @max 100
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Include tasks from Calendar
+   * @example true
+   */
+  googleCalendar?: boolean;
+  /**
+   * Number of tasks to skip
+   * @min 0
+   * @example 0
+   */
+  offset?: number;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto[];
+}
+
+export interface TopCustomerDto {
+  /**
+   * Customer ID
+   * @example 1
+   */
+  customerId: number;
+  /**
+   * Customer name
+   * @example "John Doe"
+   */
+  customerName: string;
+  /**
+   * Customer email
+   * @example "john@example.com"
+   */
+  email: string;
+  /**
+   * Total revenue from this customer
+   * @example 1500
+   */
+  totalRevenue: number;
+  /**
+   * Number of orders from this customer
+   * @example 5
+   */
+  orderCount: number;
+}
+
+export interface RevenuePeriodDto {
+  /**
+   * Date for this revenue period
+   * @example "2024-01-15"
+   */
+  date: string;
+  /**
+   * Revenue for this period
+   * @example 500
+   */
+  revenue: number;
+}
+
+export interface RevenueDto {
+  /**
+   * Total revenue for the period
+   * @example 5000
+   */
+  totalRevenue: number;
+  /** Revenue breakdown by period */
+  periodRevenue: RevenuePeriodDto[];
+}
+
+export interface AppointmentPeriodDto {
+  /**
+   * Date for this appointment period
+   * @example "2024-01-15"
+   */
+  date: string;
+  /**
+   * Number of appointments for this period
+   * @example 3
+   */
+  count: number;
+}
+
+export interface AppointmentsDto {
+  /**
+   * Total appointments for the period
+   * @example 25
+   */
+  totalAppointments: number;
+  /**
+   * Number of upcoming appointments
+   * @example 8
+   */
+  upcomingAppointments: number;
+  /**
+   * Number of completed appointments
+   * @example 17
+   */
+  completedAppointments: number;
+  /** Appointments breakdown by period */
+  periodAppointments: AppointmentPeriodDto[];
+}
+
+export interface DashboardDataDto {
+  /** Top customers data */
+  topCustomers?: TopCustomerDto[];
+  /** Revenue metrics */
+  revenue?: RevenueDto;
+  /** Appointments overview */
+  appointments?: AppointmentsDto;
+}
+
+export interface DashboardMetaDto {
+  /**
+   * Time period used
+   * @example "MONTH"
+   */
+  period: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
+  /**
+   * Start date of the period
+   * @example "2024-01-01T00:00:00.000Z"
+   */
+  startDate: string;
+  /**
+   * End date of the period
+   * @example "2024-01-31T23:59:59.999Z"
+   */
+  endDate: string;
+}
+
+export interface DashboardOutputDto {
+  /** Dashboard data */
+  data: DashboardDataDto;
+  /** Dashboard metadata */
+  meta: DashboardMetaDto;
+}
+
+export interface SwaggerBaseApiResponseForClassDashboardOutputDto {
+  meta: MetaResponse;
+  data: DashboardOutputDto;
 }

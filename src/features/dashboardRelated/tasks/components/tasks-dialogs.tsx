@@ -1,23 +1,58 @@
-import { showSubmittedData } from '@/lib/dashboardRelated/show-submitted-data'
 import { ConfirmDialog } from '@/components/dashboard/confirm-dialog'
 import { TasksImportDialog } from './tasks-import-dialog'
 import { TasksMutateDrawer } from './tasks-mutate-drawer'
-import { useTasks } from './tasks-provider'
+import { useDeleteTaskMutation } from '@/redux/apiSlices/Task/taskSlice'
+import { toast } from 'sonner'
+import type { TaskOutputDto } from '@/types/api/data-contracts'
+import type { Dispatch, SetStateAction } from 'react'
 
-export function TasksDialogs() {
-  const { open, setOpen, currentRow, setCurrentRow } = useTasks()
+type TasksDialogsProps = {
+  open: 'create' | 'import' | 'update' | 'delete' | null
+  setOpen: (open: 'create' | 'import' | 'update' | 'delete' | null) => void
+  currentRow?: TaskOutputDto
+  setCurrentRow: Dispatch<SetStateAction<TaskOutputDto | undefined>>
+}
+
+export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow }: TasksDialogsProps) {
+  const [deleteTask] = useDeleteTaskMutation()
+
+  const handleDelete = async () => {
+    if (!currentRow) return
+    
+    // Check if task ID is 0 and show warning
+    if (currentRow.id === 0) {
+      toast.warning("Cannot delete orders!")
+      setOpen(null)
+      setTimeout(() => {
+        setCurrentRow(undefined)
+      }, 500)
+      return
+    }
+    
+    try {
+      await deleteTask(currentRow.id).unwrap()
+      toast.success("Task deleted successfully")
+      setOpen(null)
+      setTimeout(() => {
+        setCurrentRow(undefined)
+      }, 500)
+    } catch (error) {
+      console.error("❌ Delete task error:", error)
+      toast.error("Failed to delete task")
+    }
+  }
   return (
     <>
       <TasksMutateDrawer
         key='task-create'
         open={open === 'create'}
-        onOpenChange={() => setOpen('create')}
+        onOpenChange={(v) => setOpen(v ? 'create' : null)}
       />
 
       <TasksImportDialog
         key='tasks-import'
         open={open === 'import'}
-        onOpenChange={() => setOpen('import')}
+        onOpenChange={(v) => setOpen(v ? 'import' : null)}
       />
 
       {currentRow && (
@@ -25,11 +60,15 @@ export function TasksDialogs() {
           <TasksMutateDrawer
             key={`task-update-${currentRow.id}`}
             open={open === 'update'}
-            onOpenChange={() => {
-              setOpen('update')
-              setTimeout(() => {
-                setCurrentRow(null)
-              }, 500)
+            onOpenChange={(v) => {
+              if (!v) {
+                setOpen(null)
+                setTimeout(() => {
+                  setCurrentRow(undefined)
+                }, 500)
+              } else {
+                setOpen('update')
+              }
             }}
             currentRow={currentRow}
           />
@@ -38,22 +77,17 @@ export function TasksDialogs() {
             key='task-delete'
             destructive
             open={open === 'delete'}
-            onOpenChange={() => {
-              setOpen('delete')
-              setTimeout(() => {
-                setCurrentRow(null)
-              }, 500)
+            onOpenChange={(v) => {
+              if (!v) {
+                setOpen(null)
+                setTimeout(() => {
+                  setCurrentRow(undefined)
+                }, 500)
+              } else {
+                setOpen('delete')
+              }
             }}
-            handleConfirm={() => {
-              setOpen(null)
-              setTimeout(() => {
-                setCurrentRow(null)
-              }, 500)
-              showSubmittedData(
-                currentRow,
-                'The following task has been deleted:'
-              )
-            }}
+            handleConfirm={handleDelete}
             className='max-w-md'
             title={`Delete this task: ${currentRow.id} ?`}
             desc={

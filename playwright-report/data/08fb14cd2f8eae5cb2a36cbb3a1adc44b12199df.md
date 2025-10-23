@@ -1,0 +1,109 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - link "Better LSAT MCAT Better LSAT MCAT" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - img "Better LSAT MCAT" [ref=e7]
+      - generic [ref=e8]: Better LSAT MCAT
+    - generic [ref=e9]:
+      - link "Cart (0)" [ref=e10] [cursor=pointer]:
+        - /url: /cart
+      - generic [ref=e11]: "Total: $0.00"
+      - button "Toggle theme" [ref=e12] [cursor=pointer]:
+        - img
+        - generic [ref=e13]: Toggle theme
+  - main [ref=e14]:
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: "1"
+          - generic [ref=e29]: Select
+        - generic [ref=e31]:
+          - generic [ref=e32]: "2"
+          - generic [ref=e34]: Review
+        - generic [ref=e36]:
+          - generic [ref=e37]: "3"
+          - generic [ref=e39]: Info
+        - generic [ref=e41]:
+          - generic [ref=e42]: "4"
+          - generic [ref=e44]: Appt
+      - generic [ref=e46]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: Popular
+          - generic [ref=e50]:
+            - heading "Test Package CRUD" [level=5] [ref=e52]
+            - generic [ref=e54]:
+              - generic [ref=e56]: $109
+              - generic [ref=e57]: Save $25!
+            - paragraph [ref=e59]: Test package for CRUD operations
+            - generic:
+              - list
+            - button "Add to Cart - $109" [ref=e60] [cursor=pointer]
+        - generic [ref=e62]:
+          - generic [ref=e63]: Popular
+          - generic [ref=e64]:
+            - heading "Test Package CRUD" [level=5] [ref=e66]
+            - generic [ref=e68]:
+              - generic [ref=e70]: $109
+              - generic [ref=e71]: Save $25!
+            - paragraph [ref=e73]: Test package for CRUD operations
+            - generic:
+              - list
+            - button "Add to Cart - $109" [ref=e74] [cursor=pointer]
+        - generic [ref=e76]:
+          - generic [ref=e77]: Popular
+          - generic [ref=e78]:
+            - heading "Test Package CRUD" [level=5] [ref=e80]
+            - generic [ref=e82]:
+              - generic [ref=e84]: $109
+              - generic [ref=e85]: Save $25!
+            - paragraph [ref=e87]: Test package for CRUD operations
+            - generic:
+              - list
+            - button "Add to Cart - $109" [ref=e88] [cursor=pointer]
+        - generic [ref=e90]:
+          - generic [ref=e91]: Hot Selling
+          - generic [ref=e92]:
+            - heading "10x Prep Session Bundle" [level=5] [ref=e94]
+            - generic [ref=e96]:
+              - generic [ref=e98]: $1100
+              - generic [ref=e99]: Save $150!
+            - paragraph [ref=e101]: Built for long-term gains and higher score jumps.
+            - list [ref=e103]:
+              - listitem [ref=e104]: 10 one-on-one sessions
+              - listitem [ref=e106]: Complete prep program
+              - listitem [ref=e108]: Detailed progress tracking
+              - listitem [ref=e110]: All practice materials
+              - listitem [ref=e112]: Mock exam sessions
+            - button "Add to Cart - $1100" [ref=e114] [cursor=pointer]
+        - generic [ref=e116]:
+          - generic [ref=e117]: Most Popular
+          - generic [ref=e118]:
+            - heading "5x Prep Session Bundle" [level=5] [ref=e120]
+            - generic [ref=e122]:
+              - generic [ref=e124]: $577
+              - generic [ref=e125]: Save $100!
+            - paragraph [ref=e127]: Our most popular option for consistent, focused prep.
+            - list [ref=e129]:
+              - listitem [ref=e130]: 5 one-on-one sessions
+              - listitem [ref=e132]: Comprehensive study plan
+              - listitem [ref=e134]: Progress tracking
+              - listitem [ref=e136]: Practice materials included
+            - button "Add to Cart - $577" [ref=e138] [cursor=pointer]
+        - generic [ref=e140]:
+          - generic [ref=e141]: Only 3 slots left
+          - generic [ref=e142]:
+            - heading "60-Minute Single Prep" [level=5] [ref=e144]
+            - generic [ref=e146]:
+              - generic [ref=e148]: $125
+              - generic [ref=e149]: Save $75!
+            - paragraph [ref=e151]: Need flexibility? Book individual LSAT tutoring sessions as you go
+            - list [ref=e153]:
+              - listitem [ref=e154]: One-on-one tutoring session
+              - listitem [ref=e156]: Flexible scheduling
+              - listitem [ref=e158]: Personalized study plan
+            - button "Add to Cart - $125" [ref=e160] [cursor=pointer]
+  - contentinfo [ref=e161]: © 2025 Better LSAT MCAT
+```

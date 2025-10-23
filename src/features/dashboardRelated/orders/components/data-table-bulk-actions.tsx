@@ -13,6 +13,9 @@ import { DataTableBulkActions as BulkActionsToolbar } from '@/components/dashboa
 import {  useDeleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { OrdersMultiDeleteDialog } from './orders-multi-delete-dialog'
+import { useSelector } from 'react-redux'
+import type { RootState } from '@/redux/store'
+import { ROLE } from '@/constants/roles'
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
@@ -24,6 +27,8 @@ export function DataTableBulkActions<TData>({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteOrder] = useDeleteOrderMutation()
   const selectedRows = table.getFilteredSelectedRowModel().rows
+  const user = useSelector((state: RootState) => state.auth.user)
+  const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
 
   const handleBulkDelete = async () => {
     const selectedOrders = selectedRows.map((row) => row.original as OrderOutput)
@@ -57,31 +62,35 @@ export function DataTableBulkActions<TData>({
         table={table as Table<unknown>}
         entityName="orders"
       >
-        <div className='flex items-center gap-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setShowDeleteConfirm(true)}
-                className='h-8'
-              >
-                <Trash2 className='mr-2 h-4 w-4' />
-                Delete ({selectedRows.length})
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Delete selected orders</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        {isAdmin && (
+          <div className='flex items-center gap-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className='h-8'
+                >
+                  <Trash2 className='mr-2 h-4 w-4' />
+                  Delete ({selectedRows.length})
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete selected orders</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </BulkActionsToolbar>
-      <OrdersMultiDeleteDialog
-        open={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleBulkDelete}
-        selectedCount={selectedRows.length}
-      />
+      {isAdmin && (
+        <OrdersMultiDeleteDialog
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+          onConfirm={handleBulkDelete}
+          selectedCount={selectedRows.length}
+        />
+      )}
     </>
   )
 }
