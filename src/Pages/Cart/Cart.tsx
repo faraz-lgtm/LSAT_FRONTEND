@@ -93,7 +93,7 @@ const Cart = () => {
                     <CartCard
                       key={item.id}
                       id={item.id}
-                      BigText={item.name.split(/[\s-]/)[0]}
+                      BigText={item.name?.split(/[\s-]/)[0] || ''}
                       Desc={item.Description}
                       name={item.name}
                       itemSessions={item.sessions}

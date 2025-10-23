@@ -29,7 +29,7 @@ const formSchema = z.object({
       message: 'Please upload a file',
     })
     .refine(
-      (files) => ['text/csv'].includes(files?.[0]?.type),
+      (files) => ['text/csv'].includes(files?.[0]?.type || ''),
       'Please upload csv format.'
     ),
 })

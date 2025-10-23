@@ -23,6 +23,7 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | 
     phone: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    lastAssignedOrderCount: 0,
     ordersCount: 0, // AuthUser doesn't have orders data, default to 0
   }
 }

@@ -21,7 +21,7 @@ const informationSlice = createSlice({
     addInfo: (state, action: PayloadAction<InformationState>) => {
       return { ...state, ...action.payload }; 
     },
-    clearInfo: (state) => {
+    clearInfo: () => {
       return initialState;
     },
   },

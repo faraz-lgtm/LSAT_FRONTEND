@@ -34,6 +34,7 @@ export function TasksMultiDeleteDialog<TData>({
     }
 
     // Check if any selected task has ID 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hasTaskWithIdZero = selectedRows.some((row: any) => row.original.id === 0)
     if (hasTaskWithIdZero) {
       toast.warning("Cannot delete tasks with ID 0")

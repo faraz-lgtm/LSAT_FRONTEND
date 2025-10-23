@@ -1,29 +1,19 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { type Row } from '@tanstack/react-table'
-import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/dashboard/ui/dropdown-menu'
 import type { TaskOutputDto } from '@/types/api/data-contracts'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { type Row } from '@tanstack/react-table'
+import { Trash2 } from 'lucide-react'
 
 // Filter options for the row actions
-const labels = [
-  { value: 'meeting', label: 'Meeting' },
-  { value: 'personal', label: 'Personal' },
-  { value: 'preparation', label: 'Preparation' },
-  { value: 'grading', label: 'Grading' },
-]
+
 
 type DataTableRowActionsProps = {
   row: Row<TaskOutputDto>

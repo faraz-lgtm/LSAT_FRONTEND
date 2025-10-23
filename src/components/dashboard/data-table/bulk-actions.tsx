@@ -47,6 +47,9 @@ export function DataTableBulkActions<TData>({
       const timer = setTimeout(() => setAnnouncement(''), 3000)
       return () => clearTimeout(timer)
     }
+    
+    // Return a no-op cleanup function when no rows are selected
+    return () => {}
   }, [selectedCount, entityName])
 
   const handleClearSelection = () => {

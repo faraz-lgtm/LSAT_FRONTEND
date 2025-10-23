@@ -100,11 +100,11 @@ export function GoogleCalendarEventEditForm({
     // Combine date and time for start and end
     const startDateTime = new Date(values.startDate);
     const [startHours, startMinutes] = values.startTime.split(':').map(Number);
-    startDateTime.setHours(startHours, startMinutes, 0, 0);
+    startDateTime.setHours(startHours || 0, startMinutes || 0, 0, 0);
     
     const endDateTime = new Date(values.endDate);
     const [endHours, endMinutes] = values.endTime.split(':').map(Number);
-    endDateTime.setHours(endHours, endMinutes, 0, 0);
+    endDateTime.setHours(endHours || 0, endMinutes || 0, 0, 0);
     
     // Create updated event object
     const updatedEvent: CalendarEvent = {

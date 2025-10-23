@@ -59,7 +59,7 @@ export const taskApi = api.injectEndpoints({
         url: `/task/${id}`,
         method: 'GET',
       }),
-      providesTags: (result, error, id) => [{ type: 'Tasks', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Tasks', id }],
     }),
 
 
@@ -87,7 +87,7 @@ export const taskApi = api.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'Tasks', id },
         'Tasks',
       ],
@@ -102,7 +102,7 @@ export const taskApi = api.injectEndpoints({
         url: `/task/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [
+      invalidatesTags: (_result, _error, id) => [
         { type: 'Tasks', id },
         'Tasks',
       ],

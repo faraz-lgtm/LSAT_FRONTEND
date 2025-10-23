@@ -59,7 +59,8 @@ export const EventCreateForm: React.FC<EventCreateFormProps> = ({
     if (selectedDate) {
       const dateStr = selectedDate.toISOString().split('T')[0];
       console.log('📅 Setting start/end date to:', dateStr);
-      setFormData(prev => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setFormData((prev: any) => ({
         ...prev,
         startDate: dateStr,
         endDate: dateStr,

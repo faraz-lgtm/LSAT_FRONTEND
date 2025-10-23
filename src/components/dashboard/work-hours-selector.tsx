@@ -52,7 +52,7 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
   const handleTimeSlotChange = (day: string, slotIndex: number, newSlot: string) => {
     const newWorkHours = { ...workHours }
     if (newWorkHours[day]) {
-      newWorkHours[day] = newWorkHours[day].map((slot, index) => 
+      newWorkHours[day] = newWorkHours[day]!.map((slot, index) => 
         index === slotIndex ? newSlot : slot
       )
       setWorkHours(newWorkHours)
@@ -63,7 +63,7 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
   const addTimeSlot = (day: string) => {
     const newWorkHours = { ...workHours }
     if (newWorkHours[day]) {
-      newWorkHours[day] = [...newWorkHours[day], '09:00-17:00']
+      newWorkHours[day] = [...newWorkHours[day] || [], '09:00-17:00']
       setWorkHours(newWorkHours)
       onChange(newWorkHours)
     }
@@ -71,8 +71,8 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
 
   const removeTimeSlot = (day: string, slotIndex: number) => {
     const newWorkHours = { ...workHours }
-    if (newWorkHours[day] && newWorkHours[day].length > 1) {
-      newWorkHours[day] = newWorkHours[day].filter((_, index) => index !== slotIndex)
+    if (newWorkHours[day] && newWorkHours[day]!.length > 1) {
+      newWorkHours[day] = newWorkHours[day]?.filter((_, index) => index !== slotIndex) || []
       setWorkHours(newWorkHours)
       onChange(newWorkHours)
     }
@@ -128,7 +128,7 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
                             <Select
                               value={startTime}
                               onValueChange={(value) => {
-                                const newSlot = formatTimeSlot(value, endTime)
+                                const newSlot = formatTimeSlot(value || '', endTime || '')
                                 handleTimeSlotChange(day, slotIndex, newSlot)
                               }}
                             >
@@ -149,7 +149,7 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
                             <Select
                               value={endTime}
                               onValueChange={(value) => {
-                                const newSlot = formatTimeSlot(startTime, value)
+                                const newSlot = formatTimeSlot(startTime || '', value)
                                 handleTimeSlotChange(day, slotIndex, newSlot)
                               }}
                             >
