@@ -38,19 +38,19 @@ const OrderSummary = ({totalPrice}:OrderSummaryProps) => {
           <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
             <span className="text-green-800 text-xs">✓</span>
           </div>
-          <span className="text-blue-100">Flexible scheduling</span>
+          <span className="text-blue-100">🔒 Secure checkout</span>
         </div>
         <div className="flex items-center space-x-3 text-sm">
           <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
             <span className="text-green-800 text-xs">✓</span>
           </div>
-          <span className="text-blue-100">Expert LSAT tutors</span>
+          <span className="text-blue-100">⭐ Trusted by 1,500+ students</span>
         </div>
         <div className="flex items-center space-x-3 text-sm">
           <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
             <span className="text-green-800 text-xs">✓</span>
           </div>
-          <span className="text-blue-100">Personalized study plans</span>
+          <span className="text-blue-100">💬 Average rating 4.9/5 </span>
         </div>
       </div>
 

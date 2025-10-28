@@ -42,7 +42,7 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
     >
       {/* Badge */}
       {product.badge && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="badge  transform z-10">
           <span 
             style={{ 
               backgroundColor: product.badge.color,
@@ -110,6 +110,7 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
                     One-on-one tutoring session
+
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
@@ -117,7 +118,8 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Personalized study plan
+                    Targeted practice on weak areas
+
                   </li>
                 </>
               )}
@@ -125,19 +127,21 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
                 <>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    5 one-on-one sessions
+                    5 one-on-one tutoring sessions
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Comprehensive study plan
+                    Custom weekly study plan
+
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Progress tracking
+                    Progress tracking & feedback
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
                     Practice materials included
+
                   </li>
                 </>
               )}
@@ -145,24 +149,24 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
                 <>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    10 one-on-one sessions
+                    10 one-on-one tutoring sessions
+
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Complete prep program
+                    Complete MCAT prep roadmap
+
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Detailed progress tracking
+                    Progress tracking & mock exams
+
                   </li>
                   <li className="flex items-center">
                     <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    All practice materials
+                    All study materials included
                   </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Mock exam sessions
-                  </li>
+
                 </>
               )}
             </ul>
