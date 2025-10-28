@@ -1,5 +1,5 @@
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { routeTree } from './dashboardRouteTree.gen'
+import { routeTree } from './routeTree.gen'
 import { useMemo } from 'react'
 
 export default function DashboardApp() {

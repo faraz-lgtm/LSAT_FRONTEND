@@ -23,8 +23,9 @@ import {
 } from '@/components/dashboard/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from './data-table-bulk-actions'
-import { ordersColumns as columns } from './orders-columns'
+import { createOrdersColumns } from './orders-columns'
 import type { OrderOutput } from '@/types/api/data-contracts'
+import { formatCurrency } from '@/utils/currency'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,6 +43,8 @@ type DataTableProps = {
 export function OrdersTable({ data, search, navigate }: DataTableProps) {
   console.log("OrdersTable received data:", data);
   console.log("OrdersTable data length:", data?.length);
+  
+  const columns = createOrdersColumns(formatCurrency);
   
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
@@ -63,6 +66,13 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
     columnFilters: [
       { columnId: 'customer', searchKey: 'customer', type: 'string' },
       { columnId: 'orderStatus', searchKey: 'orderStatus', type: 'array' },
+      { 
+        columnId: 'id', 
+        searchKey: 'orderId', 
+        type: 'string',
+        serialize: (v) => v,
+        deserialize: (v) => typeof v === 'number' ? String(v) : v,
+      },
     ],
   })
 
@@ -114,6 +124,7 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Reserved', value: 'reserved' },
               { label: 'Confirmed', value: 'confirmed' },
               { label: 'Expired', value: 'expired' },
+              { label: 'Canceled', value: 'canceled' },
               { label: 'No Status', value: 'no-status' },
             ],
           },

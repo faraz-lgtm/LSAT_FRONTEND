@@ -21,6 +21,8 @@ import { useCreateOrderMutation } from '@/redux/apiSlices/Order/orderSlice';
 import { OrderSuccessModal } from '@/components/google-calendar/OrderSuccessModal';
 import { DateTimePicker } from '@/components/ui/dateTimerPicker';
 import PhoneInput from "react-phone-input-2";
+import { useCurrency } from '@/context/currency-provider';
+import { useCurrencyFormatter } from '@/utils/currency';
 
 interface OrderCreateFormProps {
   isOpen: boolean;
@@ -64,6 +66,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
 
   // Get products from API
   const { data: productsData, isSuccess: productsSuccess } = useGetProductsQuery();
+  const { currency } = useCurrency();
+  const formatCurrency = useCurrencyFormatter();
   const products = productsSuccess && productsData ? productsData.data : [];
 
   // Utility function to convert ProductOutput to Product for cart compatibility
@@ -243,6 +247,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
 
     try {
       const orderData = {
+        currency: currency,
         items: formData.packageIds.map(packageId => {
           const selectedPackage = products.find(p => p.id === packageId);
           const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
@@ -331,7 +336,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
                         <div className="flex flex-col">
                           <span className="font-medium">{product.name}</span>
                           <span className="text-sm text-muted-foreground">
-                            ${product.price} - {product.Duration} minutes
+                            {formatCurrency(product.price * 100)} - {product.Duration} minutes
                           </span>
                         </div>
                       </label>

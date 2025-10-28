@@ -7,6 +7,7 @@ import App from "./App";
 import { DirectionProvider } from "./context/direction-provider";
 import { FontProvider } from "./context/font-provider";
 import { ThemeProvider } from "./context/theme-provider";
+import { CurrencyProvider } from "./context/currency-provider";
 import { store } from "./redux/store";
 import "./index.css";
 import "./styles/dashboard-related/index.css";
@@ -16,11 +17,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <FontProvider>
         <Provider store={store}>
-          <DirectionProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </DirectionProvider>
+          <CurrencyProvider>
+            <DirectionProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </DirectionProvider>
+          </CurrencyProvider>
         </Provider>
       </FontProvider>
     </ThemeProvider>

@@ -6,10 +6,11 @@ interface RightPanelProps {
   footerFn: Function;
   setSelected:React.Dispatch<React.SetStateAction<"information" | "appointments">>;
   isLoading?: boolean;
+  loadingText?: string;
   onNavigateBack?: () => void;
 }
 
-const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false, onNavigateBack }: RightPanelProps) => {
+const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false, loadingText = "Creating Customer...", onNavigateBack }: RightPanelProps) => {
   return (
     <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
@@ -52,7 +53,7 @@ const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false,
             {isLoading ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                <span>Creating Customer...</span>
+                <span>{loadingText}</span>
               </div>
             ) : (
               title === "Appointments" ? "Checkout" : "Continue"

@@ -1,5 +1,6 @@
 import type { ProductOutput } from "../types/api/data-contracts";
 import type { ItemInput } from "../types/api/data-contracts";
+import { useCurrencyFormatter } from "../utils/currency";
 
 type ProductCardProps = {
   product: ProductOutput;
@@ -8,6 +9,7 @@ type ProductCardProps = {
 };
 
 const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardProps) => {
+  const formatCurrency = useCurrencyFormatter();
   const isFree = product.price === 0;
   const isPopular = product.id === 6; // 5X Prep Session Bundle
 
@@ -79,15 +81,17 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
             ) : (
               <>
                 <span className={`text-3xl sm:text-4xl font-bold ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`}>
-                  ${product.price}
+                  {formatCurrency(product.price * 100)}
                 </span>
               </>
             )}
           </div>
 
-          <div className={`text-xs sm:text-sm font-medium mt-1 ${isPopular ? 'text-white' : 'text-green-600'}`}>
-            Save ${product.save}!
-          </div>
+          {product.save ? (
+            <div className={`text-xs sm:text-sm font-medium mt-1 ${isPopular ? 'text-white' : 'text-green-600'}`}>
+              Save {formatCurrency((product.save || 0) * 100)}!
+            </div>
+          ) : null}
         </div>
 
         {/* Description */}
@@ -185,7 +189,7 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
               <span className="text-xs sm:text-sm">Fetching Slots...</span>
             </div>
           ) : (
-            isFree ? "Book Free Call" : `Add to Cart - $${product.price}`
+            isFree ? "Book Free Call" : `Add to Cart - ${formatCurrency(product.price * 100)}`
           )}
         </button>
       </div>

@@ -15,10 +15,12 @@ import RightPanel from "./AppointmentRightSidebar";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { validateCartItemSlots } from "@/utils/slotValidator";
 import { fetchSlotsForPackage } from "@/utils/slotFetcher";
+import { useCurrencyFormatter } from "@/utils/currency";
+import { useCurrency } from "@/context/currency-provider";
 
 const Appointment = () => {
   const navigate = useNavigate();
-  const [createOrder] = useCreateOrderMutation();
+  const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
   const [getOrCreateCustomer, { isLoading: isCreatingCustomer }] = useGetOrCreateCustomerMutation();
   const [error, setError] = useState("");
   const [isValidatingSlots, setIsValidatingSlots] = useState(false);
@@ -28,7 +30,9 @@ const Appointment = () => {
   const { firstName, lastName, email, phone } = useSelector(
     (state: RootState) => state.info
   );
+  const formatCurrency = useCurrencyFormatter();
 
+  const {currency: selectedCurrency} = useCurrency();
   const [phoneInp, setPhoneInp] = useState(phone || "");
 
   
@@ -156,6 +160,11 @@ const Appointment = () => {
       }
     },
     appointments: async () => {
+      // Prevent multiple order creation attempts
+      if (isCreatingOrder) {
+        return;
+      }
+
       // add validation to check if all the slots are selected
       const allSlotsSelected = items.every(
         (item) =>
@@ -187,6 +196,7 @@ const Appointment = () => {
         const result = await createOrder({
           items: items,
           user: { firstName, lastName, email, phone },
+          currency: selectedCurrency,
         }).unwrap(); // unwrap() lets us use try/catch
         console.log("✅ Order created:", result);
         if (result?.data?.url) {
@@ -208,6 +218,8 @@ const Appointment = () => {
         title="Appointments"
         footerFn={footerFns["appointments"]}
         setSelected={setSelected}
+        isLoading={isValidatingSlots || isCreatingOrder}
+        loadingText={isValidatingSlots ? "Validating Slots..." : "Creating Order..."}
         onNavigateBack={handleNavigateBack}
       >
         <div className="space-y-6">
@@ -284,7 +296,7 @@ const Appointment = () => {
                         {item.name}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        ${item.price} per session
+                        {formatCurrency(item.price * 100)} per session
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Quantity: {item.quantity} packages
@@ -521,7 +533,7 @@ const Appointment = () => {
             </div>
             <div className="text-left sm:text-right">
               <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
-                ${total}
+                {formatCurrency(total * 100)}
               </div>
               <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Total Amount

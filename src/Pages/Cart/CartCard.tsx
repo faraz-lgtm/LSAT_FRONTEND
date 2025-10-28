@@ -47,10 +47,10 @@ const CartCard = ({ id,BigText, Desc, price , quantity, name, itemSessions }: Ca
             </div>
             <div className="text-right">
               <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                ${price}
+                {price}
               </div>
               <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                For ${itemSessions} sessions
+                For {itemSessions} sessions
               </div>
             </div>
           </div>

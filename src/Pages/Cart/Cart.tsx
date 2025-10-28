@@ -6,10 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
+import { useCurrencyFormatter } from "../../utils/currency";
 
 const Cart = () => {
   const { items } = useSelector((state: RootState) => state.cart);
   const navigate = useNavigate();
+  const formatCurrency = useCurrencyFormatter();
   
   // Get current checkout progress step
   const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
@@ -62,7 +64,7 @@ const Cart = () => {
             </div>
             <div className="text-left sm:text-right">
               <div className="text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                ${total}
+                {formatCurrency(total * 100)}
               </div>
               <p className="text-gray-600 dark:text-gray-300 font-medium">Cart Total</p>
             </div>
@@ -97,7 +99,7 @@ const Cart = () => {
                       Desc={item.Description}
                       name={item.name}
                       itemSessions={item.sessions}
-                      price={item.price.toString()}
+                      price={formatCurrency(item.price * 100)}
                       quantity={item.quantity}
                     />
                   ))}

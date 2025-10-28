@@ -7,7 +7,7 @@ import { LongText } from '@/components/dashboard/long-text'
 import type { ProductOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export const packagesColumns: ColumnDef<ProductOutput>[] = [
+export const createPackagesColumns = (formatCurrency: (cents: number) => string): ColumnDef<ProductOutput>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -74,7 +74,7 @@ export const packagesColumns: ColumnDef<ProductOutput>[] = [
     ),
     cell: ({ row }) => {
       const price = row.getValue('price') as number
-      return <div className='font-medium'>${price}</div>
+      return <div className='font-medium'>{formatCurrency(price * 100)}</div>
     },
   },
   {
@@ -84,7 +84,7 @@ export const packagesColumns: ColumnDef<ProductOutput>[] = [
     ),
     cell: ({ row }) => {
       const save = row.getValue('save') as number | undefined
-      return save ? <div className='text-green-600 font-medium'>${save}</div> : <div className='text-muted-foreground'>-</div>
+      return save ? <div className='text-green-600 font-medium'>{formatCurrency((save || 0) * 100)}</div> : <div className='text-muted-foreground'>-</div>
     },
   },
   {

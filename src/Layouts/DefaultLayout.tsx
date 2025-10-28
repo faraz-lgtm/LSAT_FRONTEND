@@ -2,10 +2,13 @@ import { Link, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { ThemeSwitch } from "../components/dashboard/theme-switch";
+import { CurrencySwitch } from "../components/currency-switch";
 import { Logo } from "../assets/logo";
+import { useCurrencyFormatter } from "../utils/currency";
 
 const Layout = () => {
   const { items } = useSelector((state: RootState) => state.cart);
+  const formatCurrency = useCurrencyFormatter();
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
@@ -20,7 +23,8 @@ const Layout = () => {
           <Link to="/cart" className="hover:underline">
             Cart ({items.length})
           </Link>
-          <span>Total: ${total.toFixed(2)}</span>
+          <span>Total: {formatCurrency(total * 100)}</span>
+          <CurrencySwitch style="dark" />
           <ThemeSwitch style="dark" />
         </div>
       </header>

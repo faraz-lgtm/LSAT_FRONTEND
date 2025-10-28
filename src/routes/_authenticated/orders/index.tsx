@@ -10,6 +10,7 @@ const orderSearchSchema = z.object({
     .array(z.enum(['reserved', 'confirmed', 'expired', 'no-status']))
     .optional()
     .catch([]),
+  orderId: z.number().optional().catch(undefined),
 })
 
 // Orders route for dashboard

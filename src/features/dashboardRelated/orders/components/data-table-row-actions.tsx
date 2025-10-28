@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Eye, Trash2 } from 'lucide-react'
+import { Eye, Trash2, ReceiptText, Edit } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   DropdownMenu,
@@ -51,18 +51,45 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {isAdmin && (
-            <DropdownMenuItem
-              onClick={() => {
-                setCurrentRow(row.original)
-                setOpen('delete')
-              }}
-              className='text-red-500!'
-            >
-              Delete Order
-              <DropdownMenuShortcut>
-                <Trash2 size={16} />
-              </DropdownMenuShortcut>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('modify')
+                }}
+                className='text-green-600'
+              >
+                Modify Order
+                <DropdownMenuShortcut>
+                  <Edit size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('refund')
+                }}
+                className='text-blue-600'
+              >
+                Simple Refund
+                <DropdownMenuShortcut>
+                  <ReceiptText size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('delete')
+                }}
+                className='text-red-500!'
+              >
+                Delete Order
+                <DropdownMenuShortcut>
+                  <Trash2 size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

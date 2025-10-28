@@ -11,17 +11,27 @@
  */
 
 import {
+  AutomationConfigOutputDto,
+  CancelRefundDto,
+  CreateInvoiceDto,
   CreateProductInput,
+  CreateRefundDto,
+  InvoiceOutputDto,
   LoginInput,
+  ModifyOrderDto,
   OrderInput,
+  ProcessRefundDto,
   RefreshTokenInput,
+  Refund,
   RegisterInput,
+  SlackPlaceholdersResponseDto,
   Slot,
   SwaggerBaseApiResponseForClassAuthTokenOutput,
   SwaggerBaseApiResponseForClassBaseUserOutput,
   SwaggerBaseApiResponseForClassDashboardOutputDto,
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassOrderOutput,
+  SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity,
   SwaggerBaseApiResponseForClassProductOutput,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassStripeCheckoutSession,
@@ -29,9 +39,12 @@ import {
   SwaggerBaseApiResponseForClassTaskOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
   TaskInputDto,
+  UpdateAutomationConfigDto,
+  UpdateInvoiceStatusDto,
   UpdateProductInput,
   UpdateUserInput,
   UserInput,
+  VoidInvoiceDto,
 } from "./data-contracts";
 
 export namespace Api {
@@ -108,6 +121,11 @@ export namespace Api {
       limit?: number;
       /** Optional, defaults to 0 */
       offset?: number;
+      /**
+       * Filter users by role
+       * @example "USER"
+       */
+      role?: "USER" | "ADMIN" | "CUST";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -394,6 +412,29 @@ export namespace Api {
   }
 
   /**
+   * @description Refunds the original order and creates a new one with different items
+   * @tags order
+   * @name OrderControllerModifyOrder
+   * @summary Modify an existing order
+   * @request POST:/api/v1/order/modify
+   * @secure
+   */
+  export namespace OrderControllerModifyOrder {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ModifyOrderDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data?: {
+        refund?: object;
+        newOrder?: object;
+        newInvoice?: object;
+      };
+      meta?: object;
+    };
+  }
+
+  /**
    * @description Returns available and booked slots for the specified date and package. Used by Orders, Tasks, and Appointments.
    * @tags slots
    * @name SlotControllerGetAvailableSlots
@@ -520,6 +561,710 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * @description Creates a new refund request for an order
+   * @tags refunds
+   * @name RefundControllerCreateRefund
+   * @summary Create a new refund
+   * @request POST:/api/v1/refunds
+   * @secure
+   */
+  export namespace RefundControllerCreateRefund {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateRefundDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      /** @example 1 */
+      id?: number;
+      /** @example "REF-2025-0001" */
+      refundNumber?: string;
+      /** @example 383 */
+      originalOrderId?: number;
+      /** @example 174 */
+      customerId?: number;
+      /** @example 10000 */
+      amount?: number;
+      /** @example "USD" */
+      currency?: string;
+      /** @example "customer_request" */
+      reason?: string;
+      /** @example "Customer requested refund due to scheduling conflict" */
+      reasonDetails?: string;
+      /** @example "pending" */
+      status?: string;
+      /** @example "2024-01-15T10:30:00Z" */
+      createdAt?: string;
+    };
+  }
+
+  /**
+   * @description Retrieve refunds with optional filtering by status, reason, customer, or date range
+   * @tags refunds
+   * @name RefundControllerGetRefunds
+   * @summary Get refunds with filters
+   * @request GET:/api/v1/refunds
+   * @secure
+   */
+  export namespace RefundControllerGetRefunds {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** Filter by refund status */
+      status?: "pending" | "processing" | "completed" | "failed" | "cancelled";
+      /** Filter by refund reason */
+      reason?: "customer_request" | "duplicate" | "fraudulent" | "other";
+      /**
+       * Filter by customer ID
+       * @example 174
+       */
+      customerId?: number;
+      /**
+       * Filter by original order ID
+       * @example 383
+       */
+      originalOrderId?: number;
+      /**
+       * Start date for filtering (YYYY-MM-DD)
+       * @example "2024-01-01"
+       */
+      startDate?: string;
+      /**
+       * End date for filtering (YYYY-MM-DD)
+       * @example "2024-12-31"
+       */
+      endDate?: string;
+      /**
+       * Number of refunds to return (1-100)
+       * @min 1
+       * @max 100
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Number of refunds to skip
+       * @min 0
+       * @example 0
+       */
+      offset?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund[];
+  }
+
+  /**
+   * @description Retrieve refund statistics including counts by status, reason, and recent activity
+   * @tags refunds
+   * @name RefundControllerGetRefundStats
+   * @summary Get refund statistics
+   * @request GET:/api/v1/refunds/stats
+   * @secure
+   */
+  export namespace RefundControllerGetRefundStats {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      /** @example 25 */
+      total?: number;
+      /** @example {"pending":5,"processing":2,"completed":15,"cancelled":2,"failed":1} */
+      byStatus?: object;
+      /** @example {"customer_request":20,"duplicate":3,"fraudulent":1,"other":1} */
+      byReason?: object;
+      /** @example 8 */
+      recentCount?: number;
+    };
+  }
+
+  /**
+   * @description Retrieve a specific refund by its unique identifier
+   * @tags refunds
+   * @name RefundControllerGetRefundById
+   * @summary Get refund by ID
+   * @request GET:/api/v1/refunds/{id}
+   * @secure
+   */
+  export namespace RefundControllerGetRefundById {
+    export type RequestParams = {
+      /**
+       * Refund ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund;
+  }
+
+  /**
+   * @description Retrieve a specific refund by its refund number
+   * @tags refunds
+   * @name RefundControllerGetRefundByNumber
+   * @summary Get refund by refund number
+   * @request GET:/api/v1/refunds/number/{refundNumber}
+   * @secure
+   */
+  export namespace RefundControllerGetRefundByNumber {
+    export type RequestParams = {
+      /**
+       * Refund number
+       * @example "REF-2025-0001"
+       */
+      refundNumber: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund;
+  }
+
+  /**
+   * @description Retrieve all refunds associated with a specific original order
+   * @tags refunds
+   * @name RefundControllerGetRefundsByOrderId
+   * @summary Get refunds for an order
+   * @request GET:/api/v1/refunds/order/{orderId}
+   * @secure
+   */
+  export namespace RefundControllerGetRefundsByOrderId {
+    export type RequestParams = {
+      /**
+       * Original Order ID
+       * @example 383
+       */
+      orderId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund[];
+  }
+
+  /**
+   * @description Retrieve all refunds associated with a specific customer
+   * @tags refunds
+   * @name RefundControllerGetRefundsByCustomerId
+   * @summary Get refunds for a customer
+   * @request GET:/api/v1/refunds/customer/{customerId}
+   * @secure
+   */
+  export namespace RefundControllerGetRefundsByCustomerId {
+    export type RequestParams = {
+      /**
+       * Customer ID
+       * @example 174
+       */
+      customerId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund[];
+  }
+
+  /**
+   * @description Mark a refund as processing and initiate the refund process
+   * @tags refunds
+   * @name RefundControllerProcessRefund
+   * @summary Process a refund
+   * @request PUT:/api/v1/refunds/{id}/process
+   * @secure
+   */
+  export namespace RefundControllerProcessRefund {
+    export type RequestParams = {
+      /**
+       * Refund ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ProcessRefundDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund;
+  }
+
+  /**
+   * @description Cancel a pending or processing refund
+   * @tags refunds
+   * @name RefundControllerCancelRefund
+   * @summary Cancel a refund
+   * @request PUT:/api/v1/refunds/{id}/cancel
+   * @secure
+   */
+  export namespace RefundControllerCancelRefund {
+    export type RequestParams = {
+      /**
+       * Refund ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = CancelRefundDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = Refund;
+  }
+
+  /**
+   * @description Retrieve payment transactions with optional filtering and pagination. Supports filtering by type, status, customer, order, date range, amount range, payment method, and currency.
+   * @tags transactions
+   * @name PaymentTransactionControllerGetTransactions
+   * @summary Get payment transactions
+   * @request GET:/api/v1/transactions
+   * @secure
+   */
+  export namespace PaymentTransactionControllerGetTransactions {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Number of transactions to return (max 100)
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Number of transactions to skip
+       * @example 0
+       */
+      offset?: number;
+      /** Filter by transaction type */
+      type?: "payment" | "refund" | "chargeback" | "adjustment";
+      /**
+       * Filter by transaction status
+       * @example "succeeded"
+       */
+      status?: string;
+      /**
+       * Filter by customer ID
+       * @example 123
+       */
+      customerId?: number;
+      /**
+       * Filter by order ID
+       * @example 383
+       */
+      orderId?: number;
+      /**
+       * Filter by invoice ID
+       * @example 1
+       */
+      invoiceId?: number;
+      /**
+       * Filter by transactions created after this date (YYYY-MM-DD)
+       * @example "2024-01-01"
+       */
+      startDate?: string;
+      /**
+       * Filter by transactions created before this date (YYYY-MM-DD)
+       * @example "2024-12-31"
+       */
+      endDate?: string;
+      /**
+       * Minimum amount in cents
+       * @min 0
+       * @example 1000
+       */
+      minAmount?: number;
+      /**
+       * Maximum amount in cents
+       * @min 0
+       * @example 100000
+       */
+      maxAmount?: number;
+      /**
+       * Filter by payment method
+       * @example "card"
+       */
+      paymentMethod?: string;
+      /**
+       * Filter by currency code
+       * @example "USD"
+       */
+      currency?: string;
+      /** Sort by field */
+      sortBy?: "createdAt" | "amount" | "status" | "type";
+      /** Sort order */
+      sortOrder?: "ASC" | "DESC";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity;
+  }
+
+  /**
+   * @description Retrieve a single payment transaction by its ID
+   * @tags transactions
+   * @name PaymentTransactionControllerGetTransactionById
+   * @summary Get transaction by ID
+   * @request GET:/api/v1/transactions/{id}
+   * @secure
+   */
+  export namespace PaymentTransactionControllerGetTransactionById {
+    export type RequestParams = {
+      /**
+       * The ID of the transaction
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity;
+  }
+
+  /**
+   * @description Get overview statistics for payment transactions including totals, counts by type and status, and revenue metrics
+   * @tags transactions
+   * @name PaymentTransactionControllerGetTransactionStats
+   * @summary Get transaction statistics
+   * @request GET:/api/v1/transactions/stats/overview
+   * @secure
+   */
+  export namespace PaymentTransactionControllerGetTransactionStats {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data?: {
+        /** @example 150 */
+        total?: number;
+        /** @example {"PAYMENT":120,"REFUND":30} */
+        byType?: object;
+        /** @example {"succeeded":140,"failed":10} */
+        byStatus?: object;
+        /** @example 25 */
+        recentCount?: number;
+        /** @example 500000 */
+        totalRevenue?: number;
+        /** @example 50000 */
+        totalRefunds?: number;
+      };
+      meta?: object;
+    };
+  }
+
+  /**
+   * @description Retrieves current exchange rates from Stripe with CAD as the base currency
+   * @tags Currency
+   * @name CurrencyControllerGetExchangeRates
+   * @summary Get exchange rates from CAD to other currencies
+   * @request GET:/api/v1/currency/exchange-rates
+   * @secure
+   */
+  export namespace CurrencyControllerGetExchangeRates {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Base currency code (default: CAD)
+       * @example "CAD"
+       */
+      baseCurrency?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      /** @example "CAD" */
+      baseCurrency?: string;
+      /** @example {"USD":0.73,"EUR":0.68,"GBP":0.58} */
+      rates?: object;
+      /** @format date-time */
+      lastUpdated?: string;
+    };
+  }
+
+  /**
+   * @description Converts an amount from one currency to another using Stripe exchange rates
+   * @tags Currency
+   * @name CurrencyControllerConvertCurrency
+   * @summary Convert currency amount
+   * @request GET:/api/v1/currency/convert
+   * @secure
+   */
+  export namespace CurrencyControllerConvertCurrency {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Amount to convert
+       * @example 100
+       */
+      amount: number;
+      /**
+       * Source currency code
+       * @example "CAD"
+       */
+      from: string;
+      /**
+       * Target currency code
+       * @example "USD"
+       */
+      to: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      /** @example 73.5 */
+      convertedAmount?: number;
+      /** @example "CAD" */
+      fromCurrency?: string;
+      /** @example "USD" */
+      toCurrency?: string;
+      /** @example 100 */
+      originalAmount?: number;
+    };
+  }
+
+  /**
+   * @description Creates a new invoice for an order with detailed line items
+   * @tags invoicing
+   * @name InvoiceControllerCreateInvoice
+   * @summary Create a new invoice
+   * @request POST:/api/v1/invoicing
+   * @secure
+   */
+  export namespace InvoiceControllerCreateInvoice {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateInvoiceDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
+  }
+
+  /**
+   * @description Retrieve invoices with optional filtering by status, customer, order, or date range
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoices
+   * @summary Get invoices with filters
+   * @request GET:/api/v1/invoicing
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoices {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** Filter by invoice status */
+      status?: "draft" | "issued" | "paid" | "void" | "overdue";
+      /**
+       * Filter by customer ID
+       * @example 174
+       */
+      customerId?: number;
+      /**
+       * Filter by order ID
+       * @example 383
+       */
+      orderId?: number;
+      /**
+       * Start date for filtering (YYYY-MM-DD)
+       * @example "2024-01-01"
+       */
+      startDate?: string;
+      /**
+       * End date for filtering (YYYY-MM-DD)
+       * @example "2024-12-31"
+       */
+      endDate?: string;
+      /**
+       * Number of invoices to return (1-100)
+       * @min 1
+       * @max 100
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Number of invoices to skip
+       * @min 0
+       * @example 0
+       */
+      offset?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto[];
+  }
+
+  /**
+   * @description Retrieve invoice statistics including counts by status and recent activity
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoiceStats
+   * @summary Get invoice statistics
+   * @request GET:/api/v1/invoicing/stats
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoiceStats {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      /** @example 150 */
+      total?: number;
+      /** @example {"draft":5,"issued":20,"paid":120,"void":3,"overdue":2} */
+      byStatus?: object;
+      /** @example 25 */
+      recentCount?: number;
+    };
+  }
+
+  /**
+   * @description Retrieve a specific invoice by its unique identifier
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoiceById
+   * @summary Get invoice by ID
+   * @request GET:/api/v1/invoicing/{id}
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoiceById {
+    export type RequestParams = {
+      /**
+       * Invoice ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
+  }
+
+  /**
+   * @description Retrieve a specific invoice by its invoice number
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoiceByNumber
+   * @summary Get invoice by invoice number
+   * @request GET:/api/v1/invoicing/number/{invoiceNumber}
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoiceByNumber {
+    export type RequestParams = {
+      /**
+       * Invoice number
+       * @example "INV-20250115-0001"
+       */
+      invoiceNumber: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
+  }
+
+  /**
+   * @description Retrieve all invoices associated with a specific order
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoicesByOrderId
+   * @summary Get invoices for an order
+   * @request GET:/api/v1/invoicing/order/{orderId}
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoicesByOrderId {
+    export type RequestParams = {
+      /**
+       * Order ID
+       * @example 383
+       */
+      orderId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto[];
+  }
+
+  /**
+   * @description Retrieve all invoices associated with a specific customer
+   * @tags invoicing
+   * @name InvoiceControllerGetInvoicesByCustomerId
+   * @summary Get invoices for a customer
+   * @request GET:/api/v1/invoicing/customer/{customerId}
+   * @secure
+   */
+  export namespace InvoiceControllerGetInvoicesByCustomerId {
+    export type RequestParams = {
+      /**
+       * Customer ID
+       * @example 174
+       */
+      customerId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto[];
+  }
+
+  /**
+   * @description Update the status of an existing invoice
+   * @tags invoicing
+   * @name InvoiceControllerUpdateInvoiceStatus
+   * @summary Update invoice status
+   * @request PUT:/api/v1/invoicing/{id}/status
+   * @secure
+   */
+  export namespace InvoiceControllerUpdateInvoiceStatus {
+    export type RequestParams = {
+      /**
+       * Invoice ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateInvoiceStatusDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
+  }
+
+  /**
+   * @description Void an existing invoice with a reason
+   * @tags invoicing
+   * @name InvoiceControllerVoidInvoice
+   * @summary Void an invoice
+   * @request PUT:/api/v1/invoicing/{id}/void
+   * @secure
+   */
+  export namespace InvoiceControllerVoidInvoice {
+    export type RequestParams = {
+      /**
+       * Invoice ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = VoidInvoiceDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
+  }
+
+  /**
+   * @description Automatically generate an invoice for an existing order
+   * @tags invoicing
+   * @name InvoiceControllerGenerateInvoiceForOrder
+   * @summary Generate invoice for an order
+   * @request POST:/api/v1/invoicing/generate/{orderId}
+   * @secure
+   */
+  export namespace InvoiceControllerGenerateInvoiceForOrder {
+    export type RequestParams = {
+      /**
+       * Order ID
+       * @example 383
+       */
+      orderId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = InvoiceOutputDto;
   }
 
   /**
@@ -708,6 +1453,12 @@ export namespace Api {
        * @example 10
        */
       topCustomersLimit?: number;
+      /**
+       * Include tax collection metrics
+       * @default true
+       * @example true
+       */
+      includeTaxCollection?: boolean;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -785,5 +1536,103 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * @description Returns all available automations with their current configuration. Includes enabled/disabled status and parameters.
+   * @tags automation
+   * @name AutomationConfigControllerListAll
+   * @summary List all automations with their configurations
+   * @request GET:/api/v1/automation
+   * @secure
+   */
+  export namespace AutomationConfigControllerListAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AutomationConfigOutputDto[];
+  }
+
+  /**
+   * @description Retrieve configuration for a specific automation by its key
+   * @tags automation
+   * @name AutomationConfigControllerGetOne
+   * @summary Get specific automation configuration
+   * @request GET:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetOne {
+    export type RequestParams = {
+      /**
+       * Automation key (e.g., slack-new-order, order-confirmation-email)
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AutomationConfigOutputDto;
+  }
+
+  /**
+   * @description Enable/disable automation or modify its parameters. Use ToolType and TriggerEvent enums for reference.
+   * @tags automation
+   * @name AutomationConfigControllerUpdate
+   * @summary Update automation configuration
+   * @request PATCH:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Automation key
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateAutomationConfigDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieve execution history for a specific automation. Returns last 100 logs.
+   * @tags automation
+   * @name AutomationConfigControllerGetLogs
+   * @summary Get automation execution logs
+   * @request GET:/api/v1/automation/{key}/logs
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetLogs {
+    export type RequestParams = {
+      /**
+       * Automation key
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Returns list of available placeholders that can be used in customMessage and customBlockMessage parameters. Use {{placeholder}} format in messages.
+   * @tags automation
+   * @name AutomationConfigControllerGetSlackPlaceholders
+   * @summary Get available placeholders for Slack automations
+   * @request GET:/api/v1/automation/placeholders/slack
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetSlackPlaceholders {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SlackPlaceholdersResponseDto;
   }
 }

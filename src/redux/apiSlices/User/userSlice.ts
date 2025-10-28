@@ -1,6 +1,6 @@
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput } from "@/types/api/data-contracts";
+import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput, GetUsersQueryParams } from "@/types/api/data-contracts";
 
 // export interface UserOutput{
 //     id: number;
@@ -28,8 +28,11 @@ import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput } from "@/t
 
 export const usersApi=api.injectEndpoints({
   endpoints: (builder) => ({
-    getUsers: builder.query<BaseApiResponse<UserOutput[]>, void>({
-      query: () => '/users',
+    getUsers: builder.query<BaseApiResponse<UserOutput[]>, GetUsersQueryParams | void>({
+      query: (params) => ({
+        url: '/users',
+        params: params || {},
+      }),
       providesTags: ['Users'],
     }),
     updateUser:builder.mutation<BaseApiResponse<UserOutput>,{id: number, userData: UpdateUserInput}>({

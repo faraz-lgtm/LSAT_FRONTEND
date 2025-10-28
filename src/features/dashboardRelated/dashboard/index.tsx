@@ -9,6 +9,10 @@ import { Search } from '@/components/dashboard/search'
 import { ThemeSwitch } from '@/components/dashboard/theme-switch'
 import { ConfigDrawer } from '@/components/dashboard/config-drawer'
 import { useGetDashboardDataQuery } from '@/redux/apiSlices/Dashboard/dashboardSlice'
+import { useGetInvoicesQuery } from '@/redux/apiSlices/Invoicing/invoicingSlice'
+import { useGetRefundsQuery } from '@/redux/apiSlices/Refunds/refundsSlice'
+import { useGetTransactionsQuery } from '@/redux/apiSlices/Transactions/transactionsSlice'
+import { formatCurrency } from '@/utils/currency'
 import { useState } from 'react'
 
 type Period = "DAY" | "MONTH" | "YEAR"
@@ -47,8 +51,40 @@ export function Dashboard() {
     period: selectedPeriod 
   })
 
+  // Financial data queries
+  const { data: invoicesData } = useGetInvoicesQuery()
+  const { data: refundsData } = useGetRefundsQuery()
+  const { data: transactionsData } = useGetTransactionsQuery()
+
   const dashboard = dashboardData?.data?.data
   const meta = dashboardData?.data?.meta
+
+  // Calculate financial metrics
+  const invoices = invoicesData?.data || []
+  const refunds = refundsData?.data || []
+  const transactions = transactionsData?.data || []
+
+  const pendingPayments = invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue')
+  const overdueInvoices = invoices.filter(inv => inv.status === 'overdue')
+  const refundsThisPeriod = refunds.filter(ref => {
+    const createdAt = new Date(ref.createdAt)
+    const now = new Date()
+    const periodStart = selectedPeriod === 'DAY' 
+      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      : selectedPeriod === 'MONTH'
+      ? new Date(now.getFullYear(), now.getMonth(), 1)
+      : new Date(now.getFullYear(), 0, 1)
+    return createdAt >= periodStart
+  })
+
+  const pendingPaymentsTotal = pendingPayments.reduce((sum, inv) => {
+    const amount = typeof inv.total === 'string' ? parseFloat(inv.total) * 100 : ((inv.total || 0) * 100)
+    return sum + amount
+  }, 0)
+  const refundsTotal = refundsThisPeriod.reduce((sum, ref) => {
+    const amount = typeof ref.amount === 'string' ? parseFloat(ref.amount) * 100 : ((ref.amount || 0) * 100)
+    return sum + amount
+  }, 0)
 
   // Download functionality
   const handleDownload = () => {
@@ -206,7 +242,7 @@ export function Dashboard() {
       {/* ===== Main Dashboard Content ===== */}
       <div className="space-y-4">
         {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -229,6 +265,84 @@ export function Dashboard() {
               <div className="text-2xl font-bold">${dashboard?.revenue.totalRevenue || 0}</div>
               <p className="text-muted-foreground text-xs">
                 {meta?.period.toLowerCase()} period
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Pending Payments
+              </CardTitle>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                className="text-muted-foreground h-4 w-4"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(pendingPaymentsTotal)}</div>
+              <p className="text-muted-foreground text-xs">
+                {pendingPayments.length} invoices
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Refunds This Period
+              </CardTitle>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                className="text-muted-foreground h-4 w-4"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(refundsTotal)}</div>
+              <p className="text-muted-foreground text-xs">
+                {refundsThisPeriod.length} refunds
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Overdue Invoices
+              </CardTitle>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                className="text-muted-foreground h-4 w-4"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{overdueInvoices.length}</div>
+              <p className="text-muted-foreground text-xs">
+                Requires attention
               </p>
             </CardContent>
           </Card>

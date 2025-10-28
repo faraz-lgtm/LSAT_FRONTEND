@@ -1,5 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, ModifyOrderDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
@@ -114,14 +114,14 @@ export const ordersApi = api.injectEndpoints({
     //Mutations
     createOrder: builder.mutation<
       BaseApiResponse<StripeCheckoutSession>, // 👈 replace `any` with your API response type
-      { items: CartItem[]; user: InformationState } // 👈 request body type
+      { items: CartItem[]; user: InformationState,currency: string | undefined } // 👈 request body type
     >({
       query: (orderData) => ({
         url: "order", // relative to baseUrl in your api.ts
         method: "POST", // since we're creating
         body: orderData, // request payload
       }),
-      invalidatesTags: ["Orders", "AvailableSlots"], // auto-refetch orders and slots
+      invalidatesTags: ["Orders", "Invoices", "AvailableSlots"], // auto-refetch orders, invoices, and slots
     }),
 
     deleteOrder: builder.mutation<BaseApiResponse<{ message: string }>, number>({
@@ -131,12 +131,26 @@ export const ordersApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Orders', 'AvailableSlots'],
     }),
+
+    modifyOrder: builder.mutation<BaseApiResponse<{
+      refund?: object;
+      newOrder?: object;
+      newInvoice?: object;
+    }>, ModifyOrderDto>({
+      query: (modifyData) => ({
+        url: "order/modify",
+        method: "POST",
+        body: modifyData,
+      }),
+      invalidatesTags: ['Orders', 'Refunds', 'Invoices', 'AvailableSlots'],
+    }),
   }),
 });
 
 export const { 
   useGetOrdersQuery, 
-  useGetOrderByIdQuery, 
+  useGetOrderByIdQuery,
   useCreateOrderMutation,
   useDeleteOrderMutation,
+  useModifyOrderMutation,
 } = ordersApi;

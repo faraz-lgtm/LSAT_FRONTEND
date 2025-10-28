@@ -23,8 +23,9 @@ import {
 } from '@/components/dashboard/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from './data-table-bulk-actions.tsx'
-import { packagesColumns as columns } from './packages-columns.tsx'
+import { createPackagesColumns } from './packages-columns.tsx'
 import type { ProductOutput } from '@/types/api/data-contracts'
+import { formatCurrency } from '@/utils/currency'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,6 +43,8 @@ type DataTableProps = {
 export function PackagesTable({ data, search, navigate }: DataTableProps) {
   console.log("PackagesTable received data:", data);
   console.log("PackagesTable data length:", data?.length);
+  
+  const columns = createPackagesColumns(formatCurrency);
   
   // Validate data structure
   const isValidData = Array.isArray(data) && data.every(item => 

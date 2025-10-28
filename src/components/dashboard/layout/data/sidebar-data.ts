@@ -23,6 +23,11 @@ import {
   Calendar,
   ShoppingCart,
   ShoppingBag,
+  Receipt,
+  ReceiptText,
+  CreditCard,
+  Zap,
+  Activity,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
@@ -91,6 +96,41 @@ const sidebarData: SidebarData = {
           title: "Calendar",
           url: "/calendar",
           icon: Calendar,
+        },
+      ],
+    },
+    {
+      title: "Automations",
+      items: [
+        {
+          title: "Automations",
+          url: "/automations",
+          icon: Zap,
+        },
+        {
+          title: "Automation Logs",
+          url: "/automation-logs",
+          icon: Activity,
+        },
+      ],
+    },
+    {
+      title: "Financial",
+      items: [
+        {
+          title: "Invoices",
+          url: "/invoices",
+          icon: Receipt,
+        },
+        {
+          title: "Refunds",
+          url: "/refunds",
+          icon: ReceiptText,
+        },
+        {
+          title: "Transactions",
+          url: "/transactions",
+          icon: CreditCard,
         },
         {
           title: "Secured by Clerk",

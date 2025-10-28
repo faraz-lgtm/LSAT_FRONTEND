@@ -12,6 +12,10 @@ import {
 } from '@/components/dashboard/ui/dialog'
 import { Badge } from '@/components/dashboard/ui/badge'
 import type { OrderOutput } from '@/types/api/data-contracts'
+import { useGetRefundsByOrderQuery } from '@/redux/apiSlices/Refunds/refundsSlice'
+import { formatCurrency } from '@/utils/currency'
+import { formatDateTime } from '@/utils/currency'
+import { RefundStatusBadge } from '@/components/dashboard/ui/refund-status-badge'
 
 type OrdersViewDialogProps = {
   currentRow: OrderOutput
@@ -24,8 +28,19 @@ export function OrdersViewDialog({
   open,
   onOpenChange,
 }: OrdersViewDialogProps) {
-  const totalAmount = currentRow.items.reduce((sum:number, item:any) => sum + (item.price * item.quantity), 0)
+  // Use formatCurrency directly for CAD display
+  const totalAmount = currentRow.items.reduce((sum:number, item:any) => {
+    const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price
+    return sum + (price * item.quantity)
+  }, 0)
   const totalItems = currentRow.items.reduce((sum:number, item:any) => sum + item.quantity, 0)
+  
+  // Fetch refunds for this order
+  const { data: refundsData, isLoading: isLoadingRefunds } = useGetRefundsByOrderQuery(currentRow.id, {
+    skip: !open, // Only fetch when dialog is open
+  })
+  
+  const refunds = refundsData?.data || []
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,7 +88,7 @@ export function OrdersViewDialog({
               </div>
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Total Amount</label>
-                <p className='text-sm font-semibold text-green-600'>${totalAmount.toFixed(2)}</p>
+                <p className='text-sm font-semibold text-green-600'>{formatCurrency(totalAmount * 100)}</p>
               </div>
             </div>
           </div>
@@ -87,7 +102,9 @@ export function OrdersViewDialog({
                   <div className='flex justify-between items-start mb-3'>
                     <h4 className='font-medium text-base'>{item.name}</h4>
                     <div className='text-right'>
-                      <div className='text-sm font-semibold text-green-600'>${item.price.toFixed(2)}</div>
+                      <div className='text-sm font-semibold text-green-600'>
+                        {formatCurrency((typeof item.price === 'string' ? parseFloat(item.price) : item.price) * 100)}
+                      </div>
                       <div className='text-xs text-muted-foreground'>Qty: {item.quantity}</div>
                     </div>
                   </div>
@@ -124,6 +141,48 @@ export function OrdersViewDialog({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Refund History */}
+          <div className='space-y-3'>
+            <h3 className='text-lg font-semibold'>Refund History</h3>
+            {isLoadingRefunds ? (
+              <div className='text-center text-muted-foreground py-4'>
+                Loading refunds...
+              </div>
+            ) : refunds.length > 0 ? (
+              <div className='space-y-2'>
+                {refunds.map((refund) => (
+                  <div key={refund.id} className='flex justify-between items-center p-3 border rounded-lg'>
+                    <div className='flex-1'>
+                      <div className='flex items-center gap-2 mb-1'>
+                        <span className='font-medium'>#{refund.refundNumber}</span>
+                        <RefundStatusBadge status={refund.status} />
+                      </div>
+                      <p className='text-sm text-muted-foreground'>
+                        {refund.reason} - {refund.reasonDetails}
+                      </p>
+                      <p className='text-xs text-muted-foreground'>
+                        Created: {formatDateTime(refund.createdAt)}
+                      </p>
+                    </div>
+                    <div className='text-right'>
+                      <p className='font-semibold text-red-600'>
+                        -{formatCurrency(
+                          typeof refund.amount === 'string' 
+                            ? parseFloat(refund.amount) 
+                            : refund.amount
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className='text-center text-muted-foreground py-4'>
+                No refunds found for this order
+              </div>
+            )}
           </div>
         </div>
 

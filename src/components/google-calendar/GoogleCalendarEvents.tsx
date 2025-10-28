@@ -151,7 +151,7 @@ export const GoogleCalendarEvents: React.FC<GoogleCalendarEventsProps> = ({
                       Tentative
                     </Badge>
                   )}
-                  {event.status === 'cancelled' && (
+                  {event.status === 'canceled' && (
                     <Badge variant="destructive" className="text-xs">
                       Cancelled
                     </Badge>

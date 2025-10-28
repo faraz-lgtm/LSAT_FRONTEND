@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useCurrencyFormatter } from "../../utils/currency";
 
 interface OrderSummaryProps{
     totalPrice:number
@@ -6,6 +7,7 @@ interface OrderSummaryProps{
 
 const OrderSummary = ({totalPrice}:OrderSummaryProps) => {
   const navigate = useNavigate();
+  const formatCurrency = useCurrencyFormatter();
 
   return (
     <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-xl">
@@ -19,15 +21,15 @@ const OrderSummary = ({totalPrice}:OrderSummaryProps) => {
       <div className="space-y-3 mb-6">
         <div className="flex justify-between items-center py-2 border-b border-blue-500/30">
           <span className="text-blue-100">Subtotal</span>
-          <span className="font-semibold">${totalPrice}</span>
+          <span className="font-semibold">{formatCurrency(totalPrice * 100)}</span>
         </div>
         <div className="flex justify-between items-center py-2 border-b border-blue-500/30">
           <span className="text-blue-100">Tax</span>
-          <span className="font-semibold">$0.00</span>
+          <span className="font-semibold">{formatCurrency(0)}</span>
         </div>
         <div className="flex justify-between items-center py-3 bg-white/10 rounded-lg px-3">
           <span className="text-lg font-bold">Total</span>
-          <span className="text-xl font-bold">${totalPrice}</span>
+          <span className="text-xl font-bold">{formatCurrency(totalPrice * 100)}</span>
         </div>
       </div>
 

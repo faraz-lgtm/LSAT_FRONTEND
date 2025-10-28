@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import useDialogState from '@/hooks/dashboardRelated/use-dialog-state'
 import type { OrderOutput } from '@/types/api/data-contracts'
 
-type OrdersDialogType = 'view' | 'delete'
+type OrdersDialogType = 'view' | 'delete' | 'refund' | 'modify'
 
 type OrdersContextType = {
   open: OrdersDialogType | null

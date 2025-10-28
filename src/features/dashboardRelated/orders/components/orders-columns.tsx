@@ -7,7 +7,7 @@ import { LongText } from '@/components/dashboard/long-text'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 
-export const ordersColumns: ColumnDef<OrderOutput>[] = [
+export const createOrdersColumns = (formatCurrency: (cents: number) => string): ColumnDef<OrderOutput>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -43,6 +43,11 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
     cell: ({ row }) => (
       <div className='font-medium'>#{row.getValue('id')}</div>
     ),
+    filterFn: (row, _id, value) => {
+      const orderId = row.getValue('id') as number
+      const filterValue = typeof value === 'string' ? parseInt(value) : value
+      return orderId === filterValue
+    },
     meta: {
       className: cn(
         'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
@@ -125,7 +130,7 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
       
       return (
         <div className='font-medium text-green-600 dark:text-green-400'>
-          ${totalAmount.toFixed(2)}
+          {formatCurrency(totalAmount * 100)}
         </div>
       )
     },
@@ -138,7 +143,7 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
       <DataTableColumnHeader column={column} title='Reservation Status' />
     ),
     cell: ({ row }) => {
-      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
+      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'CANCELED' | null
       
       if (!status) {
         return (
@@ -154,6 +159,7 @@ export const ordersColumns: ColumnDef<OrderOutput>[] = [
         RESERVED: 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200',
         CONFIRMED: 'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
         EXPIRED: 'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200',
+        CANCELED: 'bg-white-100/30 text-red-900 dark:text-red-200 border-red-200',
       }
       
       return (
