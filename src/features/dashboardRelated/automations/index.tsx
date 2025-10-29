@@ -22,7 +22,7 @@ export function Automations() {
   console.log("isLoading:", isLoading);
   console.log("error:", error);
 
-  let automations = [];
+  let automations: any[] = [];
 
   if (isSuccess && automationsData) {
     // API returns array directly, not wrapped in BaseApiResponse

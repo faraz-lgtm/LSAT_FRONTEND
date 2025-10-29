@@ -27,7 +27,7 @@ export function AutomationLogs() {
   console.log("isLoading:", isLoading);
   console.log("error:", error);
 
-  let logs = [];
+  let logs: any[] = [];
 
   if (isSuccess && logsData) {
     // API returns array directly, not wrapped in BaseApiResponse

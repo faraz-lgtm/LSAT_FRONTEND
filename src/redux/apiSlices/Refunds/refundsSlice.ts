@@ -1,5 +1,7 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { CreateRefundDto } from "@/types/api/data-contracts";
+
+// Type definition for CreateRefundDto (not in API contracts yet)
+export type CreateRefundDto = any;
 import { api } from "../../api";
 import type { ExchangeRates } from "../Invoicing/invoicingSlice";
 

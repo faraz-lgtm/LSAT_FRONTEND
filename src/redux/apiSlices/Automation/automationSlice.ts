@@ -1,6 +1,8 @@
-import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 import { api } from "../../api";
-import type { AutomationConfigOutputDto, UpdateAutomationConfigDto } from "@/types/api/data-contracts";
+
+// Type definitions for Automations (not in API contracts yet)
+export type AutomationConfigOutputDto = any;
+export type UpdateAutomationConfigDto = any;
 
 export interface AutomationLogOutputDto {
   id: number;

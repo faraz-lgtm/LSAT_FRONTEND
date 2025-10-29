@@ -107,7 +107,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
   };
 
   // API hooks
-  const { data: usersData } = useGetUsersQuery();
+  const { data: usersData } = useGetUsersQuery({});
   const [createOrder] = useCreateOrderMutation();
 
   // Filter users by roles

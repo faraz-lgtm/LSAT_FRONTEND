@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { AutomationConfigOutputDto } from '@/types/api/data-contracts'
+type AutomationConfigOutputDto = any
 
 type AutomationsDialogType = 'edit' | 'view'
 

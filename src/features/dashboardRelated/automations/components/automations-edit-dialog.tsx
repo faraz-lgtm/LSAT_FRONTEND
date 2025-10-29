@@ -14,14 +14,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/dashboard/ui/form'
 import { Input } from '@/components/dashboard/ui/input'
 import { Textarea } from '@/components/dashboard/ui/textarea'
 import { Switch } from '@/components/dashboard/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 import { useUpdateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
-import type { AutomationConfigOutputDto } from '@/types/api/data-contracts'
+type AutomationConfigOutputDto = any
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -30,7 +29,7 @@ import { z } from 'zod'
 
 const automationSchema = z.object({
   isEnabled: z.boolean(),
-  parameters: z.record(z.any()).optional(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
 })
 
 type AutomationForm = z.infer<typeof automationSchema>
@@ -55,7 +54,11 @@ const variableMapping: Record<string, string> = {
 function replaceVariables(text: string): string {
   let result = text
   Object.keys(variableMapping).forEach(variable => {
-    result = result.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), variableMapping[variable])
+    const mappingValue = variableMapping[variable]
+    if (mappingValue) {
+      const regex = new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g')
+      result = result.replace(regex, mappingValue)
+    }
   })
   return result
 }
@@ -84,12 +87,13 @@ export function AutomationsEditDialog({
       })
       
       // Initialize dynamic fields from parameters
-      const params = currentRow.parameters || {}
+      const params = (currentRow.parameters as Record<string, any>) || {}
       const fields: Record<string, string> = {}
       
       Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          fields[key] = String(params[key])
+        const value = params[key]
+        if (value !== null && value !== undefined) {
+          fields[key] = String(value)
         }
       })
       

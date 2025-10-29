@@ -1,6 +1,9 @@
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput, GetUsersQueryParams } from "@/types/api/data-contracts";
+import type { UpdateUserInput, UserOutput, UserInput, BaseUserOutput } from "@/types/api/data-contracts";
+
+// Type definition for GetUsersQueryParams (not in API contracts yet)
+export type GetUsersQueryParams = any;
 
 // export interface UserOutput{
 //     id: number;

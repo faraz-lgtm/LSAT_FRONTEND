@@ -11,7 +11,6 @@ import { ConfigDrawer } from '@/components/dashboard/config-drawer'
 import { useGetDashboardDataQuery } from '@/redux/apiSlices/Dashboard/dashboardSlice'
 import { useGetInvoicesQuery } from '@/redux/apiSlices/Invoicing/invoicingSlice'
 import { useGetRefundsQuery } from '@/redux/apiSlices/Refunds/refundsSlice'
-import { useGetTransactionsQuery } from '@/redux/apiSlices/Transactions/transactionsSlice'
 import { formatCurrency } from '@/utils/currency'
 import { useState } from 'react'
 
@@ -54,7 +53,6 @@ export function Dashboard() {
   // Financial data queries
   const { data: invoicesData } = useGetInvoicesQuery()
   const { data: refundsData } = useGetRefundsQuery()
-  const { data: transactionsData } = useGetTransactionsQuery()
 
   const dashboard = dashboardData?.data?.data
   const meta = dashboardData?.data?.meta
@@ -62,7 +60,6 @@ export function Dashboard() {
   // Calculate financial metrics
   const invoices = invoicesData?.data || []
   const refunds = refundsData?.data || []
-  const transactions = transactionsData?.data || []
 
   const pendingPayments = invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue')
   const overdueInvoices = invoices.filter(inv => inv.status === 'overdue')

@@ -38,7 +38,7 @@ import {
 } from '@/components/dashboard/ui/dropdown-menu'
 import { useAutomations } from './automations-provider'
 import { useUpdateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
-import type { AutomationConfigOutputDto } from '@/types/api/data-contracts'
+import type { AutomationConfigOutputDto } from '@/redux/apiSlices/Automation/automationSlice'
 import { toast } from 'sonner'
 
 type DataTableProps = {
@@ -238,7 +238,9 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
         searchPlaceholder="Search automations..."
       />
       {table.getState().rowSelection && Object.keys(table.getState().rowSelection).length > 0 && (
-        <DataTableBulkActions table={table} />
+        <DataTableBulkActions table={table} entityName="automation">
+          <></>
+        </DataTableBulkActions>
       )}
       <div className="rounded-md border">
         <Table>

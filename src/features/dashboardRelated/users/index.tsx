@@ -20,7 +20,7 @@ import type { UserOutput } from "@/types/api/data-contracts";
 const route = getRouteApi("/_authenticated/users/");
 
 export function Users() {
-  const { data: usersData, isSuccess } = useGetUsersQuery();
+  const { data: usersData, isSuccess } = useGetUsersQuery({});
   const search = route.useSearch();
   const navigate = route.useNavigate();
 
