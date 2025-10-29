@@ -1,6 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Dashboard } from '@/features/dashboardRelated/dashboard'
+import { lazy, Suspense } from 'react'
+
+// Lazy load Dashboard component to reduce initial bundle size
+const Dashboard = lazy(() => import('@/features/dashboardRelated/dashboard').then(module => ({ default: module.Dashboard })))
 
 export const Route = createFileRoute('/_authenticated/')({
-  component: Dashboard,
+  component: () => (
+    <Suspense fallback={<div className="flex items-center justify-center h-64">Loading dashboard...</div>}>
+      <Dashboard />
+    </Suspense>
+  ),
 })

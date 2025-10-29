@@ -7,7 +7,6 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store';
-import posthog from 'posthog-js';
 import { getTrackingConfig, shouldRespectDoNotTrack, isDevelopment } from '@/config/tracking';
 import { initializeUTMTracking, getCurrentUTMParams } from '@/utils/utmTracker';
 import { enrichEvent, sanitizeProperties } from '@/utils/eventHelpers';
@@ -42,6 +41,7 @@ declare global {
 
 export function TrackingProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
+  const [posthog, setPosthog] = useState<any>(null);
   const configRef = useRef(getTrackingConfig());
   const location = useLocation();
   const authState = useSelector((state: RootState) => state.auth);
@@ -59,35 +59,42 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
 
     const config = configRef.current;
 
-    try {
-      // Initialize UTM tracking
-      initializeUTMTracking();
+    const initTracking = async () => {
+      try {
+        // Initialize UTM tracking
+        initializeUTMTracking();
 
-      // Initialize Google Analytics 4
-      if (config.ga4.enabled && config.ga4.measurementId) {
-        initializeGA4(config.ga4.measurementId);
+        // Initialize Google Analytics 4
+        if (config.ga4.enabled && config.ga4.measurementId) {
+          initializeGA4(config.ga4.measurementId);
+        }
+
+        // Initialize Facebook Pixel
+        if (config.fbPixel.enabled && config.fbPixel.pixelId) {
+          initializeFBPixel(config.fbPixel.pixelId);
+        }
+
+        // Initialize Google Tag Manager
+        if (config.gtm.enabled && config.gtm.containerId) {
+          initializeGTM(config.gtm.containerId);
+        }
+
+        // Initialize PostHog (dynamic import - only loads if enabled)
+        if (config.posthog.enabled && config.posthog.key && config.posthog.host) {
+          const posthogModule = await import('posthog-js');
+          const ph = posthogModule.default;
+          setPosthog(ph);
+          initializePostHog(ph, config.posthog.key, config.posthog.host);
+        }
+
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('[Tracking] Failed to initialize tracking:', error);
+        setIsInitialized(true); // Set to true to prevent retries
       }
+    };
 
-      // Initialize Facebook Pixel
-      if (config.fbPixel.enabled && config.fbPixel.pixelId) {
-        initializeFBPixel(config.fbPixel.pixelId);
-      }
-
-      // Initialize Google Tag Manager
-      if (config.gtm.enabled && config.gtm.containerId) {
-        initializeGTM(config.gtm.containerId);
-      }
-
-      // Initialize PostHog
-      if (config.posthog.enabled && config.posthog.key && config.posthog.host) {
-        initializePostHog(config.posthog.key, config.posthog.host);
-      }
-
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('[Tracking] Failed to initialize tracking:', error);
-      setIsInitialized(true); // Set to true to prevent retries
-    }
+    initTracking();
   }, [isInitialized]);
 
   // Create tracking service
@@ -126,8 +133,8 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
         window.fbq('track', eventName, sanitizedProps);
       }
 
-      // Track in PostHog
-      if (config.posthog.enabled && typeof posthog !== 'undefined' && posthog.capture) {
+      // Track in PostHog (dynamic import)
+      if (config.posthog.enabled && posthog && typeof posthog.capture === 'function') {
         posthog.capture(eventName, sanitizedProps);
       }
 
@@ -156,8 +163,8 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
         window.gtag('set', { user_id: String(userId), ...sanitizedTraits });
       }
 
-      // Identify in PostHog
-      if (config.posthog.enabled && typeof posthog !== 'undefined' && posthog.identify) {
+      // Identify in PostHog (dynamic import)
+      if (config.posthog.enabled && posthog && typeof posthog.identify === 'function') {
         posthog.identify(String(userId), sanitizedTraits);
       }
 
@@ -180,8 +187,8 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
 
       const config = configRef.current;
 
-      // Reset PostHog
-      if (config.posthog.enabled && typeof posthog !== 'undefined' && posthog.reset) {
+      // Reset PostHog (dynamic import)
+      if (config.posthog.enabled && posthog && typeof posthog.reset === 'function') {
         posthog.reset();
       }
 
@@ -207,7 +214,7 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
     };
 
     return { track, identify, reset, page };
-  }, [isInitialized, location.pathname, authState.user]);
+  }, [isInitialized, location.pathname, authState.user, posthog]);
 
   // Inject tracking service into middleware
   useEffect(() => {
@@ -336,9 +343,9 @@ function initializeGTM(containerId: string): void {
 }
 
 /**
- * Initialize PostHog
+ * Initialize PostHog (dynamic import)
  */
-function initializePostHog(apiKey: string, host: string): void {
+function initializePostHog(posthog: any, apiKey: string, host: string): void {
   if (typeof window === 'undefined') return;
 
   try {
