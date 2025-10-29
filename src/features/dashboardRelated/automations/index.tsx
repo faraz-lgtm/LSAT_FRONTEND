@@ -5,6 +5,7 @@ import { ProfileDropdown } from "@/components/dashboard/profile-dropdown";
 import { Search } from "@/components/dashboard/search";
 import { ThemeSwitch } from "@/components/dashboard/theme-switch";
 import { useGetAutomationsQuery } from "@/redux/apiSlices/Automation/automationSlice";
+import type { AutomationConfigOutputDto } from "@/types/api/data-contracts";
 import { getRouteApi } from "@tanstack/react-router";
 import { AutomationsDialogs } from "./components/automations-dialogs";
 import { AutomationsProvider } from "./components/automations-provider";
@@ -22,7 +23,7 @@ export function Automations() {
   console.log("isLoading:", isLoading);
   console.log("error:", error);
 
-  let automations = [];
+  let automations: AutomationConfigOutputDto[] = [];
 
   if (isSuccess && automationsData) {
     automations = automationsData.data || [];

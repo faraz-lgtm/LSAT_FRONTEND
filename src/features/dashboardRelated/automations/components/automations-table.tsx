@@ -238,7 +238,9 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
         searchPlaceholder="Search automations..."
       />
       {table.getState().rowSelection && Object.keys(table.getState().rowSelection).length > 0 && (
-        <DataTableBulkActions table={table} />
+        <DataTableBulkActions table={table} entityName="automation">
+          <></>
+        </DataTableBulkActions>
       )}
       <div className="rounded-md border">
         <Table>

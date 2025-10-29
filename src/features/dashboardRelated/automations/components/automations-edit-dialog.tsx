@@ -14,7 +14,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/dashboard/ui/form'
 import { Input } from '@/components/dashboard/ui/input'
 import { Textarea } from '@/components/dashboard/ui/textarea'
@@ -29,7 +28,8 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 const automationSchema = z.object({
-  isEnabled: z.boolean().default(false),
+  isEnabled: z.boolean(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
 })
 
 type AutomationForm = z.infer<typeof automationSchema>
@@ -54,7 +54,10 @@ const variableMapping: Record<string, string> = {
 function replaceVariables(text: string): string {
   let result = text
   Object.keys(variableMapping).forEach(variable => {
-    result = result.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), variableMapping[variable])
+    const mappingValue = variableMapping[variable]
+    if (mappingValue) {
+      result = result.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), mappingValue)
+    }
   })
   return result
 }
@@ -67,10 +70,11 @@ export function AutomationsEditDialog({
   const [updateAutomation, { isLoading }] = useUpdateAutomationMutation()
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({})
 
-  const form = useForm<AutomationForm>({
+  const form = useForm({
     resolver: zodResolver(automationSchema),
     defaultValues: {
       isEnabled: false,
+      parameters: undefined,
     },
   })
 
@@ -81,12 +85,13 @@ export function AutomationsEditDialog({
       })
       
       // Initialize dynamic fields from parameters
-      const params = currentRow.parameters || {}
+      const params = (currentRow.parameters as Record<string, any>) || {}
       const fields: Record<string, string> = {}
       
       Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          fields[key] = String(params[key])
+        const value = params[key]
+        if (value !== null && value !== undefined) {
+          fields[key] = String(value)
         }
       })
       

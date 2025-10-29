@@ -3,10 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/dashboard/ui/button'
 import { Input } from '@/components/dashboard/ui/input'
 import { Label } from '@/components/dashboard/ui/label'
-import { Textarea } from '@/components/dashboard/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/dashboard/ui/select'
-import { Alert, AlertDescription } from '@/components/dashboard/ui/alert'
-import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCreateInvoiceMutation } from '@/redux/apiSlices/Invoicing/invoicingSlice'
 import { formatCurrency } from '@/utils/currency'
@@ -41,11 +37,17 @@ export function InvoicesCreateDialog({
 
   const handleLineItemChange = (index: number, field: keyof LineItem, value: string | number) => {
     const newLineItems = [...lineItems]
-    newLineItems[index] = { ...newLineItems[index], [field]: value }
+    const currentItem = newLineItems[index]
+    if (!currentItem) return
+    
+    newLineItems[index] = { ...currentItem, [field]: value }
     
     // Recalculate total price
     if (field === 'quantity' || field === 'unitPrice') {
-      newLineItems[index].totalPrice = newLineItems[index].quantity * newLineItems[index].unitPrice
+      const updatedItem = newLineItems[index]
+      if (updatedItem) {
+        updatedItem.totalPrice = updatedItem.quantity * updatedItem.unitPrice
+      }
     }
     
     setLineItems(newLineItems)
@@ -81,10 +83,11 @@ export function InvoicesCreateDialog({
         customerId: parseInt(formData.customerId),
         dueDate: formData.dueDate,
         lineItems: lineItems.map(item => ({
+          name: item.description,
           description: item.description,
           quantity: item.quantity,
-          unitPrice: Math.round(item.unitPrice * 100), // Convert to cents
-          totalPrice: Math.round(item.totalPrice * 100), // Convert to cents
+          price: Math.round(item.unitPrice * 100), // Convert to cents
+          total: Math.round(item.totalPrice * 100), // Convert to cents
         }))
       }).unwrap()
 

@@ -213,7 +213,9 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
         searchPlaceholder="Search logs..."
       />
       {table.getState().rowSelection && Object.keys(table.getState().rowSelection).length > 0 && (
-        <DataTableBulkActions table={table} />
+        <DataTableBulkActions table={table} entityName="log">
+          <></>
+        </DataTableBulkActions>
       )}
       <div className="rounded-md border">
         <Table>

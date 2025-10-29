@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/dashboard/ui/dialog'
 import { InvoiceStatusBadge } from '@/components/dashboard/ui/invoice-status-badge'
 import { formatDollarsToCurrency } from '@/utils/currency'
-import { formatDate, formatDateTime } from '@/utils/currency'
+import { formatDate } from '@/utils/currency'
 import type { InvoiceOutput } from '@/redux/apiSlices/Invoicing/invoicingSlice'
 
 type InvoicesViewDialogProps = {
