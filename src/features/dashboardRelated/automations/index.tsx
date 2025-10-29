@@ -25,8 +25,7 @@ export function Automations() {
   let automations = [];
 
   if (isSuccess && automationsData) {
-    // API returns array directly, not wrapped in BaseApiResponse
-    automations = Array.isArray(automationsData) ? automationsData : [];
+    automations = automationsData.data || [];
   }
 
   if (isLoading) {

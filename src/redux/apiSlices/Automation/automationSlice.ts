@@ -23,7 +23,7 @@ export interface AutomationLogsQueryParams {
 export const automationApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/v1/automation - List all automations
-    getAutomations: builder.query<AutomationConfigOutputDto[], void>({
+    getAutomations: builder.query<BaseApiResponse<AutomationConfigOutputDto[]>, void>({
       query: () => ({
         url: "automation",
         method: "GET",
@@ -32,7 +32,7 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // PATCH /api/v1/automation/:key - Update automation configuration
-    updateAutomation: builder.mutation<AutomationConfigOutputDto, { key: string; data: UpdateAutomationConfigDto }>({
+    updateAutomation: builder.mutation<BaseApiResponse<AutomationConfigOutputDto>, { key: string; data: UpdateAutomationConfigDto }>({
       query: ({ key, data }) => ({
         url: `automation/${key}`,
         method: "PATCH",
@@ -42,7 +42,7 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // GET /api/v1/automation/:key/logs - Get automation logs
-    getAutomationLogs: builder.query<AutomationLogOutputDto[], { key: string; params?: AutomationLogsQueryParams }>({
+    getAutomationLogs: builder.query<BaseApiResponse<AutomationLogOutputDto[]>, { key: string; params?: AutomationLogsQueryParams }>({
       query: ({ key, params }) => ({
         url: `automation/${key}/logs`,
         method: "GET",
@@ -51,7 +51,7 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // GET /api/v1/automation/logs - Get all automation logs (optional endpoint)
-    getAllAutomationLogs: builder.query<AutomationLogOutputDto[], AutomationLogsQueryParams | void>({
+    getAllAutomationLogs: builder.query<BaseApiResponse<AutomationLogOutputDto[]>, AutomationLogsQueryParams | void>({
       query: (params) => ({
         url: "automation/logs",
         method: "GET",

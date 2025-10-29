@@ -205,6 +205,23 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
       .filter(slot => slot !== undefined) as Date[];
   };
 
+  // Helper function to get excluded slots for a specific package and slot index
+  // This excludes all selected slots except the one currently being edited
+  const getExcludedSlots = (packageId: number, slotIndex: number): Date[] => {
+    const allSelectedSlots = getAllSelectedSlots();
+    const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
+    const currentSlot = packageSlots?.slots[slotIndex];
+    
+    // Return all selected slots except the current one being edited
+    return allSelectedSlots.filter(slot => {
+      // Don't exclude the slot being edited itself
+      if (currentSlot && slot.getTime() === currentSlot.getTime()) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   // Helper function to check if all required slots are selected
   const isAllSlotsSelected = (): boolean => {
     for (const packageId of formData.packageIds) {
@@ -381,10 +398,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
                                   packageId={packageId}
                                   value={packageSlots?.slots[index]}
                                   onChange={(date) => handleSlotChange(packageId, index, date)}
-                                  excludedSlots={getAllSelectedSlots().filter(slot => 
-                                    // Exclude slots that are already selected in other packages
-                                    !packageSlots?.slots.includes(slot)
-                                  )}
+                                  excludedSlots={getExcludedSlots(packageId, index)}
                                 />
                               </div>
                             ))}

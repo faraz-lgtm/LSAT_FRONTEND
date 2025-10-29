@@ -17,13 +17,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <FontProvider>
         <Provider store={store}>
-          <CurrencyProvider>
-            <DirectionProvider>
-              <BrowserRouter>
+          <BrowserRouter>
+            <CurrencyProvider>
+              <DirectionProvider>
                 <App />
-              </BrowserRouter>
-            </DirectionProvider>
-          </CurrencyProvider>
+              </DirectionProvider>
+            </CurrencyProvider>
+          </BrowserRouter>
         </Provider>
       </FontProvider>
     </ThemeProvider>

@@ -30,8 +30,7 @@ export function AutomationLogs() {
   let logs = [];
 
   if (isSuccess && logsData) {
-    // API returns array directly, not wrapped in BaseApiResponse
-    logs = Array.isArray(logsData) ? logsData : [];
+    logs = logsData.data || [];
   }
 
   if (isLoading) {

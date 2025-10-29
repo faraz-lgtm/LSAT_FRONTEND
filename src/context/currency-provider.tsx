@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useMemo } from 'react'
+import { createContext, useContext, useState, useMemo, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { getCookie, setCookie } from '@/lib/dashboardRelated/cookies'
 import { useGetCurrencyRatesQuery } from '@/redux/apiSlices/Currency/currencySlice'
 
@@ -33,15 +34,35 @@ const initialState: CurrencyProviderState = {
 const CurrencyContext = createContext<CurrencyProviderState>(initialState)
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
+  const location = useLocation()
+  
+  // Check if we're on a dashboard route
+  const isDashboard = location.pathname.startsWith('/dashboard')
+  
   const [currency, _setCurrency] = useState<Currency>(() => {
+    // Always use CAD for dashboard, regardless of cookie
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+      return DEFAULT_CURRENCY
+    }
     const cookieCurrency = getCookie(CURRENCY_COOKIE_NAME) as Currency
     return cookieCurrency || DEFAULT_CURRENCY
   })
 
+  // Update currency when route changes
+  useEffect(() => {
+    if (isDashboard) {
+      // Force CAD for dashboard
+      _setCurrency(DEFAULT_CURRENCY)
+    } else {
+      // Use cookie value for non-dashboard routes
+      const cookieCurrency = getCookie(CURRENCY_COOKIE_NAME) as Currency
+      _setCurrency(cookieCurrency || DEFAULT_CURRENCY)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname])
+
   // Only fetch exchange rates on user-facing pages (not dashboard)
   // Dashboard should always display in CAD
-  const isDashboard = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')
-  
   // Fetch exchange rates from backend only for customer pages
   const shouldSkip = isDashboard
   
@@ -63,6 +84,10 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   }, [ratesData?.data?.rates])
 
   const setCurrency = (newCurrency: Currency) => {
+    // Don't allow currency changes on dashboard routes
+    if (isDashboard) {
+      return // Silently ignore currency changes on dashboard
+    }
     setCookie(CURRENCY_COOKIE_NAME, newCurrency, CURRENCY_COOKIE_MAX_AGE)
     _setCurrency(newCurrency)
   }

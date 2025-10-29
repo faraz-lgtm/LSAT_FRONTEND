@@ -458,6 +458,16 @@ export interface OrderOutput {
     | "FAILED"
     | "CANCELED"
     | null;
+  /**
+   * Google Meet link shared across all calendar events in this order
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  googleMeetLink?: string | null;
+  /**
+   * Stripe checkout session URL
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  checkoutSessionUrl?: string | null;
 }
 
 export interface SwaggerBaseApiResponseForClassOrderOutput {
@@ -1593,6 +1603,39 @@ export interface TaxCollectionDto {
   periodTaxCollection: TaxPeriodDto[];
 }
 
+export interface RefundPeriodDto {
+  /**
+   * Date for this refund period
+   * @example "2024-01-15"
+   */
+  date: string;
+  /**
+   * Total refunds in CAD
+   * @example 125
+   */
+  refundAmount: number;
+  /**
+   * Number of refunds processed
+   * @example 2
+   */
+  refundCount: number;
+}
+
+export interface RefundDto {
+  /**
+   * Total refunds for the period
+   * @example 500
+   */
+  totalRefunds: number;
+  /**
+   * Number of refunds processed
+   * @example 3
+   */
+  totalRefundCount: number;
+  /** Refunds breakdown by period */
+  periodRefunds: RefundPeriodDto[];
+}
+
 export interface DashboardDataDto {
   /** Top customers data */
   topCustomers?: TopCustomerDto[];
@@ -1602,6 +1645,8 @@ export interface DashboardDataDto {
   appointments?: AppointmentsDto;
   /** Tax collection metrics */
   taxCollection?: TaxCollectionDto;
+  /** Refund metrics */
+  refunds?: RefundDto;
 }
 
 export interface DashboardMetaDto {
@@ -1685,6 +1730,34 @@ export interface SlackAutomationParameters {
   customBlockMessage?: string;
 }
 
+export interface EmailAutomationParameters {
+  /**
+   * Delay in minutes before executing (0 for immediate)
+   * @example 0
+   */
+  delayMinutes?: number;
+  /**
+   * Additional CC recipients (email addresses)
+   * @example ["manager@example.com"]
+   */
+  ccRecipients?: string[];
+  /**
+   * Email subject line with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
+   * @example "Order #{{orderNumber}} Confirmed - Better LSAT MCAT"
+   */
+  subject?: string;
+  /**
+   * Email message body (fallback plain text) with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
+   * @example "Your order #{{orderNumber}} has been confirmed. Total: ${{total}}"
+   */
+  message?: string;
+  /**
+   * Template name to use for HTML rendering
+   * @example "order-confirmation"
+   */
+  template?: string;
+}
+
 export interface AutomationConfigOutputDto {
   /**
    * Unique identifier for the automation
@@ -1731,6 +1804,16 @@ export interface AutomationConfigOutputDto {
   parameters?: object;
 }
 
+export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
+  meta: MetaResponse;
+  data: AutomationConfigOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
+  meta: MetaResponse;
+  data: AutomationConfigOutputDto;
+}
+
 export interface UpdateAutomationConfigDto {
   /**
    * Enable or disable the automation
@@ -1738,8 +1821,27 @@ export interface UpdateAutomationConfigDto {
    */
   isEnabled?: boolean;
   /**
-   * Configuration parameters for the automation. For Slack automations, available placeholders: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}
+   * Configuration parameters for the automation. For Slack automations, available placeholders: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}. For Email automations, available placeholders: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}, {{orderDate}}
    * @example {"delayMinutes":0,"channel":"#orders","customMessage":"🎉 New order #{{orderId}} from {{customerName}} - ${{total}}","customBlockMessage":"New Order #{{orderId}}"}
    */
   parameters?: object;
+}
+
+export type AutomationConfig = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationConfig {
+  meta: MetaResponse;
+  data: AutomationConfig;
+}
+
+export type AutomationLog = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationLog {
+  meta: MetaResponse;
+  data: AutomationLog[];
+}
+
+export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+  meta: MetaResponse;
+  data: SlackPlaceholdersResponseDto;
 }
