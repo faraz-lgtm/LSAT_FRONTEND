@@ -45,7 +45,7 @@ export function RefundsProcessDialog({
           <CheckCircle className='h-4 w-4' />
           <AlertTitle>Confirm Processing</AlertTitle>
           <AlertDescription>
-            You are about to process refund #{currentRow.refundNumber}
+            You are about to process refund #{currentRow.refundNumber} for customer ID {currentRow.customerId} 
             {currentRow.amount && ` with an amount of ${formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount * 100)}`}. This will initiate the refund through Stripe.
           </AlertDescription>
         </Alert>

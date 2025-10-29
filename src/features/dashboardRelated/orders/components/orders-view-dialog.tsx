@@ -16,6 +16,7 @@ import { useGetRefundsByOrderQuery } from '@/redux/apiSlices/Refunds/refundsSlic
 import { formatCurrency } from '@/utils/currency'
 import { formatDateTime } from '@/utils/currency'
 import { RefundStatusBadge } from '@/components/dashboard/ui/refund-status-badge'
+import { ExternalLink } from 'lucide-react'
 
 type OrdersViewDialogProps = {
   currentRow: OrderOutput
@@ -92,6 +93,42 @@ export function OrdersViewDialog({
               </div>
             </div>
           </div>
+
+          {/* Google Meet Link */}
+          {currentRow.googleMeetLink && (
+            <div className='space-y-3'>
+              <h3 className='text-lg font-semibold'>Meeting Link</h3>
+              <div className='border rounded-lg p-4 bg-muted/30'>
+                <a
+                  href={currentRow.googleMeetLink}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors break-all'
+                >
+                  <ExternalLink className='h-4 w-4 flex-shrink-0' />
+                  <span className='text-sm font-medium break-all'>{currentRow.googleMeetLink}</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Checkout Session URL - Only show if order status is RESERVED */}
+          {currentRow.checkoutSessionUrl && currentRow.slot_reservation_status === 'RESERVED' && (
+            <div className='space-y-3'>
+              <h3 className='text-lg font-semibold'>Checkout Session</h3>
+              <div className='border rounded-lg p-4 bg-muted/30'>
+                <a
+                  href={currentRow.checkoutSessionUrl}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors break-all'
+                >
+                  <ExternalLink className='h-4 w-4 flex-shrink-0' />
+                  <span className='text-sm font-medium break-all'>{currentRow.checkoutSessionUrl}</span>
+                </a>
+              </div>
+            </div>
+          )}
 
           {/* Order Items */}
           <div className='space-y-3'>

@@ -45,7 +45,7 @@ export function RefundsCancelDialog({
           <AlertTriangle className='h-4 w-4' />
           <AlertTitle>Warning</AlertTitle>
           <AlertDescription>
-            You are about to cancel refund #{currentRow.refundNumber}
+            You are about to cancel refund #{currentRow.refundNumber} for customer ID {currentRow.customerId} 
             {currentRow.amount && ` with an amount of ${formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount * 100)}`}. This action cannot be undone.
           </AlertDescription>
         </Alert>

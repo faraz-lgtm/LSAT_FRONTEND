@@ -4,7 +4,7 @@ import { Main } from "@/components/dashboard/layout/main";
 import { ProfileDropdown } from "@/components/dashboard/profile-dropdown";
 import { Search } from "@/components/dashboard/search";
 import { ThemeSwitch } from "@/components/dashboard/theme-switch";
-import { useGetAllAutomationLogsQuery } from "@/redux/apiSlices/Automation/automationSlice";
+import { useGetAllAutomationLogsQuery, type AutomationLogOutputDto } from "@/redux/apiSlices/Automation/automationSlice";
 import { getRouteApi } from "@tanstack/react-router";
 import { AutomationLogsTable } from "./components/automation-logs-table";
 import { AutomationLogsProvider } from "./components/automation-logs-provider";
@@ -27,11 +27,13 @@ export function AutomationLogs() {
   console.log("isLoading:", isLoading);
   console.log("error:", error);
 
-  let logs: any[] = [];
+  let logs: AutomationLogOutputDto[] = [];
 
   if (isSuccess && logsData) {
-    // API returns array directly, not wrapped in BaseApiResponse
-    logs = Array.isArray(logsData) ? logsData : [];
+    // The API returns SwaggerBaseApiResponseForClassAutomationLog which has structure:
+    // { meta: MetaResponse, data: AutomationLog[] }
+    // logsData is already SwaggerBaseApiResponseForClassAutomationLog, so logsData.data is AutomationLog[]
+    logs = (logsData.data || []) as AutomationLogOutputDto[];
   }
 
   if (isLoading) {

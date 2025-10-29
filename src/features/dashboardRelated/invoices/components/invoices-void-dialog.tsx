@@ -45,7 +45,8 @@ export function InvoicesVoidDialog({
           <AlertTriangle className='h-4 w-4' />
           <AlertTitle>Warning</AlertTitle>
           <AlertDescription>
-            You are about to void invoice #{currentRow.invoiceNumber}{currentRow.customerName && ` for customer ${currentRow.customerName}`}
+            You are about to void invoice #{currentRow.invoiceNumber}
+            {currentRow.customerName && ` for customer ${currentRow.customerName}`}
             {currentRow.amount && ` with a total value of ${formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount * 100)}`}. This action cannot be undone.
           </AlertDescription>
         </Alert>

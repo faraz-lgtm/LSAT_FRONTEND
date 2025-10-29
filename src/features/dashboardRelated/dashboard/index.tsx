@@ -10,11 +10,10 @@ import { ThemeSwitch } from '@/components/dashboard/theme-switch'
 import { ConfigDrawer } from '@/components/dashboard/config-drawer'
 import { useGetDashboardDataQuery } from '@/redux/apiSlices/Dashboard/dashboardSlice'
 import { useGetInvoicesQuery } from '@/redux/apiSlices/Invoicing/invoicingSlice'
-import { useGetRefundsQuery } from '@/redux/apiSlices/Refunds/refundsSlice'
 import { formatCurrency } from '@/utils/currency'
 import { useState } from 'react'
 
-type Period = "DAY" | "MONTH" | "YEAR"
+type Period = "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR"
 
 const topNav = [
   {
@@ -52,36 +51,27 @@ export function Dashboard() {
 
   // Financial data queries
   const { data: invoicesData } = useGetInvoicesQuery()
-  const { data: refundsData } = useGetRefundsQuery()
 
   const dashboard = dashboardData?.data?.data
   const meta = dashboardData?.data?.meta
 
   // Calculate financial metrics
   const invoices = invoicesData?.data || []
-  const refunds = refundsData?.data || []
 
   const pendingPayments = invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue')
   const overdueInvoices = invoices.filter(inv => inv.status === 'overdue')
-  const refundsThisPeriod = refunds.filter(ref => {
-    const createdAt = new Date(ref.createdAt)
-    const now = new Date()
-    const periodStart = selectedPeriod === 'DAY' 
-      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      : selectedPeriod === 'MONTH'
-      ? new Date(now.getFullYear(), now.getMonth(), 1)
-      : new Date(now.getFullYear(), 0, 1)
-    return createdAt >= periodStart
-  })
 
   const pendingPaymentsTotal = pendingPayments.reduce((sum, inv) => {
     const amount = typeof inv.total === 'string' ? parseFloat(inv.total) * 100 : ((inv.total || 0) * 100)
     return sum + amount
   }, 0)
-  const refundsTotal = refundsThisPeriod.reduce((sum, ref) => {
-    const amount = typeof ref.amount === 'string' ? parseFloat(ref.amount) * 100 : ((ref.amount || 0) * 100)
-    return sum + amount
-  }, 0)
+  
+  // Use refunds from API response instead of calculating manually
+  const refundsData = dashboard?.refunds
+  
+  // API returns totalRefunds in dollars, convert to cents for formatting
+  const refundsTotal = refundsData?.totalRefunds ? refundsData.totalRefunds * 100 : 0
+  const refundsCount = refundsData?.totalRefundCount || 0
 
   // Download functionality
   const handleDownload = () => {
@@ -212,7 +202,9 @@ export function Dashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="DAY">Day</SelectItem>
+                <SelectItem value="WEEK">Week</SelectItem>
                 <SelectItem value="MONTH">Month</SelectItem>
+                <SelectItem value="QUARTER">Quarter</SelectItem>
                 <SelectItem value="YEAR">Year</SelectItem>
               </SelectContent>
             </Select>
@@ -313,7 +305,7 @@ export function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(refundsTotal)}</div>
               <p className="text-muted-foreground text-xs">
-                {refundsThisPeriod.length} refunds
+                {refundsCount} refunds
               </p>
             </CardContent>
           </Card>

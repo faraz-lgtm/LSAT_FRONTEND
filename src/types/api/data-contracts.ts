@@ -443,6 +443,16 @@ export interface OrderOutput {
     | "EXPIRED"
     | "FAILED"
     | null;
+  /**
+   * Google Meet link shared across all calendar events in this order
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  googleMeetLink?: string | null;
+  /**
+   * Stripe checkout session URL
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  checkoutSessionUrl?: string | null;
 }
 
 export interface SwaggerBaseApiResponseForClassOrderOutput {
@@ -962,6 +972,72 @@ export interface AppointmentsDto {
   periodAppointments: AppointmentPeriodDto[];
 }
 
+export interface TaxPeriodDto {
+  /**
+   * Date for this tax period
+   * @example "2024-01-15"
+   */
+  date: string;
+  /**
+   * Tax collected in current CAD value
+   * @example 1200.25
+   */
+  taxCollected: number;
+  /**
+   * Tax collected in historical CAD value
+   * @example 1180
+   */
+  taxCollectedHistorical: number;
+}
+
+export interface TaxCollectionDto {
+  /**
+   * Total tax collected in current CAD
+   * @example 2500.45
+   */
+  totalTaxCollected: number;
+  /**
+   * Total tax collected in historical CAD
+   * @example 2450
+   */
+  totalTaxHistorical: number;
+  /** Tax collection breakdown by period */
+  periodTaxCollection: TaxPeriodDto[];
+}
+
+export interface RefundPeriodDto {
+  /**
+   * Date for this refund period
+   * @example "2024-01-15"
+   */
+  date: string;
+  /**
+   * Total refunds in CAD
+   * @example 125
+   */
+  refundAmount: number;
+  /**
+   * Number of refunds processed
+   * @example 2
+   */
+  refundCount: number;
+}
+
+export interface RefundDto {
+  /**
+   * Total refunds for the period
+   * @example 500
+   */
+  totalRefunds: number;
+  /**
+   * Number of refunds processed
+   * @example 3
+   */
+  totalRefundCount: number;
+  /** Refunds breakdown by period */
+  periodRefunds: RefundPeriodDto[];
+}
+
 export interface DashboardDataDto {
   /** Top customers data */
   topCustomers?: TopCustomerDto[];
@@ -969,6 +1045,10 @@ export interface DashboardDataDto {
   revenue?: RevenueDto;
   /** Appointments overview */
   appointments?: AppointmentsDto;
+  /** Tax collection metrics */
+  taxCollection?: TaxCollectionDto;
+  /** Refund metrics */
+  refunds?: RefundDto;
 }
 
 export interface DashboardMetaDto {
@@ -999,4 +1079,171 @@ export interface DashboardOutputDto {
 export interface SwaggerBaseApiResponseForClassDashboardOutputDto {
   meta: MetaResponse;
   data: DashboardOutputDto;
+}
+
+export interface SlackPlaceholderOutputDto {
+  /**
+   * Placeholder name without double braces
+   * @example "orderId"
+   */
+  placeholder: string;
+  /**
+   * Human-readable description of what this placeholder represents
+   * @example "Order ID"
+   */
+  description: string;
+  /**
+   * Example value for this placeholder
+   * @example "123"
+   */
+  example: string;
+}
+
+export interface SlackPlaceholdersResponseDto {
+  /** Array of available placeholders for Slack automation messages */
+  placeholders: SlackPlaceholderOutputDto[];
+  /**
+   * Usage example showing how to use placeholders in messages
+   * @example "Use {{orderId}} in your message template like: "New order #{{orderId}} from {{customerName}}""
+   */
+  example?: string;
+}
+
+export interface SlackAutomationParameters {
+  /**
+   * Delay in minutes before executing (0 for immediate)
+   * @example 0
+   */
+  delayMinutes?: number;
+  /**
+   * Slack channel to send notification to
+   * @example "#orders"
+   */
+  channel?: string;
+  /**
+   * Custom message text with placeholders. Available: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}
+   * @example "🎉 New order #{{orderId}} from {{customerName}} - ${{total}}"
+   */
+  customMessage?: string;
+  /**
+   * Custom block title with placeholders. Available: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}
+   * @example "New Order #{{orderId}}"
+   */
+  customBlockMessage?: string;
+}
+
+export interface EmailAutomationParameters {
+  /**
+   * Delay in minutes before executing (0 for immediate)
+   * @example 0
+   */
+  delayMinutes?: number;
+  /**
+   * Additional CC recipients (email addresses)
+   * @example ["manager@example.com"]
+   */
+  ccRecipients?: string[];
+  /**
+   * Email subject line with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
+   * @example "Order #{{orderNumber}} Confirmed - Better LSAT MCAT"
+   */
+  subject?: string;
+  /**
+   * Email message body (fallback plain text) with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
+   * @example "Your order #{{orderNumber}} has been confirmed. Total: ${{total}}"
+   */
+  message?: string;
+  /**
+   * Template name to use for HTML rendering
+   * @example "order-confirmation"
+   */
+  template?: string;
+}
+
+export interface AutomationConfigOutputDto {
+  /**
+   * Unique identifier for the automation
+   * @example "slack-new-order"
+   */
+  key: string;
+  /**
+   * Display name of the automation
+   * @example "Slack New Order Notification"
+   */
+  name: string;
+  /**
+   * Detailed description of what the automation does
+   * @example "Sends Slack notification when new order is created"
+   */
+  description: string;
+  /**
+   * Event that triggers this automation
+   * @example "order.created"
+   */
+  triggerEvent:
+    | "order.created"
+    | "order.paid"
+    | "order.canceled"
+    | "order.modified"
+    | "user.registered"
+    | "payment.refunded"
+    | "task.created"
+    | "task.completed";
+  /**
+   * Communication tool used for this automation
+   * @example "email"
+   */
+  toolType: "email" | "sms" | "slack" | "whatsapp";
+  /**
+   * Whether the automation is enabled
+   * @example true
+   */
+  isEnabled: boolean;
+  /**
+   * Configuration parameters for the automation
+   * @example {"delayMinutes":0,"channel":"#orders"}
+   */
+  parameters?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
+  meta: MetaResponse;
+  data: AutomationConfigOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
+  meta: MetaResponse;
+  data: AutomationConfigOutputDto;
+}
+
+export interface UpdateAutomationConfigDto {
+  /**
+   * Enable or disable the automation
+   * @example true
+   */
+  isEnabled?: boolean;
+  /**
+   * Configuration parameters for the automation. For Slack automations, available placeholders: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}. For Email automations, available placeholders: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}, {{orderDate}}
+   * @example {"delayMinutes":0,"channel":"#orders","customMessage":"🎉 New order #{{orderId}} from {{customerName}} - ${{total}}","customBlockMessage":"New Order #{{orderId}}"}
+   */
+  parameters?: object;
+}
+
+export type AutomationConfig = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationConfig {
+  meta: MetaResponse;
+  data: AutomationConfig;
+}
+
+export type AutomationLog = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationLog {
+  meta: MetaResponse;
+  data: AutomationLog[];
+}
+
+export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+  meta: MetaResponse;
+  data: SlackPlaceholdersResponseDto;
 }

@@ -83,8 +83,8 @@ export function InvoicesCreateDialog({
         customerId: parseInt(formData.customerId),
         dueDate: formData.dueDate,
         lineItems: lineItems.map(item => ({
-          name: item.description || '',
-          description: item.description || '',
+          name: item.description,
+          description: item.description,
           quantity: item.quantity,
           price: Math.round(item.unitPrice * 100), // Convert to cents
           total: Math.round(item.totalPrice * 100), // Convert to cents

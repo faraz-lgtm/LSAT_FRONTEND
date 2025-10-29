@@ -38,7 +38,7 @@ import {
 } from '@/components/dashboard/ui/dropdown-menu'
 import { useAutomations } from './automations-provider'
 import { useUpdateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
-import type { AutomationConfigOutputDto } from '@/redux/apiSlices/Automation/automationSlice'
+import type { AutomationConfigOutputDto } from '@/types/api/data-contracts'
 import { toast } from 'sonner'
 
 type DataTableProps = {

@@ -32,14 +32,27 @@ export interface AppointmentsData {
   periodAppointments: PeriodAppointment[];
 }
 
+export interface RefundPeriod {
+  date: string;
+  refundAmount: number;
+  refundCount: number;
+}
+
+export interface RefundData {
+  totalRefunds: number;
+  totalRefundCount: number;
+  periodRefunds: RefundPeriod[];
+}
+
 export interface DashboardData {
   topCustomers: TopCustomer[];
   revenue: RevenueData;
   appointments: AppointmentsData;
+  refunds?: RefundData;
 }
 
 export interface DashboardMeta {
-  period: "DAY" | "MONTH" | "YEAR";
+  period: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
   startDate: string;
   endDate: string;
 }
@@ -50,7 +63,7 @@ export interface DashboardResponse {
 }
 
 export interface DashboardQueryParams {
-  period: "DAY" | "MONTH" | "YEAR";
+  period: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
 }
 
 export const dashboardApi = api.injectEndpoints({

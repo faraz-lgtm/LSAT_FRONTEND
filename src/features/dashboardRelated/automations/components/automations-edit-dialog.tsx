@@ -71,11 +71,11 @@ export function AutomationsEditDialog({
   const [updateAutomation, { isLoading }] = useUpdateAutomationMutation()
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({})
 
-  const form = useForm<AutomationForm>({
+  const form = useForm({
     resolver: zodResolver(automationSchema),
     defaultValues: {
       isEnabled: false,
-      parameters: {},
+      parameters: undefined,
     },
   })
 
@@ -83,7 +83,6 @@ export function AutomationsEditDialog({
     if (open && currentRow) {
       form.reset({
         isEnabled: currentRow.isEnabled,
-        parameters: currentRow.parameters || {},
       })
       
       // Initialize dynamic fields from parameters
@@ -294,8 +293,20 @@ export function AutomationsEditDialog({
                         />
                       </FormControl>
                       <FormDescription>
-                        The subject line for the email
+                        Email subject with variables. Use &#123;&#123;orderNumber&#125;&#125;, &#123;&#123;total&#125;&#125;, etc.
                       </FormDescription>
+                      {dynamicFields.subject && (
+                        <Card className="mt-2">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-16 whitespace-pre-wrap">
+                              {replaceVariables(dynamicFields.subject)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -308,15 +319,27 @@ export function AutomationsEditDialog({
                       <FormLabel>Email Body</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Enter email body content..."
-                          value={dynamicFields.body || ''}
-                          onChange={(e) => updateDynamicField('body', e.target.value)}
+                          placeholder="Your order #{{orderNumber}} has been confirmed. Total: ${{total}}"
+                          value={dynamicFields.message || ''}
+                          onChange={(e) => updateDynamicField('message', e.target.value)}
                           rows={6}
                         />
                       </FormControl>
                       <FormDescription>
-                        The email body content. You can use variables for dynamic content
+                        Email body content. Use variables like &#123;&#123;orderNumber&#125;&#125;, &#123;&#123;total&#125;&#125;, etc.
                       </FormDescription>
+                      {dynamicFields.message && (
+                        <Card className="mt-2">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 whitespace-pre-wrap">
+                              {replaceVariables(dynamicFields.message)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
                     </FormItem>
                   )}
                 />

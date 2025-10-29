@@ -11,6 +11,8 @@
  */
 
 import {
+  CancelRefundDto,
+  CreateInvoiceDto,
   CreateProductInput,
   LoginInput,
   OrderInput,
@@ -18,12 +20,16 @@ import {
   RegisterInput,
   Slot,
   SwaggerBaseApiResponseForClassAuthTokenOutput,
+  SwaggerBaseApiResponseForClassAutomationConfig,
+  SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
+  SwaggerBaseApiResponseForClassAutomationLog,
   SwaggerBaseApiResponseForClassBaseUserOutput,
   SwaggerBaseApiResponseForClassDashboardOutputDto,
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassOrderOutput,
   SwaggerBaseApiResponseForClassProductOutput,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto,
   SwaggerBaseApiResponseForClassStripeCheckoutSession,
   SwaggerBaseApiResponseForClassStripePaymentIntent,
   SwaggerBaseApiResponseForClassTaskOutputDto,
@@ -708,6 +714,18 @@ export namespace Api {
        * @example 10
        */
       topCustomersLimit?: number;
+      /**
+       * Include tax collection metrics
+       * @default true
+       * @example true
+       */
+      includeTaxCollection?: boolean;
+      /**
+       * Include refund metrics
+       * @default true
+       * @example true
+       */
+      includeRefunds?: boolean;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -785,5 +803,156 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * @description Returns all available automations with their current configuration. Includes enabled/disabled status and parameters.
+   * @tags automation
+   * @name AutomationConfigControllerListAll
+   * @summary List all automations with their configurations
+   * @request GET:/api/v1/automation
+   * @secure
+   */
+  export namespace AutomationConfigControllerListAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassAutomationConfigOutputDto;
+  }
+
+  /**
+   * @description Retrieve configuration for a specific automation by its key
+   * @tags automation
+   * @name AutomationConfigControllerGetOne
+   * @summary Get specific automation configuration
+   * @request GET:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetOne {
+    export type RequestParams = {
+      /**
+       * Automation key (e.g., slack-new-order, order-confirmation-email)
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassAutomationConfigOutputDto;
+  }
+
+  /**
+   * @description Enable/disable automation or modify its parameters. Use ToolType and TriggerEvent enums for reference.
+   * @tags automation
+   * @name AutomationConfigControllerUpdate
+   * @summary Update automation configuration
+   * @request PATCH:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Automation key
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateAutomationConfigDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationConfig;
+  }
+
+  /**
+   * @description Retrieve execution history for a specific automation. Returns last 100 logs.
+   * @tags automation
+   * @name AutomationConfigControllerGetLogs
+   * @summary Get automation execution logs
+   * @request GET:/api/v1/automation/{key}/logs
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetLogs {
+    export type RequestParams = {
+      /**
+       * Automation key
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationLog;
+  }
+
+  /**
+   * @description Retrieve execution history for all automations. Returns last 100 logs.
+   * @tags automation
+   * @name AutomationConfigControllerGetAllLogs
+   * @summary Get all automation execution logs
+   * @request GET:/api/v1/automation/logs
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetAllLogs {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationLog;
+  }
+
+  /**
+   * @description Returns list of available placeholders that can be used in customMessage and customBlockMessage parameters. Use {{placeholder}} format in messages.
+   * @tags automation
+   * @name AutomationConfigControllerGetSlackPlaceholders
+   * @summary Get available placeholders for Slack automations
+   * @request GET:/api/v1/automation/placeholders/slack
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetSlackPlaceholders {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto;
+  }
+
+  /**
+   * @description Returns list of available placeholders that can be used in subject and message parameters. Use {{placeholder}} format in messages.
+   * @tags automation
+   * @name AutomationConfigControllerGetEmailPlaceholders
+   * @summary Get available placeholders for Email automations
+   * @request GET:/api/v1/automation/placeholders/email
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetEmailPlaceholders {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto;
+  }
+
+  /**
+   * @description Returns list of available placeholders that can be used in message parameters. Use {{placeholder}} format in messages.
+   * @tags automation
+   * @name AutomationConfigControllerGetSmsPlaceholders
+   * @summary Get available placeholders for SMS automations
+   * @request GET:/api/v1/automation/placeholders/sms
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetSmsPlaceholders {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto;
   }
 }
