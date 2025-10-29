@@ -24,7 +24,7 @@ const Layout = () => {
             Cart ({items.length})
           </Link>
           <span>Total: {formatCurrency(total * 100)}</span>
-          <CurrencySwitch style="dark" />
+          <CurrencySwitch />
           <ThemeSwitch style="dark" />
         </div>
       </header>

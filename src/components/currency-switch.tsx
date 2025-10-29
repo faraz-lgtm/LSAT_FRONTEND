@@ -195,7 +195,7 @@ const currencyNames: Record<string, string> = {
 
 const POPULAR_CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CNY', 'INR', 'CHF', 'NZD']
 
-export function CurrencySwitch({ style }: { style?: 'light' | 'dark' }) {
+export function CurrencySwitch() {
   const { currency, setCurrency, availableCurrencies } = useCurrency()
   
   const popularCurrencies = availableCurrencies.filter(code => POPULAR_CURRENCIES.includes(code))
