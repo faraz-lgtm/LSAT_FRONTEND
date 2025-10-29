@@ -20,7 +20,11 @@ import {
 import { Textarea } from '@/components/dashboard/ui/textarea'
 import { useModifyOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
 import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
-import type { OrderOutput, ModifyOrderDto, OrderItemDto, ProductOutput } from '@/types/api/data-contracts'
+import type { OrderOutput, ProductOutput } from '@/types/api/data-contracts'
+import type { ModifyOrderDto } from '@/redux/apiSlices/Order/orderSlice'
+
+// Type definition for OrderItemDto (not in API contracts yet)
+type OrderItemDto = any;
 import { formatCurrency } from '@/utils/currency'
 
 type OrdersModifyDialogProps = {

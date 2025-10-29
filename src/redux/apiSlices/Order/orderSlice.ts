@@ -1,5 +1,8 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, ModifyOrderDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession } from "@/types/api/data-contracts";
+
+// Type definition for ModifyOrderDto (not in API contracts yet)
+export type ModifyOrderDto = any;
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";

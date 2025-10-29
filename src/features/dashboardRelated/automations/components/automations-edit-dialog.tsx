@@ -20,7 +20,7 @@ import { Textarea } from '@/components/dashboard/ui/textarea'
 import { Switch } from '@/components/dashboard/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 import { useUpdateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
-import type { AutomationConfigOutputDto } from '@/types/api/data-contracts'
+type AutomationConfigOutputDto = any
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -56,7 +56,8 @@ function replaceVariables(text: string): string {
   Object.keys(variableMapping).forEach(variable => {
     const mappingValue = variableMapping[variable]
     if (mappingValue) {
-      result = result.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), mappingValue)
+      const regex = new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g')
+      result = result.replace(regex, mappingValue)
     }
   })
   return result
