@@ -73,7 +73,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
   // Current user and users map for resolving tutor names
   const user = useSelector((state: RootState) => state.auth.user)
   const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
-  const { data: usersData } = useGetUsersQuery()
+  const { data: usersData } = useGetUsersQuery({})
   const userIdToUser = (usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
     acc[u.id] = u
     return acc

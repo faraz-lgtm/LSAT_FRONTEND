@@ -19,7 +19,7 @@ import { ROLE } from '@/constants/roles'
 export function Tasks() {
   const user=useSelector((state: RootState) => state.auth.user)
   const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
-  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery()
+  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({})
   const [filters, setFilters] = useState<TaskQueryDto>(() => {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)

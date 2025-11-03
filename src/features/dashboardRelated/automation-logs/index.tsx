@@ -30,7 +30,10 @@ export function AutomationLogs() {
   let logs: AutomationLogOutputDto[] = [];
 
   if (isSuccess && logsData) {
-    logs = logsData.data || [];
+    // The API returns SwaggerBaseApiResponseForClassAutomationLog which has structure:
+    // { meta: MetaResponse, data: AutomationLog[] }
+    // logsData is already SwaggerBaseApiResponseForClassAutomationLog, so logsData.data is AutomationLog[]
+    logs = (logsData.data || []) as AutomationLogOutputDto[];
   }
 
   if (isLoading) {
