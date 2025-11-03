@@ -96,7 +96,7 @@ export function OrdersRefundDialog({
           <DialogTitle>Create Simple Refund for Order #{currentRow.id}</DialogTitle>
           <DialogDescription>
             Create a simple refund for this order. This will cancel the order and process a refund. 
-            For order modifications (changing items), use "Modify Order" instead.
+            For order cancellations (refunding and voiding invoice), use "Cancel Order" instead.
           </DialogDescription>
         </DialogHeader>
         

@@ -1,8 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession } from "@/types/api/data-contracts";
-
-// Type definition for ModifyOrderDto (not in API contracts yet)
-export type ModifyOrderDto = any;
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
@@ -112,7 +109,78 @@ export const ordersApi = api.injectEndpoints({
       providesTags: ['Orders'],
     }),
     
+    // New APIs (appointments & notes)
+    updateOrderNotes: builder.mutation<BaseApiResponse<OrderOutput> | void, { id: number; body: UpdateOrderNotesDto }>({
+      query: ({ id, body }) => ({
+        url: `order/${id}/notes`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Orders'],
+    }),
 
+    // Generate a short-lived reschedule link for customer self-service
+    generateRescheduleLink: builder.mutation<
+      BaseApiResponse<{ url: string }> | { data: { url: string }; meta: unknown },
+      { appointmentId: number }
+    >({
+      query: ({ appointmentId }) => ({
+        url: `order/appointments/${appointmentId}/reschedule/link`,
+        method: 'POST',
+      }),
+    }),
+
+    // Directly reschedule an appointment (staff-driven)
+    rescheduleAppointment: builder.mutation<
+      BaseApiResponse<OrderAppointmentOutput> | OrderAppointmentOutput | void,
+      { appointmentId: number; newDateTimeISO: string }
+    >({
+      query: ({ appointmentId, newDateTimeISO }) => ({
+        url: `order/appointments/${appointmentId}/reschedule`,
+        method: 'PATCH',
+        body: { newDateTimeISO },
+      }),
+      invalidatesTags: ['Orders'],
+    }),
+
+    listOrderAppointments: builder.query<
+      BaseApiResponse<OrderAppointmentOutput[]> | OrderAppointmentOutput[],
+      number
+    >({
+      query: (orderId) => `order/${orderId}/appointments`,
+      providesTags: (_res, _err, orderId) => [{ type: 'Orders', id: `appointments-${orderId}` }],
+    }),
+
+    markAppointmentAttendance: builder.mutation<
+      BaseApiResponse<OrderAppointmentOutput> | OrderAppointmentOutput | void,
+      { appointmentId: number; body: MarkAppointmentAttendanceDto }
+    >({
+      query: ({ appointmentId, body }) => ({
+        url: `order/appointments/${appointmentId}/attendance`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Orders'],
+    }),
+
+    // Mark order as completed
+    completeOrder: builder.mutation<BaseApiResponse<OrderOutput> | void, number>({
+      query: (orderId) => ({
+        url: `order/${orderId}/complete`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Orders'],
+    }),
+
+    // Cancel an order
+    cancelOrder: builder.mutation<BaseApiResponse<CancelOrderResultDto>, { orderId: number; body: CancelOrderDto }>({
+      query: ({ orderId, body }) => ({
+        url: `order/${orderId}/cancel`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Orders', 'Refunds', 'Invoices', 'AvailableSlots'],
+    }),
 
     //Mutations
     createOrder: builder.mutation<
@@ -135,17 +203,27 @@ export const ordersApi = api.injectEndpoints({
       invalidatesTags: ['Orders', 'AvailableSlots'],
     }),
 
-    modifyOrder: builder.mutation<BaseApiResponse<{
-      refund?: object;
-      newOrder?: object;
-      newInvoice?: object;
-    }>, ModifyOrderDto>({
-      query: (modifyData) => ({
-        url: "order/modify",
-        method: "POST",
-        body: modifyData,
+
+    // Public reschedule endpoints (used by /reschedule page)
+    getPublicRescheduleSlots: builder.query<
+      BaseApiResponse<{ availableSlots: { slot: string; availableEmployees: { id: number; name: string; email: string }[] }[]; slotDurationMinutes: number }>,
+      { token: string; dateISO?: string }
+    >({
+      query: ({ token, dateISO }) => ({
+        url: `public/reschedule/slots`,
+        params: dateISO ? { token, date: dateISO } : { token },
       }),
-      invalidatesTags: ['Orders', 'Refunds', 'Invoices', 'AvailableSlots'],
+    }),
+
+    confirmPublicReschedule: builder.mutation<
+      BaseApiResponse<{ appointmentId: number }>,
+      { token: string; newDateTimeISO: string }
+    >({
+      query: (body) => ({
+        url: `public/reschedule/confirm`,
+        method: 'POST',
+        body,
+      }),
     }),
   }),
 });
@@ -153,7 +231,25 @@ export const ordersApi = api.injectEndpoints({
 export const { 
   useGetOrdersQuery, 
   useGetOrderByIdQuery,
+  useUpdateOrderNotesMutation,
+  useListOrderAppointmentsQuery,
+  useMarkAppointmentAttendanceMutation,
+  useGenerateRescheduleLinkMutation,
+  useRescheduleAppointmentMutation,
   useCreateOrderMutation,
   useDeleteOrderMutation,
-  useModifyOrderMutation,
+  useCompleteOrderMutation,
+  useCancelOrderMutation,
+  useGetPublicRescheduleSlotsQuery,
+  useConfirmPublicRescheduleMutation,
 } = ordersApi;
+
+// Local DTO until swagger adds explicit type
+export interface OrderAppointmentOutput {
+  id: number;
+  orderId: number;
+  itemId: number;
+  slotDateTime: string;
+  assignedEmployeeId?: number | null;
+  attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW';
+}

@@ -8,6 +8,7 @@ import Home from "./Pages/Home";
 import PaymentSuccess from "./Pages/PaymentSuccess";
 import PaymentCancel from "./Pages/PaymentCancel";
 import DashboardApp from "./DashboardApp";
+import { ReschedulePage } from "./routes/reschedule";
 
 function App() {
   return (
@@ -22,10 +23,12 @@ function App() {
           {/* <Route path="/about" element={<About />} /> */}
           <Route path="/cart" element={<Cart />} />
           <Route path="/Appointment" element={<Appointment />} />
+          <Route path="/free_purchase" element={<Appointment />} />
         </Route>
 
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
+        <Route path="/reschedule" element={<ReschedulePage />} />
         
         {/* Fallback routes for current backend configuration */}
         <Route path="/success" element={<PaymentSuccess />} />

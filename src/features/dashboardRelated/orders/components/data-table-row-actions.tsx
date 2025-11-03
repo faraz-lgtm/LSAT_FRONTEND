@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Eye, Trash2, ReceiptText, Edit } from 'lucide-react'
+import { Eye, Trash2, ReceiptText, XCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   DropdownMenu,
@@ -15,6 +15,8 @@ import type { OrderOutput } from '@/types/api/data-contracts'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { ROLE } from '@/constants/roles'
+import { useCompleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { toast } from 'sonner'
 
 type DataTableRowActionsProps = {
   row: Row<OrderOutput>
@@ -24,6 +26,23 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useOrders()
   const user = useSelector((state: RootState) => state.auth.user)
   const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
+  const [completeOrder, { isLoading: isCompleting }] = useCompleteOrderMutation()
+  
+  const orderStatus = row.original.orderStatus
+  const isCompleted = orderStatus === 'COMPLETED'
+  
+  // Calculate total order amount
+  const orderTotal = row.original.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  
+  const handleCompleteOrder = async () => {
+    try {
+      await completeOrder(row.original.id).unwrap()
+      toast.success('Order marked as completed')
+    } catch (error) {
+      toast.error('Failed to mark order as completed')
+      console.error('Error completing order:', error)
+    }
+  }
   
   return (
     <>
@@ -55,27 +74,41 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <DropdownMenuItem
                 onClick={() => {
                   setCurrentRow(row.original)
-                  setOpen('modify')
+                  setOpen('cancel')
                 }}
-                className='text-green-600'
+                className='text-orange-600'
               >
-                Modify Order
+                Cancel Order
                 <DropdownMenuShortcut>
-                  <Edit size={16} />
+                  <XCircle size={16} />
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setCurrentRow(row.original)
-                  setOpen('refund')
-                }}
-                className='text-blue-600'
-              >
-                Simple Refund
-                <DropdownMenuShortcut>
-                  <ReceiptText size={16} />
-                </DropdownMenuShortcut>
-              </DropdownMenuItem>
+              {!isCompleted && (
+                <DropdownMenuItem
+                  onClick={handleCompleteOrder}
+                  disabled={isCompleting}
+                  className='text-purple-600'
+                >
+                  Mark as Completed
+                  <DropdownMenuShortcut>
+                    <CheckCircle2 size={16} />
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+              )}
+              {orderTotal > 0 && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('refund')
+                  }}
+                  className='text-blue-600'
+                >
+                  Simple Refund
+                  <DropdownMenuShortcut>
+                    <ReceiptText size={16} />
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {

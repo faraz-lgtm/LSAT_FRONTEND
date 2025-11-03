@@ -50,8 +50,18 @@ export const automationApi = api.injectEndpoints({
       query: ({ key, params }) => ({
         url: `automation/${key}/logs`,
         method: "GET",
-        params: params || {},
+        params: {
+          ...(params || {}),
+          // Add timestamp to prevent 304 caching
+          _t: Date.now(),
+        },
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       }),
+      providesTags: ['Automation'],
+      // Force refetch on mount and don't keep unused data
+      keepUnusedDataFor: 0,
     }),
 
     // GET /api/v1/automation/logs - Get all automation logs (optional endpoint)
@@ -59,8 +69,18 @@ export const automationApi = api.injectEndpoints({
       query: (params) => ({
         url: "automation/logs",
         method: "GET",
-        params: params || {},
+        params: {
+          ...(params || {}),
+          // Add timestamp to prevent 304 caching
+          _t: Date.now(),
+        },
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       }),
+      providesTags: ['Automation'],
+      // Force refetch on mount and don't keep unused data
+      keepUnusedDataFor: 0,
     }),
   }),
 });

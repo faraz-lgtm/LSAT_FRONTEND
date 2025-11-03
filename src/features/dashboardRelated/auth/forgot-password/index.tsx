@@ -19,7 +19,7 @@ export function ForgotPassword() {
             Forgot Password
           </CardTitle>
           <CardDescription>
-            Enter your registered email and <br /> we will send you a link to
+            Enter your registered email or phone number and <br /> we will send you an OTP code to
             reset your password.
           </CardDescription>
         </CardHeader>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type {
   ColumnFiltersState,
   OnChangeFn,
@@ -190,22 +190,34 @@ export function useTableUrlState(
     })
   }
 
-  const ensurePageInRange = (
-    pageCount: number,
-    opts: { resetTo?: 'first' | 'last' } = { resetTo: 'first' }
-  ) => {
-    const currentPage = (search as SearchRecord)[pageKey]
-    const pageNum = typeof currentPage === 'number' ? currentPage : defaultPage
-    if (pageCount > 0 && pageNum > pageCount) {
+  const ensurePageInRange = useCallback(
+    (
+      pageCount: number,
+      opts: { resetTo?: 'first' | 'last' } = { resetTo: 'first' }
+    ) => {
+      // Use function form to read latest search value and only navigate if actually needed
+      // This prevents unnecessary navigation calls that cause flickering
       navigate({
         replace: true,
-        search: (prev) => ({
-          ...(prev as SearchRecord),
-          [pageKey]: opts.resetTo === 'last' ? pageCount : undefined,
-        }),
+        search: (prev) => {
+          const currentPage = (prev as SearchRecord)[pageKey]
+          const pageNum = typeof currentPage === 'number' ? currentPage : defaultPage
+          
+          // Only return a change if page is actually out of range
+          if (pageCount > 0 && pageNum > pageCount) {
+            return {
+              ...(prev as SearchRecord),
+              [pageKey]: opts.resetTo === 'last' ? pageCount : undefined,
+            }
+          }
+          // Return unchanged to prevent navigation when page is valid
+          // TanStack Router should optimize this, but if it doesn't, we need another approach
+          return prev as SearchRecord
+        },
       })
-    }
-  }
+    },
+    [pageKey, defaultPage, navigate]
+  )
 
   return {
     globalFilter: globalFilterEnabled ? (globalFilter ?? '') : undefined,

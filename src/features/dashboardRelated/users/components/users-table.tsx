@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   type SortingState,
   type VisibilityState,
@@ -38,9 +38,13 @@ type DataTableProps = {
   data: UserOutput[]
   search: Record<string, unknown>
   navigate: NavigateFn
+  hideCustomerTypeFilter?: boolean
+  hideRolesFilter?: boolean
+  hideUsernameColumn?: boolean
+  excludeRolesFromFilter?: string[]
 } 
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
+export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter }: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -64,10 +68,10 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     globalFilter: { enabled: false },
     columnFilters: [
       // username per-column text filter
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' },
-      { columnId: 'roles', searchKey: 'roles', type: 'array' },
-      { columnId: 'ordersCount', searchKey: 'leads', type: 'array' },
+      ...(hideUsernameColumn ? [] : [{ columnId: 'username', searchKey: 'username', type: 'string' as const }]),
+      { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' as const },
+      ...(hideRolesFilter ? [] : [{ columnId: 'roles', searchKey: 'roles', type: 'array' as const }]),
+      ...(hideCustomerTypeFilter ? [] : [{ columnId: 'ordersCount', searchKey: 'leads', type: 'array' as const }]),
     ],
   })
 
@@ -82,6 +86,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       columnVisibility,
     },
     enableRowSelection: true,
+    manualPagination: false,
     onPaginationChange,
     onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
@@ -95,16 +100,68 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  // Track previous values to avoid unnecessary checks
+  const prevStateRef = useRef({
+    dataLength: data.length,
+    pageSize: pagination.pageSize,
+    filtersKey: JSON.stringify(columnFilters),
+    initialized: false,
+  })
+
+  // Only check page range when data, filters, or pageSize change - NOT when pageIndex changes
+  // This prevents the effect from interfering with normal pagination navigation
   useEffect(() => {
-    ensurePageInRange(table.getPageCount())
-  }, [table, ensurePageInRange])
+    const currentState = {
+      dataLength: data.length,
+      pageSize: pagination.pageSize,
+      filtersKey: JSON.stringify(columnFilters),
+    }
+
+    // Only run if something actually changed that affects page count (not just reference equality)
+    // Explicitly exclude pageIndex changes from triggering this effect
+    const hasChanged =
+      !prevStateRef.current.initialized ||
+      prevStateRef.current.dataLength !== currentState.dataLength ||
+      prevStateRef.current.pageSize !== currentState.pageSize ||
+      prevStateRef.current.filtersKey !== currentState.filtersKey
+
+    if (hasChanged) {
+      prevStateRef.current = { ...currentState, initialized: true }
+      const pageCount = table.getPageCount()
+      
+      // Only check and fix page if we have data and pageCount is valid
+      if (pageCount > 0) {
+        // Use a small delay to ensure any pending navigation from pagination clicks has completed
+        const timeoutId = setTimeout(() => {
+          const currentPageNum = (search as Record<string, unknown>).page as number | undefined
+          const defaultPage = 1
+          const pageNum = typeof currentPageNum === 'number' ? currentPageNum : defaultPage
+          
+          // Only call ensurePageInRange if page is actually out of range
+          // This prevents unnecessary navigation calls that cause flickering
+          if (pageNum > pageCount) {
+            ensurePageInRange(pageCount)
+          }
+        }, 100)
+        return () => clearTimeout(timeoutId)
+      }
+    }
+    return undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.length, pagination.pageSize, columnFilters])
+
+  useEffect(() => {
+    if (hideUsernameColumn) {
+      setColumnVisibility((prev) => ({ ...prev, username: false }))
+    }
+  }, [hideUsernameColumn])
 
   return (
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Filter users...'
-        searchKey='username'
+        searchKey={hideUsernameColumn ? undefined : 'username'}
         filters={[
           {
             columnId: 'isAccountDisabled',
@@ -114,19 +171,25 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Disabled', value: 'disabled' },
             ],
           },
-          {
-            columnId: 'roles',
-            title: 'Roles',
-            options: roles.map((role) => ({ ...role })),
-          },
-          {
-            columnId: 'ordersCount',
-            title: 'Customer Type',
-            options: [
-              { label: 'Leads', value: 'leads' },
-              { label: 'Customers', value: 'customers' },
-            ],
-          },
+          ...(
+            hideRolesFilter ? [] : [{
+              columnId: 'roles',
+              title: 'Roles',
+              options: roles
+                .filter((r) => !(excludeRolesFromFilter || []).includes(r.value))
+                .map((role) => ({ ...role })),
+            }]
+          ),
+          ...(
+            hideCustomerTypeFilter ? [] : [{
+              columnId: 'ordersCount',
+              title: 'Customer Type',
+              options: [
+                { label: 'Leads', value: 'leads' },
+                { label: 'Customers', value: 'customers' },
+              ],
+            }]
+          ),
         ]}
       />
       <div className='overflow-hidden rounded-md border'>

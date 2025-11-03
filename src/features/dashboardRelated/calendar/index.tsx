@@ -21,7 +21,6 @@ import { Separator } from "@/components/dashboard/ui/calendarRelatedUI/ui/separa
 import { type CalendarEvent } from "@/utils/calendar/data";
 import { useMemo, useRef, useState } from "react";
 import CalendarNav from "./components/calendar-nav";
-import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { TasksMutateDrawer } from "@/features/dashboardRelated/tasks/components/tasks-mutate-drawer";
 import { useGetTasksQuery } from "@/redux/apiSlices/Task/taskSlice";
 
@@ -56,7 +55,6 @@ export default function Calendar() {
   });
 
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   const events: CalendarEvent[] = useMemo(() => {
     const tasks = data?.data ?? [];
@@ -192,7 +190,6 @@ export default function Calendar() {
             calendarRef={calendarRef}
             viewedDate={viewRange.start}
             onCreateTask={() => setCreateTaskOpen(true)}
-            onCreateOrder={() => setCreateOrderOpen(true)}
           />
 
           <Card className="p-3">
@@ -236,7 +233,6 @@ export default function Calendar() {
         </div>
       </div>
       <TasksMutateDrawer open={createTaskOpen} onOpenChange={setCreateTaskOpen} />
-      <OrderCreateForm isOpen={createOrderOpen} onClose={() => setCreateOrderOpen(false)} />
     </div>
   );
 }

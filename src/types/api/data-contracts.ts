@@ -10,6 +10,18 @@
  * ---------------------------------------------------------------
  */
 
+export interface GetUsersQueryParams {
+  /** Optional, defaults to 100 */
+  limit?: number;
+  /** Optional, defaults to 0 */
+  offset?: number;
+  /**
+   * Filter users by role
+   * @example "USER"
+   */
+  role?: "USER" | "ADMIN" | "CUST";
+}
+
 export interface MetaResponse {
   /**
    * Current page number
@@ -269,6 +281,85 @@ export interface SwaggerBaseApiResponseForClassAuthTokenOutput {
   data: AuthTokenOutput;
 }
 
+export interface ForgotPasswordInput {
+  /** Email address or phone number of the user requesting password reset. Use email format (e.g., user@example.com) or phone number (e.g., +1234567890) */
+  identifier: string;
+}
+
+export interface ForgotPasswordOutput {
+  /**
+   * Success message
+   * @example "If the provided email or phone number exists, an OTP code has been sent."
+   */
+  message: string;
+}
+
+export interface SwaggerBaseApiResponseForClassForgotPasswordOutput {
+  meta: MetaResponse;
+  data: ForgotPasswordOutput;
+}
+
+export interface VerifyOtpInput {
+  /**
+   * Email address or phone number used to request password reset. Must match the identifier used in the forgot-password request.
+   * @example "user@example.com"
+   */
+  identifier: string;
+  /**
+   * 6-digit OTP code received via SMS or Email. Must be exactly 6 numeric digits.
+   * @pattern ^\d{6}$
+   * @example "123456"
+   */
+  otp: string;
+}
+
+export interface VerifyOtpOutput {
+  /**
+   * Whether the OTP is valid
+   * @example true
+   */
+  isValid: boolean;
+}
+
+export interface SwaggerBaseApiResponseForClassVerifyOtpOutput {
+  meta: MetaResponse;
+  data: VerifyOtpOutput;
+}
+
+export interface ResetPasswordInput {
+  /**
+   * Email address or phone number used to request password reset. Must match the identifier used in the forgot-password request.
+   * @example "user@example.com"
+   */
+  identifier: string;
+  /**
+   * 6-digit OTP code received via SMS or Email. Must be exactly 6 numeric digits. This OTP will be consumed after successful password reset.
+   * @pattern ^\d{6}$
+   * @example "123456"
+   */
+  otp: string;
+  /**
+   * New password for the account. Must be at least 8 characters long. The password will be hashed before storage.
+   * @minLength 8
+   * @maxLength 100
+   * @example "NewSecurePassword123!"
+   */
+  newPassword: string;
+}
+
+export interface ResetPasswordOutput {
+  /**
+   * Success message
+   * @example "Password reset successfully"
+   */
+  message: string;
+}
+
+export interface SwaggerBaseApiResponseForClassResetPasswordOutput {
+  meta: MetaResponse;
+  data: ResetPasswordOutput;
+}
+
 export interface GetOrdersQueryParams {
   /** Optional, defaults to 100 */
   limit?: number;
@@ -279,6 +370,136 @@ export interface GetOrdersQueryParams {
    * @example "succeeded"
    */
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
+}
+
+export interface UpdateOrderNotesDto {
+  /**
+   * Free-form notes for the order
+   * @example "Prefers evenings; focus on logic games."
+   */
+  notes: string;
+}
+
+export interface UpdateOrderStatusDto {
+  /**
+   * Business status of the order
+   * @example "COMPLETED"
+   */
+  orderStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+}
+
+export interface Badge {
+  /**
+   * Badge text
+   * @example "Popular"
+   */
+  text: string;
+  /**
+   * Badge color
+   * @example "#FF6B6B"
+   */
+  color: string;
+}
+
+export interface ItemOutput {
+  /**
+   * Item ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Item price
+   * @example 100
+   */
+  price: number;
+  /**
+   * Item name
+   * @example "60-Minute Prep Session"
+   */
+  name: string;
+  /**
+   * Session duration in minutes
+   * @example 60
+   */
+  Duration: number;
+  /** Optional badge information */
+  badge?: Badge;
+  /** Optional save discount number */
+  save?: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * Item description
+   * @example "Comprehensive prep session"
+   */
+  Description: string;
+  /**
+   * Quantity
+   * @example 1
+   */
+  quantity: number;
+}
+
+export interface OrderOutput {
+  /**
+   * Order ID
+   * @example 1
+   */
+  id: number;
+  /** Customer information */
+  customer: UserOutput;
+  /** Order items */
+  items: ItemOutput[];
+  /**
+   * Slot reservation expiration timestamp
+   * @format date-time
+   * @example "2024-01-15T14:30:00.000Z"
+   */
+  slot_reservation_expires_at?: string | null;
+  /**
+   * Slot reservation status indicating the current state of the reservation
+   * @example "RESERVED"
+   */
+  slot_reservation_status?:
+    | "RESERVED"
+    | "CONFIRMED"
+    | "EXPIRED"
+    | "FAILED"
+    | "CANCELED"
+    | null;
+  /**
+   * Google Meet link shared across all calendar events in this order
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  googleMeetLink?: string | null;
+  /**
+   * Stripe checkout session URL
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  checkoutSessionUrl?: string | null;
+  /** Free-form notes about the order */
+  notes?: string | null;
+  /** Derived tags summarizing appointment attendance */
+  tags?: ("SHOWED" | "NO_SHOW")[];
+  /** Business status of the order */
+  orderStatus?: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  /**
+   * Timestamp when order was marked as completed
+   * @format date-time
+   */
+  completedAt?: string | null;
+}
+
+export interface SwaggerBaseApiResponseForClassOrderOutput {
+  meta: MetaResponse;
+  data: OrderOutput;
+}
+
+export interface MarkAppointmentAttendanceDto {
+  status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
 }
 
 export interface ItemInput {
@@ -332,6 +553,8 @@ export interface ItemInput {
 export interface OrderInput {
   items: ItemInput[];
   user: UserInput;
+  /** @example "CAD" */
+  currency: string;
 }
 
 export interface StripeCheckoutSession {
@@ -352,117 +575,9 @@ export interface SwaggerBaseApiResponseForClassStripeCheckoutSession {
   data: StripeCheckoutSession;
 }
 
-export interface Badge {
-  /**
-   * Badge text
-   * @example "Popular"
-   */
-  text: string;
-  /**
-   * Badge color
-   * @example "#FF6B6B"
-   */
-  color: string;
-}
-
-export interface ItemOutput {
-  /**
-   * Item ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Item price
-   * @example 100
-   */
-  price: number;
-  /**
-   * Item name
-   * @example "60-Minute Prep Session"
-   */
-  name: string;
-  /**
-   * Session duration in minutes
-   * @example 60
-   */
-  Duration: number;
-  /** Optional badge information */
-  badge?: Badge;
-  /** Optional save discount number */
-  save?: number;
-  /**
-   * Number of sessions included
-   * @example 1
-   */
-  sessions: number;
-  /**
-   * Item description
-   * @example "Comprehensive prep session"
-   */
-  Description: string;
-  /**
-   * Scheduled date and time
-   * @example ["2025-10-15T12:00:00Z"]
-   */
-  DateTime: string[];
-  /**
-   * Quantity
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Assigned employee IDs
-   * @example [5,6]
-   */
-  assignedEmployeeIds: string[];
-}
-
-export interface OrderOutput {
-  /**
-   * Order ID
-   * @example 1
-   */
-  id: number;
-  /** Customer information */
-  customer: UserOutput;
-  /** Order items */
-  items: ItemOutput[];
-  /**
-   * Slot reservation expiration timestamp
-   * @format date-time
-   * @example "2024-01-15T14:30:00.000Z"
-   */
-  slot_reservation_expires_at?: string | null;
-  /**
-   * Slot reservation status indicating the current state of the reservation
-   * @example "RESERVED"
-   */
-  slot_reservation_status?:
-    | "RESERVED"
-    | "CONFIRMED"
-    | "EXPIRED"
-    | "FAILED"
-    | null;
-  /**
-   * Google Meet link shared across all calendar events in this order
-   * @example "https://meet.google.com/abc-defg-hij"
-   */
-  googleMeetLink?: string | null;
-  /**
-   * Stripe checkout session URL
-   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
-   */
-  checkoutSessionUrl?: string | null;
-}
-
 export interface SwaggerBaseApiResponseForClassOrderOutput {
   meta: MetaResponse;
   data: OrderOutput[];
-}
-
-export interface SwaggerBaseApiResponseForClassOrderOutput {
-  meta: MetaResponse;
-  data: OrderOutput;
 }
 
 export interface StripePaymentIntent {
@@ -481,6 +596,31 @@ export interface StripePaymentIntent {
 export interface SwaggerBaseApiResponseForClassStripePaymentIntent {
   meta: MetaResponse;
   data: StripePaymentIntent;
+}
+
+export interface CancelOrderDto {
+  /**
+   * Reason for the order cancellation
+   * @example "customer_request"
+   */
+  refundReason: "customer_request" | "duplicate" | "fraudulent" | "other";
+  /**
+   * Additional details about the cancellation reason
+   * @example "Customer requested cancellation due to scheduling conflict"
+   */
+  reasonDetails: string;
+}
+
+export interface CancelOrderResultDto {
+  /** The refund record created for the canceled order */
+  refund: object;
+  /** The canceled order */
+  canceledOrder: object;
+}
+
+export interface SwaggerBaseApiResponseForClassCancelOrderResultDto {
+  meta: MetaResponse;
+  data: CancelOrderResultDto;
 }
 
 export interface SlotsQueryDto {
@@ -707,6 +847,543 @@ export interface UpdateProductInput {
     /** @example "bg-blue-600" */
     color?: string;
   };
+}
+
+export interface CreateRefundDto {
+  /**
+   * ID of the original order being refunded
+   * @example 383
+   */
+  originalOrderId: number;
+  /**
+   * ID of the customer requesting the refund
+   * @example 174
+   */
+  customerId: number;
+  /**
+   * Refund amount in cents
+   * @min 1
+   * @example 10000
+   */
+  amount: number;
+  /**
+   * Currency code
+   * @default "USD"
+   * @example "USD"
+   */
+  currency?: string;
+  /**
+   * Reason for the refund
+   * @example "customer_request"
+   */
+  reason: "customer_request" | "duplicate" | "fraudulent" | "other";
+  /**
+   * Additional details about the refund reason
+   * @example "Customer requested refund due to scheduling conflict"
+   */
+  reasonDetails: string;
+  /**
+   * ID of the new order (if applicable)
+   * @example 384
+   */
+  newOrderId?: number;
+  /**
+   * ID of the associated invoice (auto-found if not provided)
+   * @example 1
+   */
+  invoiceId?: number;
+}
+
+export interface Refund {
+  /**
+   * Unique identifier
+   * @example 1
+   */
+  id: number;
+  /**
+   * Unique refund number
+   * @example "REF-20250115-0001"
+   */
+  refundNumber: string;
+  /**
+   * ID of the original order being refunded
+   * @example 383
+   */
+  originalOrderId: number;
+  /**
+   * ID of the new order (if applicable)
+   * @example 384
+   */
+  newOrderId?: number;
+  /**
+   * ID of the associated invoice
+   * @example 1
+   */
+  invoiceId: number;
+  /**
+   * ID of the customer
+   * @example 174
+   */
+  customerId: number;
+  /**
+   * Amount in cents
+   * @example 10000
+   */
+  amount: number;
+  /**
+   * Currency code
+   * @example "CAD"
+   */
+  currency: string;
+  /**
+   * Additional metadata including currency conversion details
+   * @example {"refundAmountInCad":10000,"refundAmountInPaymentCurrency":62500,"originalPaymentCurrency":"INR"}
+   */
+  metadata?: object;
+  /**
+   * Reason for the refund
+   * @example "customer_request"
+   */
+  reason: "customer_request" | "duplicate" | "fraudulent" | "other";
+  /**
+   * Additional details about the refund reason
+   * @example "Customer requested refund due to scheduling conflict"
+   */
+  reasonDetails: string;
+  /**
+   * Stripe refund ID (if processed through Stripe)
+   * @example "re_1234567890"
+   */
+  stripeRefundId?: string;
+  /**
+   * Current status of the refund
+   * @example "pending"
+   */
+  status: "pending" | "processing" | "completed" | "failed" | "cancelled";
+  /**
+   * Date when the refund was processed
+   * @format date-time
+   * @example "2024-01-20T10:30:00Z"
+   */
+  refundedAt?: string;
+  /**
+   * ID of the user who initiated this operation
+   * @example 123
+   */
+  initiatedBy?: number;
+  /**
+   * ID of the user who last processed this operation
+   * @example 124
+   */
+  processedBy?: number;
+  /**
+   * Date when the record was created
+   * @format date-time
+   * @example "2024-01-15T10:30:00Z"
+   */
+  createdAt: string;
+  /**
+   * Date when the record was last updated
+   * @format date-time
+   * @example "2024-01-15T10:30:00Z"
+   */
+  updatedAt: string;
+}
+
+export interface ProcessRefundDto {
+  /**
+   * Stripe refund ID (if processed through Stripe)
+   * @example "re_1234567890"
+   */
+  stripeRefundId?: string;
+}
+
+export interface CancelRefundDto {
+  /**
+   * Reason for cancelling the refund
+   * @example "Customer changed mind"
+   */
+  reason: string;
+}
+
+export interface TransactionQueryDto {
+  /** Optional, defaults to 100 */
+  limit?: number;
+  /** Optional, defaults to 0 */
+  offset?: number;
+  /**
+   * Filter by transaction type
+   * @example "payment"
+   */
+  type?: "payment" | "refund" | "chargeback" | "adjustment";
+  /**
+   * Filter by transaction status
+   * @example "succeeded"
+   */
+  status?: string;
+  /**
+   * Filter by customer ID
+   * @example 123
+   */
+  customerId?: number;
+  /**
+   * Filter by order ID
+   * @example 383
+   */
+  orderId?: number;
+  /**
+   * Filter by invoice ID
+   * @example 1
+   */
+  invoiceId?: number;
+  /**
+   * Filter by transactions created after this date (YYYY-MM-DD)
+   * @example "2024-01-01"
+   */
+  startDate?: string;
+  /**
+   * Filter by transactions created before this date (YYYY-MM-DD)
+   * @example "2024-12-31"
+   */
+  endDate?: string;
+  /**
+   * Minimum amount in cents
+   * @min 0
+   * @example 1000
+   */
+  minAmount?: number;
+  /**
+   * Maximum amount in cents
+   * @min 0
+   * @example 100000
+   */
+  maxAmount?: number;
+  /**
+   * Filter by payment method
+   * @example "card"
+   */
+  paymentMethod?: string;
+  /**
+   * Filter by currency code
+   * @example "USD"
+   */
+  currency?: string;
+  /**
+   * Sort by field
+   * @example "createdAt"
+   */
+  sortBy?: "createdAt" | "amount" | "status" | "type";
+  /**
+   * Sort order
+   * @example "DESC"
+   */
+  sortOrder?: "ASC" | "DESC";
+}
+
+export interface PaymentTransaction {
+  /**
+   * Unique identifier
+   * @example 1
+   */
+  id: number;
+  /**
+   * Amount in cents
+   * @example 10000
+   */
+  amount: number;
+  /**
+   * Currency code
+   * @example "USD"
+   */
+  currency: string;
+  /**
+   * Date when the record was created
+   * @format date-time
+   * @example "2024-01-15T10:30:00Z"
+   */
+  createdAt: string;
+  /**
+   * Date when the record was last updated
+   * @format date-time
+   * @example "2024-01-15T10:30:00Z"
+   */
+  updatedAt: string;
+  /**
+   * ID of the associated order
+   * @example 383
+   */
+  orderId: number;
+  /**
+   * ID of the customer
+   * @example 174
+   */
+  customerId: number;
+  /**
+   * ID of the user who initiated this operation
+   * @example 123
+   */
+  initiatedBy?: number;
+  /**
+   * ID of the user who last processed this operation
+   * @example 124
+   */
+  processedBy?: number;
+  /**
+   * Unique transaction number
+   * @example "TRN-20250115-0001"
+   */
+  transactionNumber: string;
+  /**
+   * ID of the associated invoice
+   * @example 1
+   */
+  invoiceId?: number;
+  /**
+   * Type of transaction
+   * @example "payment"
+   */
+  type: "payment" | "refund" | "chargeback" | "adjustment";
+  /**
+   * Payment method used
+   * @example "card"
+   */
+  paymentMethod: string;
+  /**
+   * Stripe payment intent ID
+   * @example "pi_1234567890"
+   */
+  stripePaymentIntentId?: string;
+  /**
+   * Stripe charge ID
+   * @example "ch_1234567890"
+   */
+  stripeChargeId?: string;
+  /**
+   * Transaction status
+   * @example "succeeded"
+   */
+  status: string;
+  /**
+   * Additional metadata. NOTE: amount field is subtotal (no tax). Tax is in metadata.taxAmount
+   * @example {"taxAmount":1441,"totalAmountIncludingTax":13941,"invoiceSubtotal":12500,"paidCurrency":"INR","convertedToCad":true}
+   */
+  metadata?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity {
+  meta: MetaResponse;
+  data: PaymentTransaction[];
+}
+
+export interface SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity {
+  meta: MetaResponse;
+  data: PaymentTransaction;
+}
+
+export interface InvoiceItemDto {
+  /**
+   * Description of the invoice item
+   * @example "LSAT Prep Course - 10 Sessions"
+   */
+  description: string;
+  /**
+   * Quantity of the item
+   * @min 1
+   * @example 1
+   */
+  quantity: number;
+  /**
+   * Unit price in cents
+   * @min 0
+   * @example 10000
+   */
+  unitPrice: number;
+  /**
+   * Total price for this item in cents (quantity × unitPrice)
+   * @min 0
+   * @example 10000
+   */
+  totalPrice: number;
+}
+
+export interface CreateInvoiceDto {
+  /**
+   * ID of the associated order
+   * @example 383
+   */
+  orderId: number;
+  /**
+   * ID of the customer
+   * @example 174
+   */
+  customerId: number;
+  /**
+   * Invoice items
+   * @example [{"description":"LSAT Prep Course - 10 Sessions","quantity":1,"unitPrice":10000,"totalPrice":10000}]
+   */
+  items: InvoiceItemDto[];
+  /**
+   * Subtotal amount in cents (sum of all item totalPrice)
+   * @min 0
+   * @example 10000
+   */
+  subtotal: number;
+  /**
+   * Tax amount in cents
+   * @min 0
+   * @example 1000
+   */
+  tax?: number;
+  /**
+   * Discount amount in cents
+   * @min 0
+   * @example 500
+   */
+  discount?: number;
+  /**
+   * Total amount in cents (subtotal + tax - discount)
+   * @min 0
+   * @example 10500
+   */
+  total: number;
+  /**
+   * Currency code (ISO 4217)
+   * @default "USD"
+   * @example "USD"
+   */
+  currency?: string;
+  /**
+   * Additional notes for the invoice
+   * @example "Thank you for your business!"
+   */
+  notes?: string;
+  /**
+   * Due date for the invoice (ISO 8601 date string)
+   * @example "2024-02-15"
+   */
+  dueDate?: string;
+}
+
+export interface InvoiceItemOutputDto {
+  /** @example 1 */
+  id: number;
+  /** @example "Tutoring Session" */
+  name: string;
+  /** @example 10000 */
+  price: number;
+  /** @example 1 */
+  quantity: number;
+  /** @example 10000 */
+  total: number;
+}
+
+export interface InvoiceOutputDto {
+  /** @example 1 */
+  id: number;
+  /** @example "INV-20250115-0001" */
+  invoiceNumber: string;
+  /** @example 1 */
+  orderId: number;
+  /** @example 1 */
+  customerId: number;
+  /** @example "paid" */
+  status: "draft" | "issued" | "paid" | "void" | "overdue";
+  /**
+   * @format date-time
+   * @example "2025-01-15"
+   */
+  issueDate: string;
+  /**
+   * @format date-time
+   * @example "2025-01-22"
+   */
+  dueDate: string;
+  /** @example "2025-01-15" */
+  paidDate?: object;
+  items: InvoiceItemOutputDto[];
+  /** @example 10000 */
+  subtotal: number;
+  /** @example 0 */
+  tax: number;
+  /** @example 0 */
+  discount: number;
+  /** @example 10000 */
+  total: number;
+  /** @example "USD" */
+  currency: string;
+  /** @example "Thank you for your business!" */
+  notes?: object;
+  /** @example "2025-01-15T14:30:00.000Z" */
+  voidedAt?: object;
+  /** @example "Customer requested refund" */
+  voidReason?: object;
+  /**
+   * @format date-time
+   * @example "2025-01-15T14:30:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * @format date-time
+   * @example "2025-01-15T14:30:00.000Z"
+   */
+  updatedAt: string;
+}
+
+export interface InvoiceQueryDto {
+  /**
+   * Filter by invoice status
+   * @example "paid"
+   */
+  status?: "draft" | "issued" | "paid" | "void" | "overdue";
+  /**
+   * Filter by customer ID
+   * @example 174
+   */
+  customerId?: number;
+  /**
+   * Filter by order ID
+   * @example 383
+   */
+  orderId?: number;
+  /**
+   * Start date for filtering (YYYY-MM-DD)
+   * @example "2024-01-01"
+   */
+  startDate?: string;
+  /**
+   * End date for filtering (YYYY-MM-DD)
+   * @example "2024-12-31"
+   */
+  endDate?: string;
+  /**
+   * Number of invoices to return
+   * @min 1
+   * @max 100
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Number of invoices to skip
+   * @min 0
+   * @example 0
+   */
+  offset?: number;
+}
+
+export interface UpdateInvoiceStatusDto {
+  /**
+   * New status for the invoice
+   * @example "issued"
+   */
+  status: "draft" | "issued" | "paid" | "void" | "overdue";
+}
+
+export interface VoidInvoiceDto {
+  /**
+   * Reason for voiding the invoice
+   * @example "Customer requested cancellation"
+   */
+  reason: string;
 }
 
 export interface TaskInputDto {
@@ -1185,10 +1862,13 @@ export interface AutomationConfigOutputDto {
     | "order.paid"
     | "order.canceled"
     | "order.modified"
+    | "order.completed"
     | "user.registered"
     | "payment.refunded"
     | "task.created"
-    | "task.completed";
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
   /**
    * Communication tool used for this automation
    * @example "email"
@@ -1211,6 +1891,18 @@ export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   data: AutomationConfigOutputDto[];
 }
 
+export type AutomationLog = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationLog {
+  meta: MetaResponse;
+  data: AutomationLog[];
+}
+
+export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+  meta: MetaResponse;
+  data: SlackPlaceholdersResponseDto;
+}
+
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   meta: MetaResponse;
   data: AutomationConfigOutputDto;
@@ -1231,19 +1923,213 @@ export interface UpdateAutomationConfigDto {
 
 export type AutomationConfig = object;
 
-export interface SwaggerBaseApiResponseForClassAutomationConfig {
+export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
   meta: MetaResponse;
   data: AutomationConfig;
 }
 
-export type AutomationLog = object;
-
-export interface SwaggerBaseApiResponseForClassAutomationLog {
-  meta: MetaResponse;
-  data: AutomationLog[];
+export interface ParticipantOutputDto {
+  /** Participant SID */
+  sid: string;
+  /** Participant identity */
+  identity: string;
+  /** Attributes */
+  attributes: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
 }
 
-export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+export interface MessageOutputDto {
+  /** Message SID */
+  sid: string;
+  /** Index of message in conversation */
+  index: number;
+  /** Message author identity */
+  author: string;
+  /** Message body/content */
+  body: string;
+  /** Message attributes */
+  attributes: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
+}
+
+export interface ConversationOutputDto {
+  /** Conversation SID */
+  sid: string;
+  /** Account SID */
+  accountSid: string;
+  /** Chat service SID */
+  chatServiceSid: string;
+  /** Friendly name */
+  friendlyName: string;
+  /** Unique name */
+  uniqueName: string;
+  /** Attributes */
+  attributes: string;
+  /** State */
+  state: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
+  /** Participants */
+  participants?: ParticipantOutputDto[];
+  /** Latest message */
+  latestMessage?: MessageOutputDto;
+}
+
+export interface AddParticipantDto {
+  /**
+   * Communication channel type
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API.
+   * @example "156"
+   */
+  userId: string;
+}
+
+export interface SuccessResponseDto {
+  /**
+   * Operation success status
+   * @example true
+   */
+  success: boolean;
+}
+
+export interface ParticipantDto {
+  /**
+   * Communication channel type
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
+   * @example "156"
+   */
+  userId: string;
+}
+
+export interface CreateConversationDto {
+  /**
+   * Friendly name for the conversation
+   * @example "Chat with John Doe"
+   */
+  friendlyName: string;
+  /** Participants to add to the conversation */
+  participants?: ParticipantDto[];
+  /** Custom attributes (key-value pairs) */
+  attributes?: object;
+}
+
+export interface SendMessageDto {
+  /**
+   * Message body/content
+   * @example "Hello, how can I help you?"
+   */
+  body: string;
+  /**
+   * Delivery channel (SMS, EMAIL, WHATSAPP). Determines which delivery method to use and is stored in message attributes for filtering. If SMS/EMAIL is specified, message will be delivered to phone/email participants respectively. Used to filter message history by channel.
+   * @example "SMS"
+   */
+  channel?: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * Author identity (user identifier)
+   * @example "user_123"
+   */
+  author?: string;
+  /** Message attributes (key-value pairs) */
+  attributes?: object;
+}
+
+export interface EmailAttachmentDto {
+  /** Base64 encoded content */
+  content: string;
+  /** File name */
+  filename: string;
+  /**
+   * MIME type
+   * @example "application/pdf"
+   */
+  type: string;
+}
+
+export interface SendEmailDto {
+  /**
+   * Recipient email address (auto-populated from conversation if not provided)
+   * @example "customer@example.com"
+   */
+  to?: string;
+  /**
+   * Email subject (defaults to "Chat-BetterLSAT" if not provided)
+   * @example "Re: Your inquiry"
+   */
+  subject?: string;
+  /** Plain text content */
+  text?: string;
+  /** HTML content */
+  html?: string;
+  /** From email address (auto-populated from current user if not provided) */
+  from?: string;
+  /** CC recipients */
+  cc?: string[];
+  /** BCC recipients */
+  bcc?: string[];
+  /** Email attachments */
+  attachments?: EmailAttachmentDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassConversationOutputDto {
   meta: MetaResponse;
-  data: SlackPlaceholdersResponseDto;
+  data: ConversationOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassConversationOutputDto {
+  meta: MetaResponse;
+  data: ConversationOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassMessageOutputDto {
+  meta: MetaResponse;
+  data: MessageOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassMessageOutputDto {
+  meta: MetaResponse;
+  data: MessageOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassParticipantOutputDto {
+  meta: MetaResponse;
+  data: ParticipantOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassSuccessResponseDto {
+  meta: MetaResponse;
+  data: SuccessResponseDto;
 }

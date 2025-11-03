@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Monitor,
   Bug,
-  ListTodo,
   FileX,
   HelpCircle,
   Lock,
@@ -57,9 +56,9 @@ const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Tasks",
+          title: "Appointments",
           url: "/tasks",
-          icon: ListTodo,
+          icon: Calendar,
         },
         {
           title: "Apps",
@@ -69,14 +68,9 @@ const sidebarData: SidebarData = {
         {
           title: "Chats",
           url: "/chats",
-          badge: "3",
           icon: MessagesSquare,
         },
-        {
-          title: "Users",
-          url: "/users",
-          icon: Users,
-        },
+        
         {
           title: "Orders",
           url: "/orders",
@@ -97,6 +91,13 @@ const sidebarData: SidebarData = {
           url: "/calendar",
           icon: Calendar,
         },
+      ],
+    },
+    {
+      title: "Users",
+      items: [
+        { title: "Employees", url: "/users/employees", icon: Users },
+        { title: "Customers", url: "/users/customers", icon: Users },
       ],
     },
     {
@@ -268,7 +269,23 @@ if (ENV !== "DEVELOPMENT") {
       ...group,
       items: group.items.filter((item) => {
         // Allow items with direct URLs
-        if (item.url && ["/", "/users", "/orders", "/calendar", "/packages","/help-center","/tasks", cartUrl].includes(item.url)) {
+        if (item.url && [
+          "/", 
+          "/users", 
+          "/users/employees",
+          "/users/customers",
+          "/orders", 
+          "/calendar", 
+          "/packages",
+          "/help-center",
+          "/tasks",
+          "/invoices",
+          "/refunds",
+          "/transactions",
+          "/automations",
+          "/automation-logs",
+          cartUrl
+        ].includes(item.url)) {
           return true;
         }
         // Allow Settings (collapsible item without direct URL)

@@ -62,7 +62,12 @@ const baseQueryWithReauth: BaseQueryFn<
   // BUT NOT for login/auth endpoints (they should handle 401 errors themselves)
   if (result.error && result.error.status === 401) {
     const url = typeof args === 'string' ? args : args.url;
-    const isAuthEndpoint = url.includes('auth/login') || url.includes('auth/register');
+    const isAuthEndpoint = 
+      url.includes('auth/login') || 
+      url.includes('auth/register') ||
+      url.includes('auth/forgot-password') ||
+      url.includes('auth/verify-otp') ||
+      url.includes('auth/reset-password');
     
     if (isAuthEndpoint) {
       console.log("🚫 Skipping token refresh for auth endpoint:", url);
@@ -254,6 +259,6 @@ async function performTokenRefresh(refreshToken: string): Promise<RefreshTokenRe
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation"],
+  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation", "Chat"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

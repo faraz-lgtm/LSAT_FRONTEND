@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from '@tanstack/react-router'
-import { showSubmittedData } from '@/lib/dashboardRelated/show-submitted-data'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Button } from '@/components/dashboard/ui/button'
 import {
@@ -20,6 +20,7 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from '@/components/dashboard/ui/input-otp'
+import { useVerifyOtpMutation } from '@/redux/apiSlices/Auth/authSlice'
 
 const formSchema = z.object({
   otp: z
@@ -32,7 +33,9 @@ type OtpFormProps = React.HTMLAttributes<HTMLFormElement>
 
 export function OtpForm({ className, ...props }: OtpFormProps) {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
+  const search = useSearch({ from: '/(auth)/otp' }) as { identifier?: string }
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation()
+  const [identifier, setIdentifier] = useState<string>('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,14 +44,56 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
 
   const otp = form.watch('otp')
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    showSubmittedData(data)
+  // Get identifier from search params or localStorage
+  useEffect(() => {
+    const id = search?.identifier || localStorage.getItem('passwordResetIdentifier') || ''
+    if (id) {
+      setIdentifier(id)
+      // Store in localStorage as backup
+      localStorage.setItem('passwordResetIdentifier', id)
+    } else {
+      // No identifier found, redirect back to forgot password
+      toast.error('Please start the password reset process again.')
+      navigate({ to: '/forgot-password' })
+    }
+  }, [search, navigate])
 
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate({ to: '/' })
-    }, 1000)
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    if (!identifier) {
+      toast.error('Identifier missing. Please start the password reset process again.')
+      navigate({ to: '/forgot-password' })
+      return
+    }
+
+    try {
+      // Verify OTP (non-destructive check)
+      const result = await verifyOtp({
+        identifier,
+        otp: data.otp,
+      }).unwrap()
+
+      if (result.data.isValid) {
+        // Navigate to reset password with identifier and OTP
+        navigate({
+          to: '/reset-password',
+          search: { identifier, otp: data.otp },
+        })
+      } else {
+        toast.error('Invalid OTP code. Please try again.')
+      }
+    } catch (error: any) {
+      console.error('Verify OTP error:', error)
+      
+      if (error?.data?.message) {
+        toast.error(error.data.message)
+      } else if (error?.status === 400) {
+        toast.error('Invalid OTP code. Please try again.')
+      } else if (error?.status >= 500) {
+        toast.error('Server error. Please try again later.')
+      } else {
+        toast.error('Failed to verify OTP. Please try again.')
+      }
+    }
   }
 
   return (

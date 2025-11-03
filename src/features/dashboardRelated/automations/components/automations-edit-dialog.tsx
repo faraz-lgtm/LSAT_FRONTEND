@@ -48,6 +48,9 @@ const variableMapping: Record<string, string> = {
   '{{total}}': '125.00',
   '{{currency}}': 'CAD',
   '{{itemCount}}': '3',
+  '{{meetingLink}}': 'https://meet.google.com/abc-defg-hij',
+  '{{googleMeetLink}}': 'https://meet.google.com/abc-defg-hij',
+  '{{appointmentTime}}': '2:00 PM',
 }
 
 // Function to replace placeholders with example values
@@ -152,6 +155,7 @@ export function AutomationsEditDialog({
   const toolType = currentRow.toolType.toLowerCase()
   const isSlack = toolType === 'slack'
   const isEmail = toolType === 'email'
+  const isSms = toolType === 'sms' || toolType === 'whatsapp'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -346,8 +350,60 @@ export function AutomationsEditDialog({
               </>
             )}
 
+            {/* SMS/WhatsApp-specific fields */}
+            {isSms && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="parameters"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Message Text</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Reminder: Your appointment is in 30 minutes. Join: {{meetingLink}}"
+                          value={dynamicFields.message || ''}
+                          onChange={(e) => updateDynamicField('message', e.target.value)}
+                          rows={6}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        SMS/WhatsApp message text. Use variables like &#123;&#123;customerName&#125;&#125;, &#123;&#123;meetingLink&#125;&#125; (or &#123;&#123;googleMeetLink&#125;&#125;). Do NOT include dateTime. 
+                        <strong className="text-orange-600 dark:text-orange-400">Note: Backend must populate meetingLink from order.googleMeetLink or appointment.meetingLink</strong>
+                      </FormDescription>
+                      {dynamicFields.message && (
+                        <Card className="mt-2">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 whitespace-pre-wrap">
+                              {replaceVariables(dynamicFields.message)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </FormItem>
+                  )}
+                />
+                <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+                  <CardContent className="pt-4 space-y-2">
+                    <p className="text-xs text-orange-800 dark:text-orange-200">
+                      <strong>Important Backend Requirements:</strong>
+                    </p>
+                    <ul className="text-xs text-orange-800 dark:text-orange-200 list-disc list-inside space-y-1 ml-2">
+                      <li>Backend must populate &#123;&#123;meetingLink&#125;&#125; from <code className="bg-orange-100 dark:bg-orange-900 px-1 rounded">order.googleMeetLink</code> or <code className="bg-orange-100 dark:bg-orange-900 px-1 rounded">appointment.meetingLink</code></li>
+                      <li>Backend must extract the meeting link when sending SMS reminders (30 min before appointment)</li>
+                      <li>Do NOT include dateTime variables in the message template</li>
+                      <li>If meeting link is not available, the variable will remain as text (not replaced)</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
             {/* Generic fields for other tool types or additional parameters */}
-            {!isSlack && !isEmail && (
+            {!isSlack && !isEmail && !isSms && (
               <div className="space-y-4">
                 {Object.keys(dynamicFields).map((key) => (
                   <FormField
@@ -377,7 +433,7 @@ export function AutomationsEditDialog({
               name="parameters"
               render={() => (
                 <FormItem>
-                  <FormLabel>Delay (minutes)</FormLabel>
+                  <FormLabel>Before (minutes)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
