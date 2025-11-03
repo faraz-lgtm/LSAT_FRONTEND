@@ -2,7 +2,7 @@ import { api } from "../../api";
 import type { 
   UpdateAutomationConfigDto,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
-  SwaggerBaseApiResponseForClassAutomationConfig,
+  SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
   SwaggerBaseApiResponseForClassAutomationLog
 } from "@/types/api/data-contracts";
 
@@ -36,7 +36,7 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // PATCH /api/v1/automation/:key - Update automation configuration
-    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfig, { key: string; data: UpdateAutomationConfigDto }>({
+    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationConfigDto }>({
       query: ({ key, data }) => ({
         url: `automation/${key}`,
         method: "PATCH",

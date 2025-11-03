@@ -15,7 +15,7 @@ import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
 const route = getRouteApi("/_authenticated/users/customers");
 
 export function CustomersPage() {
-  const { data: usersData, isSuccess } = useGetUsersQuery();
+  const { data: usersData, isSuccess } = useGetUsersQuery(undefined);
   const search = route.useSearch();
   const navigate = route.useNavigate();
 
