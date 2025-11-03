@@ -34,19 +34,19 @@ const QuantityController: React.FC<QuantityControllerProps> = ({ initial = 1 ,id
   };
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center gap-1.5">
       <button
         type="button"
         onClick={() => updateQuantity(quantity - 1,false,true)}
         disabled={isLoading}
-        className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
+        className={`w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        <Minus size={14} className="text-gray-600 dark:text-gray-300" />
+        <Minus size={12} className="text-gray-600 dark:text-gray-300" />
       </button>
 
-      <span className="w-10 text-center font-semibold text-gray-900 dark:text-white">
+      <span className="w-8 text-center font-semibold text-sm text-gray-900 dark:text-white">
         {quantity}
       </span>
 
@@ -54,14 +54,14 @@ const QuantityController: React.FC<QuantityControllerProps> = ({ initial = 1 ,id
         type="button"
         onClick={() => updateQuantity(quantity + 1,true,false)}
         disabled={isLoading}
-        className={`w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
+        className={`w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 ${
           isLoading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
         ) : (
-          <Plus size={14} className="text-gray-600 dark:text-gray-300" />
+          <Plus size={12} className="text-gray-600 dark:text-gray-300" />
         )}
       </button>
     </div>

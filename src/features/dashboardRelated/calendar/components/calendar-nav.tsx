@@ -48,10 +48,9 @@ interface CalendarNavProps {
   calendarRef: calendarRef;
   viewedDate: Date;
   onCreateTask?: () => void;
-  onCreateOrder?: () => void;
 }
 
-export default function CalendarNav({ calendarRef, viewedDate, onCreateTask, onCreateOrder }: CalendarNavProps) {
+export default function CalendarNav({ calendarRef, viewedDate, onCreateTask }: CalendarNavProps) {
   const [monthOpen, setMonthOpen] = useState(false);
   const [yearOpen, setYearOpen] = useState(false);
   const [dayOpen, setDayOpen] = useState(false);
@@ -220,7 +219,6 @@ export default function CalendarNav({ calendarRef, viewedDate, onCreateTask, onC
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
-              <DropdownMenuItem onClick={onCreateOrder}>Create Order</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

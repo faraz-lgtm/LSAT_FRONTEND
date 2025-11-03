@@ -15,7 +15,6 @@ import type { RootState } from '@/redux/store'
 import { SelectDropdown } from '@/components/dashboard/select-dropdown'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
 import { ROLE } from '@/constants/roles'
-import { OrderCreateForm } from '@/components/google-calendar/OrderCreateForm'
 
 export function Tasks() {
   const user=useSelector((state: RootState) => state.auth.user)
@@ -41,7 +40,6 @@ export function Tasks() {
   type TasksDialogOpenState = 'create' | 'import' | 'update' | 'delete' | null
   const [open, setOpen] = useState<TasksDialogOpenState>(null)
   const [currentRow, setCurrentRow] = useState<TaskOutputDto | undefined>(undefined)
-  const [createOrderOpen, setCreateOrderOpen] = useState(false)
 
   const { data: tasksData, isSuccess, isLoading, error } = useGetTasksQuery(filters)
 
@@ -84,9 +82,9 @@ export function Tasks() {
       <Main>
         <div className='mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Tasks</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Appointments</h2>
             <p className='text-muted-foreground'>
-              Here&apos;s a list of your tasks for this month!
+              Here&apos;s a list of your appointments for this month.
             </p>
           </div>
           {isAdmin && (
@@ -117,9 +115,6 @@ export function Tasks() {
               setCurrentRow(undefined)
               setOpen('create')
             }}
-            onCreateOrder={() => {
-              setCreateOrderOpen(true)
-            }}
             onImport={() => {
               setOpen('import')
             }}
@@ -148,7 +143,6 @@ export function Tasks() {
         currentRow={currentRow}
         setCurrentRow={(row) => setCurrentRow(row ?? undefined)}
       />
-      <OrderCreateForm isOpen={createOrderOpen} onClose={() => setCreateOrderOpen(false)} />
       </>
   )
 }

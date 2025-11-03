@@ -293,6 +293,136 @@ export interface GetOrdersQueryParams {
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
 }
 
+export interface UpdateOrderNotesDto {
+  /**
+   * Free-form notes for the order
+   * @example "Prefers evenings; focus on logic games."
+   */
+  notes: string;
+}
+
+export interface UpdateOrderStatusDto {
+  /**
+   * Business status of the order
+   * @example "COMPLETED"
+   */
+  orderStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+}
+
+export interface Badge {
+  /**
+   * Badge text
+   * @example "Popular"
+   */
+  text: string;
+  /**
+   * Badge color
+   * @example "#FF6B6B"
+   */
+  color: string;
+}
+
+export interface ItemOutput {
+  /**
+   * Item ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Item price
+   * @example 100
+   */
+  price: number;
+  /**
+   * Item name
+   * @example "60-Minute Prep Session"
+   */
+  name: string;
+  /**
+   * Session duration in minutes
+   * @example 60
+   */
+  Duration: number;
+  /** Optional badge information */
+  badge?: Badge;
+  /** Optional save discount number */
+  save?: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * Item description
+   * @example "Comprehensive prep session"
+   */
+  Description: string;
+  /**
+   * Quantity
+   * @example 1
+   */
+  quantity: number;
+}
+
+export interface OrderOutput {
+  /**
+   * Order ID
+   * @example 1
+   */
+  id: number;
+  /** Customer information */
+  customer: UserOutput;
+  /** Order items */
+  items: ItemOutput[];
+  /**
+   * Slot reservation expiration timestamp
+   * @format date-time
+   * @example "2024-01-15T14:30:00.000Z"
+   */
+  slot_reservation_expires_at?: string | null;
+  /**
+   * Slot reservation status indicating the current state of the reservation
+   * @example "RESERVED"
+   */
+  slot_reservation_status?:
+    | "RESERVED"
+    | "CONFIRMED"
+    | "EXPIRED"
+    | "FAILED"
+    | "CANCELED"
+    | null;
+  /**
+   * Google Meet link shared across all calendar events in this order
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  googleMeetLink?: string | null;
+  /**
+   * Stripe checkout session URL
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  checkoutSessionUrl?: string | null;
+  /** Free-form notes about the order */
+  notes?: string | null;
+  /** Derived tags summarizing appointment attendance */
+  tags?: ("SHOWED" | "NO_SHOW")[];
+  /** Business status of the order */
+  orderStatus?: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  /**
+   * Timestamp when order was marked as completed
+   * @format date-time
+   */
+  completedAt?: string | null;
+}
+
+export interface SwaggerBaseApiResponseForClassOrderOutput {
+  meta: MetaResponse;
+  data: OrderOutput;
+}
+
+export interface MarkAppointmentAttendanceDto {
+  status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+}
+
 export interface ItemInput {
   /**
    * Item ID
@@ -366,118 +496,9 @@ export interface SwaggerBaseApiResponseForClassStripeCheckoutSession {
   data: StripeCheckoutSession;
 }
 
-export interface Badge {
-  /**
-   * Badge text
-   * @example "Popular"
-   */
-  text: string;
-  /**
-   * Badge color
-   * @example "#FF6B6B"
-   */
-  color: string;
-}
-
-export interface ItemOutput {
-  /**
-   * Item ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Item price
-   * @example 100
-   */
-  price: number;
-  /**
-   * Item name
-   * @example "60-Minute Prep Session"
-   */
-  name: string;
-  /**
-   * Session duration in minutes
-   * @example 60
-   */
-  Duration: number;
-  /** Optional badge information */
-  badge?: Badge;
-  /** Optional save discount number */
-  save?: number;
-  /**
-   * Number of sessions included
-   * @example 1
-   */
-  sessions: number;
-  /**
-   * Item description
-   * @example "Comprehensive prep session"
-   */
-  Description: string;
-  /**
-   * Scheduled date and time
-   * @example ["2025-10-15T12:00:00Z"]
-   */
-  DateTime: string[];
-  /**
-   * Quantity
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Assigned employee IDs
-   * @example [5,6]
-   */
-  assignedEmployeeIds: string[];
-}
-
-export interface OrderOutput {
-  /**
-   * Order ID
-   * @example 1
-   */
-  id: number;
-  /** Customer information */
-  customer: UserOutput;
-  /** Order items */
-  items: ItemOutput[];
-  /**
-   * Slot reservation expiration timestamp
-   * @format date-time
-   * @example "2024-01-15T14:30:00.000Z"
-   */
-  slot_reservation_expires_at?: string | null;
-  /**
-   * Slot reservation status indicating the current state of the reservation
-   * @example "RESERVED"
-   */
-  slot_reservation_status?:
-    | "RESERVED"
-    | "CONFIRMED"
-    | "EXPIRED"
-    | "FAILED"
-    | "CANCELED"
-    | null;
-  /**
-   * Google Meet link shared across all calendar events in this order
-   * @example "https://meet.google.com/abc-defg-hij"
-   */
-  googleMeetLink?: string | null;
-  /**
-   * Stripe checkout session URL
-   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
-   */
-  checkoutSessionUrl?: string | null;
-}
-
 export interface SwaggerBaseApiResponseForClassOrderOutput {
   meta: MetaResponse;
   data: OrderOutput[];
-}
-
-export interface SwaggerBaseApiResponseForClassOrderOutput {
-  meta: MetaResponse;
-  data: OrderOutput;
 }
 
 export interface StripePaymentIntent {
@@ -498,50 +519,29 @@ export interface SwaggerBaseApiResponseForClassStripePaymentIntent {
   data: StripePaymentIntent;
 }
 
-export interface OrderItemDto {
+export interface CancelOrderDto {
   /**
-   * Name of the order item
-   * @example "10x Package"
-   */
-  name: string;
-  /**
-   * Quantity of the item
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Price of the item in cents
-   * @example 15000
-   */
-  price: number;
-}
-
-export interface ModifyOrderDto {
-  /**
-   * ID of the original order to modify
-   * @example 383
-   */
-  originalOrderId: number;
-  /**
-   * New order items
-   * @example [{"name":"10x Package","quantity":1,"price":15000}]
-   */
-  newOrderItems: OrderItemDto[];
-  /**
-   * Reason for the order modification
+   * Reason for the order cancellation
    * @example "customer_request"
    */
   refundReason: "customer_request" | "duplicate" | "fraudulent" | "other";
   /**
-   * Additional details about the modification reason
-   * @example "Customer wanted 10x package instead of 60-minute package"
+   * Additional details about the cancellation reason
+   * @example "Customer requested cancellation due to scheduling conflict"
    */
   reasonDetails: string;
-  /**
-   * Additional notes for the new order
-   * @example "Modified order - upgraded package"
-   */
-  notes?: string;
+}
+
+export interface CancelOrderResultDto {
+  /** The refund record created for the canceled order */
+  refund: object;
+  /** The canceled order */
+  canceledOrder: object;
+}
+
+export interface SwaggerBaseApiResponseForClassCancelOrderResultDto {
+  meta: MetaResponse;
+  data: CancelOrderResultDto;
 }
 
 export interface SlotsQueryDto {
@@ -1783,10 +1783,13 @@ export interface AutomationConfigOutputDto {
     | "order.paid"
     | "order.canceled"
     | "order.modified"
+    | "order.completed"
     | "user.registered"
     | "payment.refunded"
     | "task.created"
-    | "task.completed";
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
   /**
    * Communication tool used for this automation
    * @example "email"
@@ -1809,6 +1812,18 @@ export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   data: AutomationConfigOutputDto[];
 }
 
+export type AutomationLog = object;
+
+export interface SwaggerBaseApiResponseForClassAutomationLog {
+  meta: MetaResponse;
+  data: AutomationLog[];
+}
+
+export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+  meta: MetaResponse;
+  data: SlackPlaceholdersResponseDto;
+}
+
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   meta: MetaResponse;
   data: AutomationConfigOutputDto;
@@ -1829,19 +1844,213 @@ export interface UpdateAutomationConfigDto {
 
 export type AutomationConfig = object;
 
-export interface SwaggerBaseApiResponseForClassAutomationConfig {
+export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
   meta: MetaResponse;
   data: AutomationConfig;
 }
 
-export type AutomationLog = object;
-
-export interface SwaggerBaseApiResponseForClassAutomationLog {
-  meta: MetaResponse;
-  data: AutomationLog[];
+export interface ParticipantOutputDto {
+  /** Participant SID */
+  sid: string;
+  /** Participant identity */
+  identity: string;
+  /** Attributes */
+  attributes: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
 }
 
-export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
+export interface MessageOutputDto {
+  /** Message SID */
+  sid: string;
+  /** Index of message in conversation */
+  index: number;
+  /** Message author identity */
+  author: string;
+  /** Message body/content */
+  body: string;
+  /** Message attributes */
+  attributes: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
+}
+
+export interface ConversationOutputDto {
+  /** Conversation SID */
+  sid: string;
+  /** Account SID */
+  accountSid: string;
+  /** Chat service SID */
+  chatServiceSid: string;
+  /** Friendly name */
+  friendlyName: string;
+  /** Unique name */
+  uniqueName: string;
+  /** Attributes */
+  attributes: string;
+  /** State */
+  state: string;
+  /**
+   * Date created
+   * @format date-time
+   */
+  dateCreated: string;
+  /**
+   * Date updated
+   * @format date-time
+   */
+  dateUpdated: string;
+  /** Participants */
+  participants?: ParticipantOutputDto[];
+  /** Latest message */
+  latestMessage?: MessageOutputDto;
+}
+
+export interface AddParticipantDto {
+  /**
+   * Communication channel type
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API.
+   * @example "156"
+   */
+  userId: string;
+}
+
+export interface SuccessResponseDto {
+  /**
+   * Operation success status
+   * @example true
+   */
+  success: boolean;
+}
+
+export interface ParticipantDto {
+  /**
+   * Communication channel type
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
+   * @example "156"
+   */
+  userId: string;
+}
+
+export interface CreateConversationDto {
+  /**
+   * Friendly name for the conversation
+   * @example "Chat with John Doe"
+   */
+  friendlyName: string;
+  /** Participants to add to the conversation */
+  participants?: ParticipantDto[];
+  /** Custom attributes (key-value pairs) */
+  attributes?: object;
+}
+
+export interface SendMessageDto {
+  /**
+   * Message body/content
+   * @example "Hello, how can I help you?"
+   */
+  body: string;
+  /**
+   * Delivery channel (SMS, EMAIL, WHATSAPP). Determines which delivery method to use and is stored in message attributes for filtering. If SMS/EMAIL is specified, message will be delivered to phone/email participants respectively. Used to filter message history by channel.
+   * @example "SMS"
+   */
+  channel?: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * Author identity (user identifier)
+   * @example "user_123"
+   */
+  author?: string;
+  /** Message attributes (key-value pairs) */
+  attributes?: object;
+}
+
+export interface EmailAttachmentDto {
+  /** Base64 encoded content */
+  content: string;
+  /** File name */
+  filename: string;
+  /**
+   * MIME type
+   * @example "application/pdf"
+   */
+  type: string;
+}
+
+export interface SendEmailDto {
+  /**
+   * Recipient email address (auto-populated from conversation if not provided)
+   * @example "customer@example.com"
+   */
+  to?: string;
+  /**
+   * Email subject
+   * @example "Re: Your inquiry"
+   */
+  subject: string;
+  /** Plain text content */
+  text?: string;
+  /** HTML content */
+  html?: string;
+  /** From email address (auto-populated from current user if not provided) */
+  from?: string;
+  /** CC recipients */
+  cc?: string[];
+  /** BCC recipients */
+  bcc?: string[];
+  /** Email attachments */
+  attachments?: EmailAttachmentDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassConversationOutputDto {
   meta: MetaResponse;
-  data: SlackPlaceholdersResponseDto;
+  data: ConversationOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassConversationOutputDto {
+  meta: MetaResponse;
+  data: ConversationOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassMessageOutputDto {
+  meta: MetaResponse;
+  data: MessageOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassMessageOutputDto {
+  meta: MetaResponse;
+  data: MessageOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassParticipantOutputDto {
+  meta: MetaResponse;
+  data: ParticipantOutputDto;
+}
+
+export interface SwaggerBaseApiResponseForClassSuccessResponseDto {
+  meta: MetaResponse;
+  data: SuccessResponseDto;
 }

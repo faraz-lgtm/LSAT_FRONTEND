@@ -1,4 +1,4 @@
-import { getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { ConfigDrawer } from "@/components/dashboard/config-drawer";
 import { Header } from "@/components/dashboard/layout/header";
 import { Main } from "@/components/dashboard/layout/main";
@@ -10,6 +10,10 @@ import { PackagesProvider } from "./components/packages-provider";
 import { PackagesTable } from "./components/packages-table";
 import { PackagesPrimaryButtons } from "./components/packages-primary-buttons";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { ROLE } from "@/constants/roles";
+import { useEffect } from "react";
 import type { ProductOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/packages/");
@@ -18,6 +22,15 @@ export function Packages() {
   const { data: productsData, isSuccess, isLoading, error } = useGetProductsQuery();
   const search = route.useSearch();
   const navigate = route.useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isAdmin = user?.roles?.includes(ROLE.ADMIN) || false;
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (user && !isAdmin) {
+      navigate({ to: '/' });
+    }
+  }, [user, isAdmin, navigate]);
 
   console.log("productsData", productsData);
   console.log("isSuccess:", isSuccess);
@@ -52,6 +65,15 @@ export function Packages() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-red-500">Error loading packages</div>
+      </div>
+    );
+  }
+
+  // Don't render for non-admin users
+  if (user && !isAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-500">Access denied. Admin access required.</div>
       </div>
     );
   }

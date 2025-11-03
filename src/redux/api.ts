@@ -44,14 +44,33 @@ const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+  // Custom fetch function to disable caching and prevent 304 responses
+  const customFetch: typeof fetch = (input, init) => {
+    const headers = new Headers(init?.headers);
+    // Remove conditional request headers that cause 304 responses
+    headers.delete('If-None-Match');
+    headers.delete('If-Modified-Since');
+    
+    return fetch(input, {
+      ...init,
+      cache: 'no-store',
+      headers,
+    });
+  };
+
   const baseQuery = fetchBaseQuery({
     baseUrl: `${BASE_URL}/api/v1`,
+    fetchFn: customFetch,
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as any;
       const token = state.auth?.accessToken;
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
+      // Prevent browser caching to avoid 304 responses
+      headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+      headers.set("Pragma", "no-cache");
+      headers.set("Expires", "0");
       return headers;
     },
   });
@@ -254,6 +273,6 @@ async function performTokenRefresh(refreshToken: string): Promise<RefreshTokenRe
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation"],
+  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation", "Chat"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

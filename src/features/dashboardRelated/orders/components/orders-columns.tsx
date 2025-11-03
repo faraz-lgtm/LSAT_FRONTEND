@@ -143,9 +143,21 @@ export const createOrdersColumns = (formatCurrency: (cents: number) => string): 
       <DataTableColumnHeader column={column} title='Reservation Status' />
     ),
     cell: ({ row }) => {
-      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'CANCELED' | null
+      const orderStatus = row.original.orderStatus as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | undefined
+      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'CANCELED' | null
       
-      if (!status) {
+      // Show order status if available, otherwise show slot reservation status
+      if (orderStatus === 'COMPLETED') {
+        return (
+          <div className='flex space-x-2 justify-start'>
+            <Badge variant='outline' className='bg-purple-100/30 text-purple-900 dark:text-purple-200 border-purple-200'>
+              Completed
+            </Badge>
+          </div>
+        )
+      }
+      
+      if (!slotStatus) {
         return (
           <div className='flex space-x-2 justify-start'>
             <Badge variant='outline' className='bg-gray-100/30 text-gray-900 dark:text-gray-200 border-gray-200'>
@@ -164,18 +176,25 @@ export const createOrdersColumns = (formatCurrency: (cents: number) => string): 
       
       return (
         <div className='flex space-x-2 justify-start'>
-          <Badge variant='outline' className={cn('capitalize', statusColors[status])}>
-            {status.toLowerCase()}
+          <Badge variant='outline' className={cn('capitalize', statusColors[slotStatus])}>
+            {slotStatus.toLowerCase()}
           </Badge>
         </div>
       )
     },
     filterFn: (row, _id, value) => {
-      const status = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
-      if (!status) {
+      const orderStatus = row.original.orderStatus as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | undefined
+      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
+      
+      // Check if completed filter is selected
+      if (value.includes('completed') && orderStatus === 'COMPLETED') {
+        return true
+      }
+      
+      if (!slotStatus) {
         return value.includes('no-status')
       }
-      return value.includes(status.toLowerCase())
+      return value.includes(slotStatus.toLowerCase())
     },
     enableSorting: false,
     enableHiding: false,

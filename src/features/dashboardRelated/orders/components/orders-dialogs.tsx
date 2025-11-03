@@ -1,7 +1,7 @@
 import { OrdersViewDialog } from './orders-view-dialog'
 import { OrdersDeleteDialog } from './orders-delete-dialog'
 import { OrdersRefundDialog } from './orders-refund-dialog'
-import { OrdersModifyDialog } from './orders-modify-dialog'
+import { OrdersCancelDialog } from './orders-cancel-dialog'
 import { useOrders } from './orders-provider'
 
 export function OrdersDialogs() {
@@ -23,11 +23,11 @@ export function OrdersDialogs() {
             currentRow={currentRow}
           />
 
-          <OrdersModifyDialog
-            key={`order-modify-${currentRow.id}`}
-            open={open === 'modify'}
+          <OrdersCancelDialog
+            key={`order-cancel-${currentRow.id}`}
+            open={open === 'cancel'}
             onOpenChange={() => {
-              setOpen('modify')
+              setOpen('cancel')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

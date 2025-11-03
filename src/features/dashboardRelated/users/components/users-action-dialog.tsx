@@ -35,6 +35,7 @@ import PhoneInput from "react-phone-input-2";
 import { useUpdateUserMutation } from '@/redux/apiSlices/User/userSlice'
 import { type UserOutput } from '@/types/api/data-contracts'
 import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
+import { useEffect, useState } from 'react'
 
 
 
@@ -88,20 +89,50 @@ export function UsersActionDialog({
   // Get available roles based on current user's permissions
   const availableRoles = getAvailableRolesForNewUser(currentUserForRBAC)
   
+  // Check if editing a customer (customer-only user)
+  const isEditingCustomer = isEdit && currentRow && currentRow.roles.length === 1 && currentRow.roles.includes(ROLE.CUSTOMER)
+  
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEdit
-      ? {
+    defaultValues: {
+      name: '',
+      username: '',
+      email: '',
+      phone: '',
+      password: '',
+      roles: [],
+      workHours: {},
+      isEdit: false,
+    },
+  })
+
+  // Reset form when dialog opens/closes or currentRow changes
+  useEffect(() => {
+    if (open) {
+      if (isEdit && currentRow) {
+        console.log('🔄 Resetting form with currentRow:', currentRow)
+        console.log('📞 Phone from currentRow:', currentRow.phone)
+        const phoneValue = currentRow.phone || ''
+        const phoneWithoutPlus = phoneValue ? phoneValue.replace(/^\+/, '') : ''
+        
+        const formValues = {
           name: currentRow.name,
           username: currentRow.username,
-          phone: currentRow.phone,
+          phone: phoneValue,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
           roles: currentRow.roles,
           workHours: currentRow.workHours || {},
-          isEdit,
+          isEdit: true,
         }
-      : {
+        console.log('📝 Form values being set:', formValues)
+        form.reset(formValues)
+        
+        // Also set the phone input state directly
+        setPhoneInputValue(phoneWithoutPlus)
+        console.log('📱 Setting phoneInputValue to:', phoneWithoutPlus)
+      } else {
+        form.reset({
           name: '',
           username: '',
           email: '',
@@ -109,13 +140,28 @@ export function UsersActionDialog({
           password: '',
           roles: [],
           workHours: {},
-          isEdit,
-        },
-  })
+          isEdit: false,
+        })
+        setPhoneInputValue('')
+      }
+    }
+  }, [open, isEdit, currentRow, form])
 
   // Watch roles to determine if user is customer-only
   const watchedRoles = form.watch('roles')
   const isCustomerOnly = watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)
+  
+  // Use separate state for phone input (similar to Appointment page pattern)
+  const [phoneInputValue, setPhoneInputValue] = useState('')
+  
+  // Sync phoneInputValue with form value when form resets or phone changes
+  useEffect(() => {
+    const phoneValue = form.getValues('phone') || ''
+    const phoneWithoutPlus = phoneValue ? phoneValue.replace(/^\+/, '') : ''
+    if (phoneWithoutPlus !== phoneInputValue) {
+      setPhoneInputValue(phoneWithoutPlus)
+    }
+  }, [form, phoneInputValue, open, currentRow])
 
   const onSubmit = async (values: UserForm) => {
     console.log("🚀 onSubmit called with values:", values);
@@ -148,10 +194,10 @@ export function UsersActionDialog({
         const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
         const userData = {
           name: values.name,
-          username: values.username,
+          ...(isEditingCustomer ? {} : { username: values.username }),
           email: values.email,
           phone: values.phone,
-          roles: values.roles,
+          ...(isEditingCustomer ? {} : { roles: values.roles }),
           workHours: isCustomerOnly ? undefined : values.workHours,
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
@@ -215,25 +261,27 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Username
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john_doe'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
+              {!isEditingCustomer && (
+                <FormField
+                  control={form.control}
+                  name='username'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-end'>
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='john_doe'
+                          className='col-span-4'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-4 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name='email'
@@ -262,9 +310,13 @@ export function UsersActionDialog({
                     <FormControl>
                       <div className='col-span-4'>
                         <PhoneInput
+                          key={`phone-${currentRow?.id || 'new'}-${open}-${phoneInputValue}`}
                           country={"pk"} // default to Pakistan
-                          value={field.value || ''}
-                          onChange={(val) => field.onChange("+" + val)}
+                          value={phoneInputValue}
+                          onChange={(val) => {
+                            setPhoneInputValue(val)
+                            field.onChange("+" + val)
+                          }}
                           inputProps={{
                             id: "phone",
                             name: "phone",
@@ -303,48 +355,50 @@ export function UsersActionDialog({
                   )}
                 />
               )}
-              <FormField
-                control={form.control}
-                name='roles'
-                render={({ field }) => {
-                  return (
-                    <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
-                      <MultiSelectDropdown
-                        value={field.value?.map(role => {
-                          // Convert uppercase role constant to lowercase for display
-                          console.log("role", role);
-                          const roleMap: Record<string, string> = {
-                            [ROLE.ADMIN]: 'admin',
-                            [ROLE.USER]: 'user',
-                            [ROLE.CUSTOMER]: 'cust'
-                          }
-                          return roleMap[role] || role.toLowerCase()
-                        }) || []}
-                        onValueChange={(values) => {
-                          // Convert lowercase values back to uppercase role constants
-                          const roleMap: Record<string, string> = {
-                            'admin': ROLE.ADMIN,
-                            'user': ROLE.USER,
-                            'cust': ROLE.CUSTOMER
-                          }
-                          field.onChange(values.map(value => roleMap[value] || value.toUpperCase()))
-                        }}
-                        placeholder='Select roles'
-                        className='col-span-4'
-                        items={roles
-                          .filter(role => availableRoles.includes(role.value.toUpperCase() as ROLE))
-                          .map(({ label, value, icon }) => ({
-                            label,
-                            value,
-                            icon,
-                          }))}
-                      />
-                      <FormMessage className='col-span-4 col-start-3' />
-                    </FormItem>
-                  )
-                }}
-              />
+              {!isEditingCustomer && (
+                <FormField
+                  control={form.control}
+                  name='roles'
+                  render={({ field }) => {
+                    return (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
+                        <MultiSelectDropdown
+                          value={field.value?.map(role => {
+                            // Convert uppercase role constant to lowercase for display
+                            console.log("role", role);
+                            const roleMap: Record<string, string> = {
+                              [ROLE.ADMIN]: 'admin',
+                              [ROLE.USER]: 'user',
+                              [ROLE.CUSTOMER]: 'cust'
+                            }
+                            return roleMap[role] || role.toLowerCase()
+                          }) || []}
+                          onValueChange={(values) => {
+                            // Convert lowercase values back to uppercase role constants
+                            const roleMap: Record<string, string> = {
+                              'admin': ROLE.ADMIN,
+                              'user': ROLE.USER,
+                              'cust': ROLE.CUSTOMER
+                            }
+                            field.onChange(values.map(value => roleMap[value] || value.toUpperCase()))
+                          }}
+                          placeholder='Select roles'
+                          className='col-span-4'
+                          items={roles
+                            .filter(role => availableRoles.includes(role.value.toUpperCase() as ROLE))
+                            .map(({ label, value, icon }) => ({
+                              label,
+                              value,
+                              icon,
+                            }))}
+                        />
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )
+                  }}
+                />
+              )}
               {!isCustomerOnly && (
                 <FormField
                   control={form.control}

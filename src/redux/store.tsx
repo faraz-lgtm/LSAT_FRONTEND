@@ -1,9 +1,9 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { configureStore, combineReducers, createListenerMiddleware } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import cartReducer from "./cartSlice";
 import infoReducer from "./informationSlice";
-import authReducer from "./authSlice";
+import authReducer, { reset, setUser, setTokens } from "./authSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "@/redux/api";
 
@@ -63,12 +63,89 @@ const finalReducer = combineReducers({
 
 const persistedReducer = persistReducer(persistConfig, finalReducer);
 
+// Create listener middleware to invalidate queries on auth state changes
+const listenerMiddleware = createListenerMiddleware();
+
+// Listen for auth state changes and invalidate all queries
+listenerMiddleware.startListening({
+  actionCreator: reset,
+  effect: async (action, listenerApi) => {
+    // Invalidate all query tags when user logs out
+    listenerApi.dispatch(
+      api.util.invalidateTags([
+        'Orders',
+        'Users',
+        'AvailableSlots',
+        'Products',
+        'Tasks',
+        'Dashboard',
+        'Invoices',
+        'Refunds',
+        'Transactions',
+        'Currency',
+        'Automation',
+        'Chat',
+      ])
+    );
+  },
+});
+
+// Invalidate all queries when user logs in
+listenerMiddleware.startListening({
+  actionCreator: setUser,
+  effect: async (action, listenerApi) => {
+    if (action.payload) {
+      // User logged in - invalidate all queries to refetch fresh data
+      listenerApi.dispatch(
+        api.util.invalidateTags([
+          'Orders',
+          'Users',
+          'AvailableSlots',
+          'Products',
+          'Tasks',
+          'Dashboard',
+          'Invoices',
+          'Refunds',
+          'Transactions',
+          'Currency',
+          'Automation',
+          'Chat',
+        ])
+      );
+    }
+  },
+});
+
+// Also invalidate when tokens are set (login/refresh)
+listenerMiddleware.startListening({
+  actionCreator: setTokens,
+  effect: async (action, listenerApi) => {
+    // Invalidate all queries when tokens are set (new login or token refresh)
+    listenerApi.dispatch(
+      api.util.invalidateTags([
+        'Orders',
+        'Users',
+        'AvailableSlots',
+        'Products',
+        'Tasks',
+        'Dashboard',
+        'Invoices',
+        'Refunds',
+        'Transactions',
+        'Currency',
+        'Automation',
+        'Chat',
+      ])
+    );
+  },
+});
+
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, 
-    }).concat(api.middleware),
+    }).concat(api.middleware, listenerMiddleware.middleware),
 });
 
 setupListeners(store.dispatch);

@@ -125,6 +125,7 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Confirmed', value: 'confirmed' },
               { label: 'Expired', value: 'expired' },
               { label: 'Canceled', value: 'canceled' },
+              { label: 'Completed', value: 'completed' },
               { label: 'No Status', value: 'no-status' },
             ],
           },

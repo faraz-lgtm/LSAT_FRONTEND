@@ -13,6 +13,7 @@ const currencySymbols: Record<string, string> = {
   JPY: '¥',
   CNY: '¥',
   INR: '₹',
+  PKR: '₨', // Pakistani Rupee
   AUD: 'A$',
   CHF: 'CHF',
   NZD: 'NZ$',
