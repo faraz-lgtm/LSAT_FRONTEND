@@ -18,6 +18,7 @@ import {
   CreateInvoiceDto,
   CreateProductInput,
   CreateRefundDto,
+  ForgotPasswordInput,
   InvoiceOutputDto,
   LoginInput,
   MarkAppointmentAttendanceDto,
@@ -26,6 +27,7 @@ import {
   RefreshTokenInput,
   Refund,
   RegisterInput,
+  ResetPasswordInput,
   SendEmailDto,
   SendMessageDto,
   Slot,
@@ -37,6 +39,7 @@ import {
   SwaggerBaseApiResponseForClassCancelOrderResultDto,
   SwaggerBaseApiResponseForClassConversationOutputDto,
   SwaggerBaseApiResponseForClassDashboardOutputDto,
+  SwaggerBaseApiResponseForClassForgotPasswordOutput,
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassMessageOutputDto,
   SwaggerBaseApiResponseForClassOrderOutput,
@@ -44,12 +47,14 @@ import {
   SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity,
   SwaggerBaseApiResponseForClassProductOutput,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  SwaggerBaseApiResponseForClassResetPasswordOutput,
   SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto,
   SwaggerBaseApiResponseForClassStripeCheckoutSession,
   SwaggerBaseApiResponseForClassStripePaymentIntent,
   SwaggerBaseApiResponseForClassSuccessResponseDto,
   SwaggerBaseApiResponseForClassTaskOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
   UpdateAutomationConfigDto,
   UpdateInvoiceStatusDto,
@@ -58,6 +63,7 @@ import {
   UpdateProductInput,
   UpdateUserInput,
   UserInput,
+  VerifyOtpInput,
   VoidInvoiceDto,
 } from "./data-contracts";
 
@@ -247,6 +253,53 @@ export namespace Api {
     export type RequestBody = RefreshTokenInput;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassAuthTokenOutput;
+  }
+
+  /**
+   * @description Sends a 6-digit OTP code to the user via both SMS (if phone number exists) and Email (if email exists). The OTP expires in 10 minutes. Rate limited to 3 requests per identifier per 15 minutes.
+   * @tags auth
+   * @name AuthControllerForgotPassword
+   * @summary Request password reset - sends OTP via SMS and Email
+   * @request POST:/api/v1/auth/forgot-password
+   */
+  export namespace AuthControllerForgotPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ForgotPasswordInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassForgotPasswordOutput;
+  }
+
+  /**
+   * @description Verifies if the provided OTP code is valid without consuming it. The OTP must be verified again in the reset-password endpoint where it will be consumed.
+   * @tags auth
+   * @name AuthControllerVerifyOtp
+   * @summary Verify OTP code
+   * @request POST:/api/v1/auth/verify-otp
+   */
+  export namespace AuthControllerVerifyOtp {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = VerifyOtpInput;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassVerifyOtpOutput;
+  }
+
+  /**
+   * @description Resets the user password after verifying the OTP code. The OTP is consumed after successful password reset and cannot be reused. Password must be at least 8 characters long.
+   * @tags auth
+   * @name AuthControllerResetPassword
+   * @summary Reset password with verified OTP
+   * @request POST:/api/v1/auth/reset-password
+   */
+  export namespace AuthControllerResetPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ResetPasswordInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassResetPasswordOutput;
   }
 
   /**
@@ -1732,7 +1785,7 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve execution history for all automations. Returns last 100 logs.
+   * @description Retrieve execution history for all automations. Returns last 100 logs. USER role: only logs for their assigned orders. ADMIN role: all logs.
    * @tags automation
    * @name AutomationConfigControllerGetAllLogs
    * @summary Get all automation execution logs
@@ -2102,6 +2155,36 @@ export namespace Api {
    * @request POST:/api/v1/chat/webhooks/sendgrid/inbound/manual
    */
   export namespace TwilioWebhookControllerHandleManualEmailReceive {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerTestSendGridInboundGet
+   * @summary Test if SendGrid inbound webhook endpoint is accessible (GET)
+   * @request GET:/api/v1/chat/webhooks/sendgrid/inbound/test
+   */
+  export namespace TwilioWebhookControllerTestSendGridInboundGet {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerTestSendGridInbound
+   * @summary Test if SendGrid inbound webhook endpoint is accessible
+   * @request POST:/api/v1/chat/webhooks/sendgrid/inbound/test
+   */
+  export namespace TwilioWebhookControllerTestSendGridInbound {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;

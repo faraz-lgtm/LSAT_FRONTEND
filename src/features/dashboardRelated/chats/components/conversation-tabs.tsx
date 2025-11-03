@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/dashboard/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/dashboard/ui/tabs'
 
 type ConversationTabsProps = {
   activeFilter: 'unread' | 'recents' | 'starred' | 'all'
@@ -10,7 +10,7 @@ export function ConversationTabs({
   onFilterChange,
 }: ConversationTabsProps) {
   return (
-    <Tabs value={activeFilter} onValueChange={onFilterChange}>
+    <Tabs value={activeFilter} onValueChange={(value) => onFilterChange(value as 'unread' | 'recents' | 'starred' | 'all')}>
       <TabsList className='h-auto p-1'>
         <TabsTrigger value='unread'>Unread</TabsTrigger>
         <TabsTrigger value='recents'>Recents</TabsTrigger>

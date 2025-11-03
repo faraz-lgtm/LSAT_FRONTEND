@@ -49,14 +49,24 @@ const Home = ({ showFree = false }: HomeProps) => {
   };
 
   const handleProductSelection = (productId: number, selected: boolean) => {
-    setSelectedProducts(prev => {
-      const newSet = new Set(prev);
+    try {
+      // First, update the selected products state
+      setSelectedProducts(prev => {
+        const newSet = new Set(prev);
+        if (selected) {
+          newSet.add(productId);
+        } else {
+          newSet.delete(productId);
+        }
+        return newSet;
+      });
+
+      // Then handle cart operations outside of state update to avoid render warnings
       if (selected) {
-        newSet.add(productId);
         // Add to cart if not already there
         if (!cartItems.find(item => item.id === productId)) {
-          const allProducts = isSuccess && productsData ? productsData.data : [];
-          const product = allProducts.find(p => p.id === productId);
+          const allProducts = isSuccess && productsData?.data && Array.isArray(productsData.data) ? productsData.data : [];
+          const product = allProducts.find(p => p?.id === productId);
           if (product) {
             const itemInput: ItemInput = {
               id: product.id,
@@ -72,14 +82,14 @@ const Home = ({ showFree = false }: HomeProps) => {
           }
         }
       } else {
-        newSet.delete(productId);
         // Remove from cart if it exists
         if (cartItems.find(item => item.id === productId)) {
           dispatch(removeFromCart(productId));
         }
       }
-      return newSet;
-    });
+    } catch (error) {
+      console.error('Error in handleProductSelection:', error);
+    }
   };
 
   const handleAddSelectedToCart = async () => {
@@ -225,7 +235,6 @@ const Home = ({ showFree = false }: HomeProps) => {
                       <ProductCard
                         product={p}
                         onAddToCart={handleAddToCart}
-                        isLoading={isAddingToCart}
                         isSelected={selectedProducts.has(p.id)}
                         onSelectionChange={handleProductSelection}
                       />
@@ -242,7 +251,6 @@ const Home = ({ showFree = false }: HomeProps) => {
                         <ProductCard
                           product={p}
                           onAddToCart={handleAddToCart}
-                          isLoading={isAddingToCart}
                           isSelected={selectedProducts.has(p.id)}
                           onSelectionChange={handleProductSelection}
                         />

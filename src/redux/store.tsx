@@ -3,7 +3,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import cartReducer from "./cartSlice";
 import infoReducer from "./informationSlice";
-import authReducer, { reset, setUser, setTokens } from "./authSlice";
+import authReducer, { reset } from "./authSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "@/redux/api";
 
@@ -63,14 +63,14 @@ const finalReducer = combineReducers({
 
 const persistedReducer = persistReducer(persistConfig, finalReducer);
 
-// Create listener middleware to invalidate queries on auth state changes
+// Create listener middleware to invalidate queries on login/logout
 const listenerMiddleware = createListenerMiddleware();
 
-// Listen for auth state changes and invalidate all queries
+// Invalidate all queries when user logs out
 listenerMiddleware.startListening({
   actionCreator: reset,
-  effect: async (action, listenerApi) => {
-    // Invalidate all query tags when user logs out
+  effect: async (_action, listenerApi) => {
+    // User logged out - invalidate all queries to clear cached data
     listenerApi.dispatch(
       api.util.invalidateTags([
         'Orders',
@@ -90,37 +90,25 @@ listenerMiddleware.startListening({
   },
 });
 
-// Invalidate all queries when user logs in
+// Invalidate all queries when user logs in (transition from logged out to logged in)
+// This uses a predicate to detect when auth state transitions from "not logged in" to "logged in"
 listenerMiddleware.startListening({
-  actionCreator: setUser,
-  effect: async (action, listenerApi) => {
-    if (action.payload) {
-      // User logged in - invalidate all queries to refetch fresh data
-      listenerApi.dispatch(
-        api.util.invalidateTags([
-          'Orders',
-          'Users',
-          'AvailableSlots',
-          'Products',
-          'Tasks',
-          'Dashboard',
-          'Invoices',
-          'Refunds',
-          'Transactions',
-          'Currency',
-          'Automation',
-          'Chat',
-        ])
-      );
-    }
+  predicate: (_action, currentState, previousState) => {
+    const prevAuth = (previousState as any)?.auth;
+    const currAuth = (currentState as any)?.auth;
+    
+    // Check if we transitioned from "not fully logged in" to "fully logged in"
+    // Previous state: user is null OR tokens are empty (not fully logged in)
+    // Current state: user exists AND tokens exist (fully logged in)
+    const wasNotLoggedIn = !prevAuth?.user || !prevAuth?.accessToken || !prevAuth?.refreshToken;
+    const isNowLoggedIn = !!currAuth?.user && !!currAuth?.accessToken && !!currAuth?.refreshToken;
+    
+    // Only trigger on actual login transition (not token refresh)
+    // Token refresh would have user and tokens in both previous and current state
+    return wasNotLoggedIn && isNowLoggedIn;
   },
-});
-
-// Also invalidate when tokens are set (login/refresh)
-listenerMiddleware.startListening({
-  actionCreator: setTokens,
-  effect: async (action, listenerApi) => {
-    // Invalidate all queries when tokens are set (new login or token refresh)
+  effect: async (_action, listenerApi) => {
+    // User completed login - invalidate all queries to refetch fresh data
     listenerApi.dispatch(
       api.util.invalidateTags([
         'Orders',

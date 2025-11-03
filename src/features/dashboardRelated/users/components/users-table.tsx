@@ -146,6 +146,7 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
         return () => clearTimeout(timeoutId)
       }
     }
+    return undefined
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.length, pagination.pageSize, columnFilters])
 

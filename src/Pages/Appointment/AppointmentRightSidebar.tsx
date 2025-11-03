@@ -1,17 +1,15 @@
-import { ArrowLeft } from "lucide-react";
-
 interface RightPanelProps {
   title: "Appointments" | "Your Information";
   children?: React.ReactNode;
   footerFn: Function;
-  setSelected:React.Dispatch<React.SetStateAction<"information" | "appointments">>;
+  setSelected?: React.Dispatch<React.SetStateAction<"information" | "appointments">>;
   isLoading?: boolean;
   loadingText?: string;
   onNavigateBack?: () => void;
   hideFooter?: boolean;
 }
 
-const RightPanel = ({ title, children, footerFn, setSelected, isLoading = false, loadingText = "Creating Customer...", onNavigateBack, hideFooter = false }: RightPanelProps) => {
+const RightPanel = ({ title, children, footerFn, isLoading = false, loadingText = "Creating Customer...", hideFooter = false }: RightPanelProps) => {
   // Hide footer for "Your Information" panel since button is now inline, or if explicitly hidden
   const showFooter = title === "Appointments" && !hideFooter;
   const isInformationPanel = title === "Your Information";

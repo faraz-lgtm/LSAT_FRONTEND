@@ -7,7 +7,6 @@ import {
   Phone,
   ExternalLink,
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { type ChatUser } from '../data/chat-types'
 
@@ -18,15 +17,6 @@ type MessageThreadHeaderProps = {
   onDelete?: () => void
   onFilter?: () => void
   onExpand?: () => void
-}
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 }
 
 export function MessageThreadHeader({

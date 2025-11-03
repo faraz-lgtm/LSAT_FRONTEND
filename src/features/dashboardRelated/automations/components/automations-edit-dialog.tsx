@@ -432,7 +432,7 @@ export function AutomationsEditDialog({
               name="parameters"
               render={() => (
                 <FormItem>
-                  <FormLabel>Delay (minutes)</FormLabel>
+                  <FormLabel>Before (minutes)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"

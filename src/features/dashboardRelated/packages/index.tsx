@@ -1,4 +1,4 @@
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { ConfigDrawer } from "@/components/dashboard/config-drawer";
 import { Header } from "@/components/dashboard/layout/header";
 import { Main } from "@/components/dashboard/layout/main";

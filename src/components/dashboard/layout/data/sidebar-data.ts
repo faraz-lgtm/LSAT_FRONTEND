@@ -269,7 +269,23 @@ if (ENV !== "DEVELOPMENT") {
       ...group,
       items: group.items.filter((item) => {
         // Allow items with direct URLs
-        if (item.url && ["/", "/users", "/orders", "/calendar", "/packages","/help-center","/tasks", cartUrl].includes(item.url)) {
+        if (item.url && [
+          "/", 
+          "/users", 
+          "/users/employees",
+          "/users/customers",
+          "/orders", 
+          "/calendar", 
+          "/packages",
+          "/help-center",
+          "/tasks",
+          "/invoices",
+          "/refunds",
+          "/transactions",
+          "/automations",
+          "/automation-logs",
+          cartUrl
+        ].includes(item.url)) {
           return true;
         }
         // Allow Settings (collapsible item without direct URL)

@@ -92,7 +92,7 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
       }))
 
       // For 1-on-1 chats, use the person's name. For group chats, use "Chat with X people"
-      const friendlyName = selectedUsers.length === 1 
+      const friendlyName = selectedUsers.length === 1 && selectedUsers[0]
         ? selectedUsers[0].fullName 
         : `Chat with ${selectedUsers.length} people`
 

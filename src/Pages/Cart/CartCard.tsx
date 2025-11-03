@@ -13,7 +13,7 @@ interface CartCardProps {
   itemSessions:number
 }
 
-const CartCard = ({ id,BigText, Desc, price , quantity, name, itemSessions }: CartCardProps) => {
+const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) => {
   const dispatch = useDispatch();
 
   const handleDelete = (id:number) => {

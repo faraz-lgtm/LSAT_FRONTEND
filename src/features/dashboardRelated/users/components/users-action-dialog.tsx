@@ -41,7 +41,6 @@ import { useEffect, useState } from 'react'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
-  username: z.string().min(1, 'Username is required.'),
   phone: z.string().min(1, 'Phone number is required.'),
   email: z.email({
     error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
@@ -77,7 +76,7 @@ export function UsersActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
-  const { setOpen } = useUsers()
+  const { setOpen, pageType } = useUsers()
   const [registerUser, { isLoading }] = useRegisterUserMutation()
   const [updateUser,{isLoading:updateLoading}]=useUpdateUserMutation()
   // Get current user from auth state
@@ -89,14 +88,21 @@ export function UsersActionDialog({
   // Get available roles based on current user's permissions
   const availableRoles = getAvailableRolesForNewUser(currentUserForRBAC)
   
+  // Filter roles based on page type
+  const filteredAvailableRoles = pageType === 'employees' 
+    ? availableRoles.filter(role => role === ROLE.USER || role === ROLE.ADMIN)
+    : availableRoles
+  
   // Check if editing a customer (customer-only user)
   const isEditingCustomer = isEdit && currentRow && currentRow.roles.length === 1 && currentRow.roles.includes(ROLE.CUSTOMER)
+  
+  // Check if adding a customer (on customers page and not editing)
+  const isAddingCustomer = !isEdit && pageType === 'customers'
   
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      username: '',
       email: '',
       phone: '',
       password: '',
@@ -117,7 +123,6 @@ export function UsersActionDialog({
         
         const formValues = {
           name: currentRow.name,
-          username: currentRow.username,
           phone: phoneValue,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
@@ -132,13 +137,14 @@ export function UsersActionDialog({
         setPhoneInputValue(phoneWithoutPlus)
         console.log('📱 Setting phoneInputValue to:', phoneWithoutPlus)
       } else {
+        // Auto-set role to CUST when adding customer
+        const initialRoles = isAddingCustomer ? [ROLE.CUSTOMER] : []
         form.reset({
           name: '',
-          username: '',
           email: '',
           phone: '',
           password: '',
-          roles: [],
+          roles: initialRoles,
           workHours: {},
           isEdit: false,
         })
@@ -149,7 +155,7 @@ export function UsersActionDialog({
 
   // Watch roles to determine if user is customer-only
   const watchedRoles = form.watch('roles')
-  const isCustomerOnly = watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)
+  const isCustomerOnly = (watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)) || isAddingCustomer
   
   // Use separate state for phone input (similar to Appointment page pattern)
   const [phoneInputValue, setPhoneInputValue] = useState('')
@@ -168,21 +174,28 @@ export function UsersActionDialog({
     try {
       if (!isEdit) {
         // Create new user
-        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
+        const isCustomerOnly = isAddingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
         
         if (!isCustomerOnly && !values.password) {
           toast.error("Password is required for non-customer users.")
           return
         }
         
+        // Auto-generate username from email (use part before @)
+        const emailPart = values.email ? values.email.split('@')[0] : ''
+        const autoUsername = emailPart ? emailPart.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'user'
+        
+        // Auto-set role to CUST when adding from customers page
+        const finalRoles = isAddingCustomer ? [ROLE.CUSTOMER] : values.roles
+        
         const userData = {
           name: values.name,
-          username: values.username,
           email: values.email,
           phone: values.phone,
+          username: autoUsername,
           password: values.password,
-          roles: values.roles,
-          workHours: isCustomerOnly ? undefined : values.workHours,
+          roles: finalRoles,
+          workHours: (isCustomerOnly || isAddingCustomer) ? undefined : values.workHours,
         }
         
         await registerUser(userData).unwrap()
@@ -191,14 +204,23 @@ export function UsersActionDialog({
       } else {
         console.log("📝 Edit user - values:", values);
         console.log("📝 Edit user - currentRow:", currentRow);
-        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
-        const userData = {
+        const isCustomerOnly = isEditingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
+        const userData: {
+          name: string
+          email: string
+          phone: string
+          username: string
+          roles: ("USER" | "ADMIN" | "CUST")[]
+          workHours?: Record<string, string[]>
+        } = {
           name: values.name,
-          ...(isEditingCustomer ? {} : { username: values.username }),
           email: values.email,
           phone: values.phone,
-          ...(isEditingCustomer ? {} : { roles: values.roles }),
-          workHours: isCustomerOnly ? undefined : values.workHours,
+          username: currentRow.username || '', // Use existing username when editing
+          roles: !isEditingCustomer && values.roles ? values.roles : currentRow.roles || [],
+        }
+        if (!isCustomerOnly && values.workHours) {
+          userData.workHours = values.workHours
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
         const result = await updateUser({id: currentRow.id, userData}).unwrap()
@@ -226,7 +248,12 @@ export function UsersActionDialog({
     >
       <DialogContent className='sm:max-w-2xl max-h-[80vh]'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>
+            {isEdit 
+              ? 'Edit User' 
+              : (pageType === 'customers' ? 'Add New Customer' : 'Add New User')
+            }
+          </DialogTitle>
           <DialogDescription>
             {isEdit ? 'Update the user here. ' : 'Create new user here. '}
             Click save when you&apos;re done.
@@ -261,27 +288,6 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              {!isEditingCustomer && (
-                <FormField
-                  control={form.control}
-                  name='username'
-                  render={({ field }) => (
-                    <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-end'>
-                        Username
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='john_doe'
-                          className='col-span-4'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage className='col-span-4 col-start-3' />
-                    </FormItem>
-                  )}
-                />
-              )}
               <FormField
                 control={form.control}
                 name='email'
@@ -310,7 +316,7 @@ export function UsersActionDialog({
                     <FormControl>
                       <div className='col-span-4'>
                         <PhoneInput
-                          key={`phone-${currentRow?.id || 'new'}-${open}-${phoneInputValue}`}
+                          key={`phone-${currentRow?.id || 'new'}-${open}`}
                           country={"pk"} // default to Pakistan
                           value={phoneInputValue}
                           onChange={(val) => {
@@ -355,7 +361,7 @@ export function UsersActionDialog({
                   )}
                 />
               )}
-              {!isEditingCustomer && (
+              {!isEditingCustomer && !isAddingCustomer && (
                 <FormField
                   control={form.control}
                   name='roles'
@@ -386,7 +392,7 @@ export function UsersActionDialog({
                           placeholder='Select roles'
                           className='col-span-4'
                           items={roles
-                            .filter(role => availableRoles.includes(role.value.toUpperCase() as ROLE))
+                            .filter(role => filteredAvailableRoles.includes(role.value.toUpperCase() as ROLE))
                             .map(({ label, value, icon }) => ({
                               label,
                               value,

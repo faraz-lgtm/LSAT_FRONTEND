@@ -21,7 +21,7 @@ import {
 } from '@/services/chat/chat-adapters'
 import type { ChatUser, Convo } from '@/features/dashboardRelated/chats/data/chat-types'
 import type { RootState } from '@/redux/store'
-import { toBackendChannel, toFrontendChannel, type BackendChannel } from '@/utils/chat-channel'
+import { toFrontendChannel, type BackendChannel } from '@/utils/chat-channel'
 
 interface UseChatReturn {
   conversations: ChatUser[]
@@ -92,7 +92,7 @@ export function useChat(): UseChatReturn {
   const [createConversationMutation, { isLoading: isCreatingConversation }] =
     useCreateConversationMutation()
   const [sendMessageMutation, { isLoading: isSendingMessage }] = useSendMessageMutation()
-  const [sendEmailMutation, { isLoading: isSendingEmail }] = useSendEmailMutation()
+  const [, { isLoading: isSendingEmail }] = useSendEmailMutation()
 
   const isLoading = isLoadingConversations || isLoadingConversation || isLoadingMessages || isCreatingConversation || isSendingMessage || isSendingEmail
   const error = conversationsError || conversationError || messagesError
@@ -150,20 +150,23 @@ export function useChat(): UseChatReturn {
 
     // Listen for conversation updates
     const handleConversationUpdated = ({ conversationSid, conversation }: { conversationSid: string; conversation: ConversationOutputDto }) => {
-      const chatUser = convertConversationsToChatUsers([conversation])[0]
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === conversationSid ? chatUser : conv,
-        ),
-      )
-      if (currentConversation?.id === conversationSid) {
-        setCurrentConversation(chatUser)
-        setCurrentBackendConversation(conversation)
+      const chatUsers = convertConversationsToChatUsers([conversation])
+      const chatUser = chatUsers[0]
+      if (chatUser) {
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === conversationSid ? chatUser : conv,
+          ),
+        )
+        if (currentConversation?.id === conversationSid) {
+          setCurrentConversation(chatUser)
+          setCurrentBackendConversation(conversation)
+        }
       }
     }
 
     // Listen for delivery receipts
-    const handleDeliveryReceipt = ({ conversationSid, receipt }: { conversationSid: string; receipt: any }) => {
+    const handleDeliveryReceipt = ({ receipt }: { receipt: any }) => {
       console.log('Delivery receipt:', receipt)
       // Update message status if needed
     }
@@ -193,7 +196,7 @@ export function useChat(): UseChatReturn {
     socket.on('message:received', handleMessageReceived)
     socket.on('message:sent', handleMessageSent)
     socket.on('conversation:updated', handleConversationUpdated)
-    socket.on('delivery:receipt', handleDeliveryReceipt)
+    socket.on('delivery:receipt', ({ receipt }: { receipt: any }) => handleDeliveryReceipt({ receipt }))
     socket.on('typing:start', handleTypingStart)
     socket.on('typing:stop', handleTypingStop)
 
@@ -236,9 +239,10 @@ export function useChat(): UseChatReturn {
     if (conversationData) {
       // transformResponse should have normalized this to a Conversation object
       if (conversationData && typeof conversationData === 'object' && 'sid' in conversationData) {
-        const chatUser = convertConversationsToChatUsers([conversationData])[0]
+        const chatUsers = convertConversationsToChatUsers([conversationData])
+        const chatUser = chatUsers[0]
         setCurrentBackendConversation(conversationData)
-        setCurrentConversation(chatUser)
+        setCurrentConversation(chatUser ?? null)
       }
     }
   }, [conversationData])
@@ -300,7 +304,7 @@ export function useChat(): UseChatReturn {
   }, [])
 
   // Load messages for conversation - refetch with current channel
-  const loadMessages = useCallback(async (sid: string, limit = 50, channel?: BackendChannel) => {
+  const loadMessages = useCallback(async (sid: string, _limit = 50, channel?: BackendChannel) => {
     if (sid === selectedConversationSid) {
       // If channel is provided and different from active, update it first
       if (channel && channel !== activeChannelState) {
@@ -351,7 +355,11 @@ export function useChat(): UseChatReturn {
         const result = await createConversationMutation(data).unwrap()
         // Handle both direct object or wrapped in BaseApiResponse
         const conversation = (result as any).data || result
-        const chatUser = convertConversationsToChatUsers([conversation])[0]
+        const chatUsers = convertConversationsToChatUsers([conversation])
+        const chatUser = chatUsers[0]
+        if (!chatUser) {
+          throw new Error('Failed to convert conversation to chat user')
+        }
         return chatUser
       } catch (err: any) {
         throw err

@@ -7,37 +7,17 @@ import { useEffect, useRef } from "react";
 type ProductCardProps = {
   product: ProductOutput;
   onAddToCart?: (product: ItemInput) => void;
-  isLoading?: boolean;
   isSelected?: boolean;
   onSelectionChange?: (productId: number, selected: boolean) => void;
 };
 
-const ProductCard = ({ product, onAddToCart, isLoading = false, isSelected = false, onSelectionChange }: ProductCardProps) => {
+const ProductCard = ({ product, isSelected = false, onSelectionChange }: ProductCardProps) => {
   const formatCurrency = useCurrencyFormatter();
   const isFree = product.price === 0;
   const isPopular = product.id === 6; // 5X Prep Session Bundle
   const checkboxRef = useRef<HTMLInputElement>(null);
+  const isUpdatingStyleRef = useRef(false);
 
-  // Convert ProductOutput to ItemInput for cart
-  const convertToItemInput = (productOutput: ProductOutput): ItemInput => {
-    return {
-      id: productOutput.id,
-      name: productOutput.name,
-      price: productOutput.price,
-      Duration: productOutput.Duration,
-      Description: productOutput.Description,
-      DateTime: [],
-      quantity: 1,
-      sessions: productOutput.sessions,
-      // assignedEmployeeId: 1,
-    };
-  };
-
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(convertToItemInput(product));
-    }
-  };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onSelectionChange) {
@@ -52,21 +32,52 @@ const ProductCard = ({ product, onAddToCart, isLoading = false, isSelected = fal
       
       // Set initial border properties with !important equivalent using setAttribute
       const enforceWhiteBorder = () => {
-        checkbox.setAttribute('style', 
-          checkbox.getAttribute('style')?.replace(/border[^;]*/g, '') || '' +
-          'border-width: 2px !important; border-style: solid !important; border-color: #ffffff !important;'
-        );
-        // Also set via style for immediate effect
-        checkbox.style.setProperty('border-width', '2px', 'important');
-        checkbox.style.setProperty('border-style', 'solid', 'important');
-        checkbox.style.setProperty('border-color', '#ffffff', 'important');
+        if (isUpdatingStyleRef.current) return; // Prevent recursive calls
+        isUpdatingStyleRef.current = true;
+        
+        try {
+          // Get current style and clean it
+          const currentStyle = checkbox.getAttribute('style') || '';
+          const cleanedStyle = currentStyle.replace(/border[^;]*/g, '');
+          const newStyle = cleanedStyle + 'border-width: 2px !important; border-style: solid !important; border-color: #ffffff !important;';
+          
+          // Only update if style actually changed to avoid triggering observer
+          if (currentStyle !== newStyle) {
+            checkbox.setAttribute('style', newStyle);
+          }
+          
+          // Also set via style for immediate effect (this won't trigger our observer)
+          checkbox.style.setProperty('border-width', '2px', 'important');
+          checkbox.style.setProperty('border-style', 'solid', 'important');
+          checkbox.style.setProperty('border-color', '#ffffff', 'important');
+        } finally {
+          // Use setTimeout to prevent immediate recursive calls
+          setTimeout(() => {
+            isUpdatingStyleRef.current = false;
+          }, 0);
+        }
       };
       
       enforceWhiteBorder();
 
       // Use MutationObserver to maintain white border even when browser styles change
-      const observer = new MutationObserver(() => {
-        enforceWhiteBorder();
+      // But only observe changes we didn't make ourselves
+      const observer = new MutationObserver((mutations) => {
+        // Only react if the change wasn't made by us
+        if (!isUpdatingStyleRef.current) {
+          // Check if border color was changed
+          const hasBorderChange = mutations.some(mutation => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+              const currentBorderColor = checkbox.style.borderColor;
+              return currentBorderColor !== 'rgb(255, 255, 255)' && currentBorderColor !== '#ffffff';
+            }
+            return false;
+          });
+          
+          if (hasBorderChange) {
+            enforceWhiteBorder();
+          }
+        }
       });
       
       observer.observe(checkbox, {
@@ -75,19 +86,18 @@ const ProductCard = ({ product, onAddToCart, isLoading = false, isSelected = fal
         attributeOldValue: true,
       });
 
+      // Only add event listeners for focus/blur, not click/change to avoid interference
       checkbox.addEventListener('blur', enforceWhiteBorder);
       checkbox.addEventListener('focus', enforceWhiteBorder);
-      checkbox.addEventListener('change', enforceWhiteBorder);
-      checkbox.addEventListener('click', enforceWhiteBorder);
       
       return () => {
         observer.disconnect();
         checkbox.removeEventListener('blur', enforceWhiteBorder);
         checkbox.removeEventListener('focus', enforceWhiteBorder);
-        checkbox.removeEventListener('change', enforceWhiteBorder);
-        checkbox.removeEventListener('click', enforceWhiteBorder);
+        isUpdatingStyleRef.current = false; // Reset flag on cleanup
       };
     }
+    return undefined;
   }, [isPopular, isSelected]);
 
   return (

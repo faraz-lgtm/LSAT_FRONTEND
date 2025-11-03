@@ -8,32 +8,32 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { AuthLayout } from '../auth-layout'
-import { ForgotPasswordForm } from './components/forgot-password-form'
+import { ResetPasswordForm } from './components/reset-password-form'
 
-export function ForgotPassword() {
+export function ResetPassword() {
   return (
     <AuthLayout>
       <Card className='gap-4'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
-            Forgot Password
+            Reset Password
           </CardTitle>
           <CardDescription>
-            Enter your registered email or phone number and <br /> we will send you an OTP code to
-            reset your password.
+            Enter the OTP code you received and your new password to reset
+            your account password.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ForgotPasswordForm />
+          <ResetPasswordForm />
         </CardContent>
         <CardFooter>
           <p className='text-muted-foreground mx-auto px-8 text-center text-sm text-balance'>
-            Don't have an account?{' '}
+            Remember your password?{' '}
             <Link
-              to='/sign-up'
+              to='/sign-in'
               className='hover:text-primary underline underline-offset-4'
             >
-              Sign up
+              Sign in
             </Link>
             .
           </p>
@@ -42,3 +42,4 @@ export function ForgotPassword() {
     </AuthLayout>
   )
 }
+

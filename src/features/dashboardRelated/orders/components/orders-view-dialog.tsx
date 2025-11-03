@@ -23,7 +23,6 @@ import {
   useMarkAppointmentAttendanceMutation, 
   useUpdateOrderNotesMutation,
   useGenerateRescheduleLinkMutation,
-  useRescheduleAppointmentMutation,
 } from '@/redux/apiSlices/Order/orderSlice'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -63,7 +62,6 @@ export function OrdersViewDialog({
   const { data: apptsData, isLoading: isLoadingAppts } = useListOrderAppointmentsQuery(currentRow.id, { skip: !open })
   const [markAttendance, { isLoading: isMarking }] = useMarkAppointmentAttendanceMutation()
   const [generateLink, { isLoading: isGenerating } ] = useGenerateRescheduleLinkMutation()
-  const [rescheduleAppt, { isLoading: isRescheduling } ] = useRescheduleAppointmentMutation()
   const [copyingApptId, setCopyingApptId] = useState<number | null>(null)
   const [copiedApptId, setCopiedApptId] = useState<number | null>(null)
   const [copyErrorApptId, setCopyErrorApptId] = useState<number | null>(null)

@@ -8,7 +8,6 @@ import type {
   ParticipantOutputDto,
   AddParticipantDto,
   SendEmailDto as BackendSendEmailDto,
-  SuccessResponseDto,
 } from '@/types/api/data-contracts'
 
 // Re-export types from data-contracts for convenience and backward compatibility
@@ -18,17 +17,6 @@ export type Participant = ParticipantOutputDto
 
 // Use SendEmailDto from data-contracts
 export type SendEmailDto = BackendSendEmailDto
-
-// Re-export the DTOs directly from data-contracts
-export type {
-  ConversationOutputDto,
-  MessageOutputDto,
-  ParticipantOutputDto,
-  CreateConversationDto,
-  SendMessageDto,
-  AddParticipantDto,
-  ParticipantDto,
-} from '@/types/api/data-contracts'
 
 // Chat API slice using RTK Query
 export const chatApi = api.injectEndpoints({
@@ -41,8 +29,6 @@ export const chatApi = api.injectEndpoints({
         params: params ? { limit: params.limit || 50 } : { limit: 50 },
       }),
       providesTags: ['Chat'],
-      // Refetch conversations when tab is focused
-      refetchOnFocus: true,
       // Transform response - backend returns array directly, but handle BaseApiResponse too
       transformResponse: (response: any): Conversation[] => {
         // If response is already an array, return it directly
@@ -98,8 +84,6 @@ export const chatApi = api.injectEndpoints({
         }
       },
       providesTags: (_result, _error, { sid }) => [{ type: 'Chat', id: sid }],
-      // Force refetch when query arguments change (especially channel parameter)
-      refetchOnMountOrArgChange: true,
       // Transform response to handle both formats
       transformResponse: (response: any): Message[] => {
         if (Array.isArray(response)) {
@@ -246,13 +230,7 @@ export const {
   useDeleteConversationMutation,
 } = chatApi
 
-// Export types for backward compatibility
-export type {
-  Conversation,
-  Message,
-  Participant,
-  SendEmailDto,
-}
+// Types are already exported above as aliases
 
 // Re-export DTOs from data-contracts (preferred - use these directly)
 export type {

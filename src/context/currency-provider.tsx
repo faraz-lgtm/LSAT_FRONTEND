@@ -201,9 +201,9 @@ function detectCurrencyFromLocation(): string | null {
       
       // Extract country from timezone using better logic
       const tzParts = timezone.split('/')
-      if (tzParts.length > 1) {
+      if (tzParts.length > 1 && tzParts[0]) {
         const region = tzParts[0]
-        const city = tzParts[tzParts.length - 1].toLowerCase()
+        const city = tzParts[tzParts.length - 1]?.toLowerCase() || ''
         
         console.log('🌍 Currency Detection - Region:', region, 'City:', city)
         

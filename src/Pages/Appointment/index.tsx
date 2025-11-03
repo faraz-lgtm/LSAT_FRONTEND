@@ -461,7 +461,7 @@ const Appointment = () => {
         
         // For free purchase route, redirect to success page instead of Stripe
         if (isFreePurchase) {
-          navigate("/success");
+          navigate("/success?type=free_session");
         } else if (result?.data?.url) {
           window.location.href = result.data.url;
         }

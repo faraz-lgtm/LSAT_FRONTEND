@@ -281,6 +281,85 @@ export interface SwaggerBaseApiResponseForClassAuthTokenOutput {
   data: AuthTokenOutput;
 }
 
+export interface ForgotPasswordInput {
+  /** Email address or phone number of the user requesting password reset. Use email format (e.g., user@example.com) or phone number (e.g., +1234567890) */
+  identifier: string;
+}
+
+export interface ForgotPasswordOutput {
+  /**
+   * Success message
+   * @example "If the provided email or phone number exists, an OTP code has been sent."
+   */
+  message: string;
+}
+
+export interface SwaggerBaseApiResponseForClassForgotPasswordOutput {
+  meta: MetaResponse;
+  data: ForgotPasswordOutput;
+}
+
+export interface VerifyOtpInput {
+  /**
+   * Email address or phone number used to request password reset. Must match the identifier used in the forgot-password request.
+   * @example "user@example.com"
+   */
+  identifier: string;
+  /**
+   * 6-digit OTP code received via SMS or Email. Must be exactly 6 numeric digits.
+   * @pattern ^\d{6}$
+   * @example "123456"
+   */
+  otp: string;
+}
+
+export interface VerifyOtpOutput {
+  /**
+   * Whether the OTP is valid
+   * @example true
+   */
+  isValid: boolean;
+}
+
+export interface SwaggerBaseApiResponseForClassVerifyOtpOutput {
+  meta: MetaResponse;
+  data: VerifyOtpOutput;
+}
+
+export interface ResetPasswordInput {
+  /**
+   * Email address or phone number used to request password reset. Must match the identifier used in the forgot-password request.
+   * @example "user@example.com"
+   */
+  identifier: string;
+  /**
+   * 6-digit OTP code received via SMS or Email. Must be exactly 6 numeric digits. This OTP will be consumed after successful password reset.
+   * @pattern ^\d{6}$
+   * @example "123456"
+   */
+  otp: string;
+  /**
+   * New password for the account. Must be at least 8 characters long. The password will be hashed before storage.
+   * @minLength 8
+   * @maxLength 100
+   * @example "NewSecurePassword123!"
+   */
+  newPassword: string;
+}
+
+export interface ResetPasswordOutput {
+  /**
+   * Success message
+   * @example "Password reset successfully"
+   */
+  message: string;
+}
+
+export interface SwaggerBaseApiResponseForClassResetPasswordOutput {
+  meta: MetaResponse;
+  data: ResetPasswordOutput;
+}
+
 export interface GetOrdersQueryParams {
   /** Optional, defaults to 100 */
   limit?: number;
@@ -2007,10 +2086,10 @@ export interface SendEmailDto {
    */
   to?: string;
   /**
-   * Email subject
+   * Email subject (defaults to "Chat-BetterLSAT" if not provided)
    * @example "Re: Your inquiry"
    */
-  subject: string;
+  subject?: string;
   /** Plain text content */
   text?: string;
   /** HTML content */

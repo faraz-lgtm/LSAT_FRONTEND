@@ -11,7 +11,6 @@ import { UsersPrimaryButtons } from "../components/users-primary-buttons";
 import { UsersProvider } from "../components/users-provider";
 import { UsersTable } from "../components/users-table";
 import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
-import type { UserOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/users/customers");
 
@@ -27,7 +26,7 @@ export function CustomersPage() {
   }, [isSuccess, usersData?.data]);
 
   return (
-    <UsersProvider>
+    <UsersProvider pageType="customers">
       <Header fixed>
         <Search />
         <div className="ms-auto flex items-center space-x-4">

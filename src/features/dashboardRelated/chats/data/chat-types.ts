@@ -1,5 +1,3 @@
-import { type conversations } from './convo.json'
-
 export type MessageChannel = 'SMS' | 'Email'
 
 export type ContactDetail = {
