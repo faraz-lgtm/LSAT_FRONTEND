@@ -108,7 +108,7 @@ const ProductCard = ({ product, isSelected = false, onSelectionChange }: Product
     >
       {/* Badge */}
       {product.badge && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="badge  transform z-10">
           <span 
             style={{ 
               backgroundColor: product.badge.color,
@@ -123,7 +123,7 @@ const ProductCard = ({ product, isSelected = false, onSelectionChange }: Product
 
       {/* Popular Badge - Only show if not already showing in product.badge */}
       {isPopular && !product.badge && (
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 badge  transform z-10">
           <span className="bg-white/90 text-blue-600 px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
             Most Popular
           </span>
