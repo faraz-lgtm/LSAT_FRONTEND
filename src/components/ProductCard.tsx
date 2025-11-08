@@ -39,7 +39,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     onAddToCart(itemInput);
   };
 
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCardClick = () => {
     // Don't do anything on card click - buttons handle the interaction
   };
 

@@ -12,7 +12,6 @@ import { useState } from 'react'
 import type { TaskOutputDto, TaskQueryDto, UserOutput } from '@/types/api/data-contracts'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { SelectDropdown } from '@/components/dashboard/select-dropdown'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
 import { ROLE } from '@/constants/roles'
 

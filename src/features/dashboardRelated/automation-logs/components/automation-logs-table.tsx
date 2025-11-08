@@ -136,7 +136,7 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
           </button>
         )
       },
-      filterFn: (row, id, filterValue) => {
+      filterFn: (row, _id, filterValue) => {
         const orderId = getOrderId(row.original)
         if (!orderId) return false
         const filterStr = String(filterValue).trim()
@@ -250,7 +250,7 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange,
-    globalFilterFn: (row, columnId, filterValue) => {
+    globalFilterFn: (row, _columnId, filterValue) => {
       const searchValue = String(filterValue).toLowerCase().trim()
       if (!searchValue) return true
       

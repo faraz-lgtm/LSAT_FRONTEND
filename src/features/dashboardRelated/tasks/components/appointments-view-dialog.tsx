@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
-import { Badge } from '@/components/dashboard/ui/badge'
 import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import { format } from 'date-fns'
 import { ExternalLink, CalendarClock } from 'lucide-react'

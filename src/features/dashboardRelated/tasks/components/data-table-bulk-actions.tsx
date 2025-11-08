@@ -1,15 +1,7 @@
 import { useState } from 'react'
 import { type Table } from '@tanstack/react-table'
-import { Trash2, CircleArrowUp, ArrowUpDown, Download, Circle, CheckCircle, Timer, CircleOff, ArrowDown, ArrowRight, ArrowUp, CalendarClock, Pencil, Eye } from 'lucide-react'
-import { toast } from 'sonner'
-import { sleep } from '@/lib/dashboardRelated/utils'
+import { Trash2, CalendarClock, Pencil, Eye } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/dashboard/ui/dropdown-menu'
 import {
   Tooltip,
   TooltipContent,
@@ -20,19 +12,6 @@ import { TasksMultiDeleteDialog } from './tasks-multi-delete-dialog'
 import type { TaskOutputDto } from '@/types/api/data-contracts'
 import { useGenerateRescheduleLinkMutation } from '@/redux/apiSlices/Order/orderSlice'
 
-// Define the filter options directly here since we removed the data folder
-const statuses = [
-  { label: 'Pending', value: 'pending' as const, icon: Circle },
-  { label: 'In Progress', value: 'in_progress' as const, icon: Timer },
-  { label: 'Completed', value: 'completed' as const, icon: CheckCircle },
-  { label: 'Cancelled', value: 'cancelled' as const, icon: CircleOff },
-]
-
-const priorities = [
-  { label: 'Low', value: 'low' as const, icon: ArrowDown },
-  { label: 'Medium', value: 'medium' as const, icon: ArrowRight },
-  { label: 'High', value: 'high' as const, icon: ArrowUp },
-]
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
@@ -52,7 +31,7 @@ export function DataTableBulkActions<TData>({
   const [generateLink] = useGenerateRescheduleLinkMutation()
   
   const isSingleSelection = selectedRows.length === 1
-  const selectedTask = isSingleSelection ? (selectedRows[0].original as TaskOutputDto) : null
+  const selectedTask = isSingleSelection && selectedRows[0] ? (selectedRows[0].original as TaskOutputDto) : null
 
   const handleReschedule = async () => {
     if (!selectedTask) return
@@ -88,44 +67,6 @@ export function DataTableBulkActions<TData>({
     window.alert('Reschedule not available for this task')
   }
 
-  const handleBulkStatusChange = (status: string) => {
-    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
-    toast.promise(sleep(2000), {
-      loading: 'Updating status...',
-      success: () => {
-        table.resetRowSelection()
-        return `Status updated to "${status}" for ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''}.`
-      },
-      error: 'Error',
-    })
-    table.resetRowSelection()
-  }
-
-  const handleBulkPriorityChange = (priority: string) => {
-    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
-    toast.promise(sleep(2000), {
-      loading: 'Updating priority...',
-      success: () => {
-        table.resetRowSelection()
-        return `Priority updated to "${priority}" for ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''}.`
-      },
-      error: 'Error',
-    })
-    table.resetRowSelection()
-  }
-
-  const handleBulkExport = () => {
-    const selectedTasks = selectedRows.map((row) => row.original as TaskOutputDto)
-    toast.promise(sleep(2000), {
-      loading: 'Exporting tasks...',
-      success: () => {
-        table.resetRowSelection()
-        return `Exported ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''} to CSV.`
-      },
-      error: 'Error',
-    })
-    table.resetRowSelection()
-  }
 
   return (
     <>
