@@ -9,7 +9,7 @@ import { TasksPrimaryButtons } from './components/tasks-primary-buttons'
 import { TasksTable } from './components/tasks-table'
 import { useGetTasksQuery } from '@/redux/apiSlices/Task/taskSlice'
 import { useState } from 'react'
-import type { TaskOutputDto, TaskQueryDto } from '@/types/api/data-contracts'
+import type { TaskOutputDto, TaskQueryDto, UserOutput } from '@/types/api/data-contracts'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { SelectDropdown } from '@/components/dashboard/select-dropdown'
@@ -37,7 +37,7 @@ export function Tasks() {
   })
 
   // Dialog state management
-  type TasksDialogOpenState = 'create' | 'import' | 'update' | 'delete' | null
+  type TasksDialogOpenState = 'create' | 'update' | 'delete' | 'view' | null
   const [open, setOpen] = useState<TasksDialogOpenState>(null)
   const [currentRow, setCurrentRow] = useState<TaskOutputDto | undefined>(undefined)
 
@@ -87,36 +87,10 @@ export function Tasks() {
               Here&apos;s a list of your appointments for this month.
             </p>
           </div>
-          {isAdmin && (
-            <div className='flex items-center gap-2'>
-              <SelectDropdown
-                className='min-w-[220px]'
-                placeholder='Filter by tutor'
-                isPending={usersLoading}
-                defaultValue={filters.tutorId ? String(filters.tutorId) : undefined}
-                isControlled
-                onValueChange={(val) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    tutorId: val === 'all' ? undefined : Number(val),
-                  }))
-                }}
-                items={[
-                  { label: 'All Tasks', value: 'all' },
-                  ...(usersData?.data
-                    ?.filter((u) => (u.roles || []).some(r => r === ROLE.USER || r === ROLE.ADMIN))
-                    .map((u) => ({ label: `${u.name} (@${u.username})`, value: String(u.id) })) || []),
-                ]}
-              />
-            </div>
-          )}
           <TasksPrimaryButtons 
             onCreateTask={() => {
               setCurrentRow(undefined)
               setOpen('create')
-            }}
-            onImport={() => {
-              setOpen('import')
             }}
           />
         </div>
@@ -133,6 +107,13 @@ export function Tasks() {
               setCurrentRow(row)
               setOpen('delete')
             }}
+            onView={(row) => {
+              setCurrentRow(row)
+              setOpen('view')
+            }}
+            isAdmin={isAdmin}
+            usersData={usersData}
+            usersLoading={usersLoading}
           />
         </div>
       </Main>
@@ -142,6 +123,16 @@ export function Tasks() {
         setOpen={setOpen}
         currentRow={currentRow}
         setCurrentRow={(row) => setCurrentRow(row ?? undefined)}
+        userIdToUser={(usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
+          acc[u.id] = u
+          return acc
+        }, {})}
+        emailToUser={(usersData?.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
+          if (u.email) {
+            acc[u.email.toLowerCase()] = u
+          }
+          return acc
+        }, {})}
       />
       </>
   )

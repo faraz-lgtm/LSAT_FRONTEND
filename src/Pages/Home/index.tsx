@@ -39,8 +39,18 @@ const Home = ({ showFree = false }: HomeProps) => {
   }, [cartItems]);
   
   const handleAddToCart = (product: ItemInput) => {
-    console.log("Adding to cart:", product);
-    dispatch(addToCartAsync(product));
+    // Check if product is already in cart
+    const isInCart = cartItems.some(item => item.id === product.id);
+    
+    if (isInCart) {
+      // Remove from cart if already there
+      console.log("Removing from cart:", product.id);
+      dispatch(removeFromCart(product.id));
+    } else {
+      // Add to cart if not there
+      console.log("Adding to cart:", product);
+      dispatch(addToCartAsync(product));
+    }
   };
 
   const handleGoToCart = () => {
@@ -48,49 +58,6 @@ const Home = ({ showFree = false }: HomeProps) => {
     navigate("/cart");
   };
 
-  const handleProductSelection = (productId: number, selected: boolean) => {
-    try {
-      // First, update the selected products state
-      setSelectedProducts(prev => {
-        const newSet = new Set(prev);
-        if (selected) {
-          newSet.add(productId);
-        } else {
-          newSet.delete(productId);
-        }
-        return newSet;
-      });
-
-      // Then handle cart operations outside of state update to avoid render warnings
-      if (selected) {
-        // Add to cart if not already there
-        if (!cartItems.find(item => item.id === productId)) {
-          const allProducts = isSuccess && productsData?.data && Array.isArray(productsData.data) ? productsData.data : [];
-          const product = allProducts.find(p => p?.id === productId);
-          if (product) {
-            const itemInput: ItemInput = {
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              Duration: product.Duration,
-              Description: product.Description,
-              DateTime: [],
-              quantity: 1,
-              sessions: product.sessions,
-            };
-            dispatch(addToCartAsync(itemInput));
-          }
-        }
-      } else {
-        // Remove from cart if it exists
-        if (cartItems.find(item => item.id === productId)) {
-          dispatch(removeFromCart(productId));
-        }
-      }
-    } catch (error) {
-      console.error('Error in handleProductSelection:', error);
-    }
-  };
 
   const handleAddSelectedToCart = async () => {
     if (!isSuccess || !productsData) return;
@@ -235,8 +202,6 @@ const Home = ({ showFree = false }: HomeProps) => {
                       <ProductCard
                         product={p}
                         onAddToCart={handleAddToCart}
-                        isSelected={selectedProducts.has(p.id)}
-                        onSelectionChange={handleProductSelection}
                       />
                     </div>
                   ))
@@ -248,12 +213,10 @@ const Home = ({ showFree = false }: HomeProps) => {
                         className="animate-fade-in-up transition-all duration-300 hover:scale-102 h-full" 
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
-                        <ProductCard
-                          product={p}
-                          onAddToCart={handleAddToCart}
-                          isSelected={selectedProducts.has(p.id)}
-                          onSelectionChange={handleProductSelection}
-                        />
+                      <ProductCard
+                        product={p}
+                        onAddToCart={handleAddToCart}
+                      />
                       </div>
                     )))}
             </div>
@@ -262,11 +225,11 @@ const Home = ({ showFree = false }: HomeProps) => {
         </div>
       </div>
       
-      {/* Add to Cart Button - Show when products are selected */}
-      {selectedProducts.size > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:bottom-0 z-50 flex justify-center animate-slide-up bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 pb-4 pt-2">
-          <div className="lg:inline-block">
-            <div className="px-4 py-3 lg:px-0 lg:py-0">
+      {/* Add to Cart Button - Always visible */}
+      <div className="fixed bottom-0 left-0 right-0 lg:bottom-0 z-50 flex justify-center animate-slide-up bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 lg:bg-transparent lg:from-transparent lg:via-transparent lg:to-transparent lg:dark:from-transparent lg:dark:via-transparent lg:dark:to-transparent pb-4 pt-2">
+        <div className="lg:inline-block">
+          <div className="px-4 py-3 lg:px-0 lg:py-0">
+            {selectedProducts.size > 0 ? (
               <button
                 onClick={handleAddSelectedToCart}
                 disabled={isAddingToCart}
@@ -277,16 +240,7 @@ const Home = ({ showFree = false }: HomeProps) => {
                   {isAddingToCart ? 'Adding...' : `Add ${selectedProducts.size} to Cart`}
                 </span>
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Go to Cart Button - Only show when cart has items with animation (if no products selected) */}
-      {totalCartItems > 0 && selectedProducts.size === 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:bottom-0 z-50 flex justify-center animate-slide-up bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 pb-4 pt-2">
-          <div className="lg:inline-block">
-            <div className="px-4 py-3 lg:px-0 lg:py-0">
+            ) : (
               <button
                 onClick={handleGoToCart}
                 className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 px-8 lg:py-3 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -296,10 +250,10 @@ const Home = ({ showFree = false }: HomeProps) => {
                   Go to Cart ({totalCartItems} {totalCartItems === 1 ? 'item' : 'items'})
                 </span>
               </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
       
     </div>
   );

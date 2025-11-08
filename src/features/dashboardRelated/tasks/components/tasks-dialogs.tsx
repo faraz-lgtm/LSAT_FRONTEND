@@ -1,19 +1,21 @@
 import { ConfirmDialog } from '@/components/dashboard/confirm-dialog'
-import { TasksImportDialog } from './tasks-import-dialog'
 import { TasksMutateDrawer } from './tasks-mutate-drawer'
+import { AppointmentsViewDialog } from './appointments-view-dialog'
 import { useDeleteTaskMutation } from '@/redux/apiSlices/Task/taskSlice'
 import { toast } from 'sonner'
-import type { TaskOutputDto } from '@/types/api/data-contracts'
+import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import type { Dispatch, SetStateAction } from 'react'
 
 type TasksDialogsProps = {
-  open: 'create' | 'import' | 'update' | 'delete' | null
-  setOpen: (open: 'create' | 'import' | 'update' | 'delete' | null) => void
+  open: 'create' | 'update' | 'delete' | 'view' | null
+  setOpen: (open: 'create' | 'update' | 'delete' | 'view' | null) => void
   currentRow?: TaskOutputDto
   setCurrentRow: Dispatch<SetStateAction<TaskOutputDto | undefined>>
+  userIdToUser?: Record<number, UserOutput>
+  emailToUser?: Record<string, UserOutput>
 }
 
-export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow }: TasksDialogsProps) {
+export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow, userIdToUser, emailToUser }: TasksDialogsProps) {
   const [deleteTask] = useDeleteTaskMutation()
 
   const handleDelete = async () => {
@@ -49,14 +51,26 @@ export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow }: Tasks
         onOpenChange={(v) => setOpen(v ? 'create' : null)}
       />
 
-      <TasksImportDialog
-        key='tasks-import'
-        open={open === 'import'}
-        onOpenChange={(v) => setOpen(v ? 'import' : null)}
-      />
-
       {currentRow && (
         <>
+          <AppointmentsViewDialog
+            key={`appointment-view-${currentRow.id}`}
+            open={open === 'view'}
+            onOpenChange={(v) => {
+              if (!v) {
+                setOpen(null)
+                setTimeout(() => {
+                  setCurrentRow(undefined)
+                }, 500)
+              } else {
+                setOpen('view')
+              }
+            }}
+            currentRow={currentRow}
+            userIdToUser={userIdToUser}
+            emailToUser={emailToUser}
+          />
+
           <TasksMutateDrawer
             key={`task-update-${currentRow.id}`}
             open={open === 'update'}

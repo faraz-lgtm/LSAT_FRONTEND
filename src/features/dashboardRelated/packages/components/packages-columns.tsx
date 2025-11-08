@@ -22,7 +22,7 @@ export const createPackagesColumns = (formatCurrency: (cents: number) => string)
       />
     ),
     meta: {
-      className: cn('sticky md:table-cell start-0 z-10 rounded-tl-[inherit]'),
+      className: cn('sticky md:table-cell start-0 z-10 rounded-tl-[inherit] bg-background'),
     },
     cell: ({ row }) => (
       <Checkbox
@@ -46,7 +46,8 @@ export const createPackagesColumns = (formatCurrency: (cents: number) => string)
     meta: {
       className: cn(
         'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
-        'sticky start-6 @4xl/content:table-cell @4xl/content:drop-shadow-none'
+        'sticky start-6 @4xl/content:table-cell @4xl/content:drop-shadow-none',
+        'bg-background'
       ),
     },
     enableHiding: false,
@@ -57,12 +58,15 @@ export const createPackagesColumns = (formatCurrency: (cents: number) => string)
       <DataTableColumnHeader column={column} title='Package Name' />
     ),
     cell: ({ row }) => (
-      <div className='font-medium'>{row.getValue('name')}</div>
+      <div className='font-medium max-w-xs truncate' title={row.getValue('name') as string}>
+        {row.getValue('name')}
+      </div>
     ),
     meta: {
       className: cn(
         'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
-        'sticky start-20 @4xl/content:table-cell @4xl/content:drop-shadow-none'
+        'sticky start-20 @4xl/content:table-cell @4xl/content:drop-shadow-none',
+        'bg-background min-w-[200px]'
       ),
     },
     enableHiding: false,

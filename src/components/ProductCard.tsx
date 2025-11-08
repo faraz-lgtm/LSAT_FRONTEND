@@ -1,108 +1,52 @@
 import type { ProductOutput } from "../types/api/data-contracts";
 import type { ItemInput } from "../types/api/data-contracts";
 import { useCurrencyFormatter } from "../utils/currency";
-import { Check } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Check, ShoppingCart, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../redux/store";
 
 type ProductCardProps = {
   product: ProductOutput;
   onAddToCart?: (product: ItemInput) => void;
-  isSelected?: boolean;
-  onSelectionChange?: (productId: number, selected: boolean) => void;
 };
 
-const ProductCard = ({ product, isSelected = false, onSelectionChange }: ProductCardProps) => {
+const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const formatCurrency = useCurrencyFormatter();
   const isFree = product.price === 0;
   const isPopular = product.id === 6; // 5X Prep Session Bundle
-  const checkboxRef = useRef<HTMLInputElement>(null);
-  const isUpdatingStyleRef = useRef(false);
+  
+  // Check if product is in cart
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const isInCart = cartItems.some(item => item.id === product.id);
+  const isLoading = useSelector((state: RootState) => state.cart.isLoading);
 
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onSelectionChange) {
-      onSelectionChange(product.id, e.target.checked);
-    }
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (!onAddToCart) return;
+    
+    const itemInput: ItemInput = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      Duration: product.Duration,
+      Description: product.Description,
+      DateTime: [],
+      quantity: 1,
+      sessions: product.sessions,
+    };
+    
+    onAddToCart(itemInput);
   };
 
-  // Force white border for popular card checkbox - runs on mount and when selection changes
-  useEffect(() => {
-    if (isPopular && checkboxRef.current) {
-      const checkbox = checkboxRef.current;
-      
-      // Set initial border properties with !important equivalent using setAttribute
-      const enforceWhiteBorder = () => {
-        if (isUpdatingStyleRef.current) return; // Prevent recursive calls
-        isUpdatingStyleRef.current = true;
-        
-        try {
-          // Get current style and clean it
-          const currentStyle = checkbox.getAttribute('style') || '';
-          const cleanedStyle = currentStyle.replace(/border[^;]*/g, '');
-          const newStyle = cleanedStyle + 'border-width: 2px !important; border-style: solid !important; border-color: #ffffff !important;';
-          
-          // Only update if style actually changed to avoid triggering observer
-          if (currentStyle !== newStyle) {
-            checkbox.setAttribute('style', newStyle);
-          }
-          
-          // Also set via style for immediate effect (this won't trigger our observer)
-          checkbox.style.setProperty('border-width', '2px', 'important');
-          checkbox.style.setProperty('border-style', 'solid', 'important');
-          checkbox.style.setProperty('border-color', '#ffffff', 'important');
-        } finally {
-          // Use setTimeout to prevent immediate recursive calls
-          setTimeout(() => {
-            isUpdatingStyleRef.current = false;
-          }, 0);
-        }
-      };
-      
-      enforceWhiteBorder();
-
-      // Use MutationObserver to maintain white border even when browser styles change
-      // But only observe changes we didn't make ourselves
-      const observer = new MutationObserver((mutations) => {
-        // Only react if the change wasn't made by us
-        if (!isUpdatingStyleRef.current) {
-          // Check if border color was changed
-          const hasBorderChange = mutations.some(mutation => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-              const currentBorderColor = checkbox.style.borderColor;
-              return currentBorderColor !== 'rgb(255, 255, 255)' && currentBorderColor !== '#ffffff';
-            }
-            return false;
-          });
-          
-          if (hasBorderChange) {
-            enforceWhiteBorder();
-          }
-        }
-      });
-      
-      observer.observe(checkbox, {
-        attributes: true,
-        attributeFilter: ['style', 'class'],
-        attributeOldValue: true,
-      });
-
-      // Only add event listeners for focus/blur, not click/change to avoid interference
-      checkbox.addEventListener('blur', enforceWhiteBorder);
-      checkbox.addEventListener('focus', enforceWhiteBorder);
-      
-      return () => {
-        observer.disconnect();
-        checkbox.removeEventListener('blur', enforceWhiteBorder);
-        checkbox.removeEventListener('focus', enforceWhiteBorder);
-        isUpdatingStyleRef.current = false; // Reset flag on cleanup
-      };
-    }
-    return undefined;
-  }, [isPopular, isSelected]);
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Don't do anything on card click - buttons handle the interaction
+  };
 
   return (
     <div
-      className={`relative h-full flex flex-col ${isPopular ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group ${
+      onClick={handleCardClick}
+      className={`relative h-full flex flex-col ${isPopular ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group cursor-pointer ${
         isPopular ? "border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800" : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
       }`}
     >
@@ -131,35 +75,6 @@ const ProductCard = ({ product, isSelected = false, onSelectionChange }: Product
       )}
 
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
-        {/* Checkbox */}
-        <div className="flex justify-center mb-3 relative">
-          <div className={`relative inline-flex items-center justify-center ${isPopular ? 'ring-2 ring-white rounded' : ''}`}>
-            <input
-              ref={checkboxRef}
-              type="checkbox"
-              checked={isSelected}
-              onChange={handleCheckboxChange}
-              className={`w-5 h-5 sm:w-6 sm:h-6 rounded cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all appearance-none relative z-10 box-border ${
-                isPopular 
-                  ? 'border-2 border-white hover:border-white focus:border-white' 
-                  : 'border-2 border-gray-300 dark:border-gray-600'
-              } ${isSelected ? 'bg-blue-600' : 'bg-transparent'}`}
-              style={{
-                borderWidth: '2px',
-                borderStyle: 'solid',
-                borderColor: isPopular ? '#ffffff' : undefined,
-                boxSizing: 'border-box',
-                padding: 0,
-                margin: 0,
-              }}
-            />
-            {isSelected && (
-              <Check className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white w-3 h-3 sm:w-4 sm:h-4 pointer-events-none z-20`} 
-                     strokeWidth={3} />
-            )}
-          </div>
-        </div>
-
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h5 className={`${isPopular ? 'bg-white text-blue-500' : 'bg-green-500 text-white'} text-base sm:text-lg font-bold mb-2 leading-tight px-3 sm:px-4 py-2 rounded-lg transition-all duration-300`}>
@@ -266,6 +181,35 @@ const ProductCard = ({ product, isSelected = false, onSelectionChange }: Product
             </ul>
           </div>
         )}
+
+        {/* Add to Cart / Remove from Cart Button */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={handleButtonClick}
+            disabled={isLoading}
+            className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+              isInCart
+                ? isPopular
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-red-500 hover:bg-red-600 text-white'
+                : isPopular
+                  ? 'bg-white hover:bg-gray-100 text-blue-600'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {isInCart ? (
+              <>
+                <X className="w-5 h-5" />
+                <span>Remove from Cart</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
 
       </div>
     </div>

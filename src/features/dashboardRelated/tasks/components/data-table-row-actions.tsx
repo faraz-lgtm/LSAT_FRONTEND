@@ -10,7 +10,7 @@ import {
 import type { TaskOutputDto } from '@/types/api/data-contracts'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { CalendarClock, Trash2 } from 'lucide-react'
+import { CalendarClock, Trash2, Eye } from 'lucide-react'
 import { useGenerateRescheduleLinkMutation } from '@/redux/apiSlices/Order/orderSlice'
 
 // Filter options for the row actions
@@ -20,9 +20,10 @@ type DataTableRowActionsProps = {
   row: Row<TaskOutputDto>
   onEdit: (row: TaskOutputDto) => void
   onDelete: (row: TaskOutputDto) => void
+  onView?: (row: TaskOutputDto) => void
 }
 
-export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActionsProps) {
+export function DataTableRowActions({ row, onEdit, onDelete, onView }: DataTableRowActionsProps) {
   const task = row.original
   const [generateLink] = useGenerateRescheduleLinkMutation()
 
@@ -38,6 +39,14 @@ export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActio
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[160px]'>
+        {onView && (
+          <DropdownMenuItem
+            onClick={() => onView(task)}
+          >
+            <Eye className='mr-2 h-4 w-4' />
+            View Details
+          </DropdownMenuItem>
+        )}
         {(task.label === 'meeting') && (
           <DropdownMenuItem
             onClick={async () => {
@@ -74,7 +83,7 @@ export function DataTableRowActions({ row, onEdit, onDelete }: DataTableRowActio
         <DropdownMenuItem onClick={() => onEdit(task)}>
           Edit
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {(onView || task.label === 'meeting') && <DropdownMenuSeparator />}
         <DropdownMenuItem
           onClick={() => onDelete(task)}
         >
