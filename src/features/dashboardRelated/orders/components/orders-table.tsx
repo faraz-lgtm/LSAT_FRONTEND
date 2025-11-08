@@ -26,6 +26,7 @@ import { DataTableBulkActions } from './data-table-bulk-actions'
 import { createOrdersColumns } from './orders-columns'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { formatCurrency } from '@/utils/currency'
+import { useOrders } from './orders-provider'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,6 +45,7 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
   console.log("OrdersTable received data:", data);
   console.log("OrdersTable data length:", data?.length);
   
+  const { setOpen, setCurrentRow } = useOrders()
   const columns = createOrdersColumns(formatCurrency);
   
   // Local UI-only states
@@ -164,7 +166,11 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  className='group/row cursor-pointer'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('view')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

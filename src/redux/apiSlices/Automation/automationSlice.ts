@@ -9,7 +9,20 @@ import type {
 export interface AutomationLogOutputDto {
   id: number;
   automationKey: string;
+  triggerEvent?: string;
+  toolType?: string;
+  eventData?: {
+    order?: {
+      id: number;
+      [key: string]: any;
+    };
+    ctx?: {
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
   executedAt: string;
+  createdAt?: string;
   status: 'success' | 'failure' | 'pending';
   metadata?: object;
   error?: string;

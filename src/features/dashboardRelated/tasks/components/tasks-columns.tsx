@@ -7,6 +7,8 @@ import { format } from 'date-fns'
 import type { TaskOutputDto } from '@/types/api/data-contracts'
 import type { UserOutput } from '@/types/api/data-contracts'
 import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
+import { ClickableTutorCell } from './clickable-tutor-cell'
+import { ClickableCustomerCell } from './clickable-customer-cell'
 
 // Filter options for the columns
 const labels = [
@@ -32,7 +34,9 @@ const priorities = [
 export const createTasksColumns = (
   onEdit: (row: TaskOutputDto) => void,
   onDelete: (row: TaskOutputDto) => void,
-  userIdToUser?: Record<number, UserOutput>
+  onView?: (row: TaskOutputDto) => void,
+  userIdToUser?: Record<number, UserOutput>,
+  emailToUser?: Record<string, UserOutput>
 ): ColumnDef<TaskOutputDto>[] => [
   {
     id: 'select',
@@ -87,12 +91,76 @@ export const createTasksColumns = (
     ),
     cell: ({ row }) => {
       const task = row.original as TaskOutputDto
-      // Prefer attendee employee id if available; fallback to task.tutorId
-      const attendeeId = task.invitees?.find((i) => typeof i?.id === 'number')?.id
-      const resolvedUser = attendeeId && userIdToUser ? userIdToUser[attendeeId] : undefined
-      const fallbackUser = userIdToUser && userIdToUser[task.tutorId]
-      const displayName = resolvedUser?.name || fallbackUser?.name || '—'
-      return <div className='w-[160px]'>{displayName}</div>
+      // Get tutor ID from task.tutorId
+      const tutorId = task.tutorId
+      const user = tutorId && userIdToUser ? userIdToUser[tutorId] : undefined
+      const displayName = user?.name || '—'
+      return (
+        <ClickableTutorCell
+          tutorId={tutorId}
+          userIdToUser={userIdToUser}
+          displayName={displayName}
+        />
+      )
+    },
+    enableSorting: false,
+  },
+  {
+    id: 'customer',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Customer' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      // Find invitee with name "Customer"
+      const customerInvitee = task.invitees?.find((i) => i.name === 'Customer')
+      
+      if (!customerInvitee) {
+        return <div className='w-[200px] truncate'>—</div>
+      }
+      
+      // Get customer email from invitees
+      const customerEmail = customerInvitee.email
+      const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+      
+      // Display customer name from users API if found, otherwise fallback to invitee name or email
+      const displayValue = customer?.name || customerInvitee.name || customerEmail || '—'
+      return (
+        <ClickableCustomerCell
+          customerEmail={customerEmail}
+          emailToUser={emailToUser}
+          displayValue={displayValue}
+        />
+      )
+    },
+    enableSorting: false,
+  },
+  {
+    id: 'meetingLink',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Meeting Link' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      const meetingLink = task.meetingLink
+      
+      if (!meetingLink) {
+        return <div className='w-[200px] truncate'>—</div>
+      }
+      
+      return (
+        <div className='w-[200px] truncate'>
+          <a
+            href={meetingLink}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-600 hover:text-blue-800 underline truncate block'
+            title={meetingLink}
+          >
+            {meetingLink}
+          </a>
+        </div>
+      )
     },
     enableSorting: false,
   },
@@ -217,6 +285,6 @@ export const createTasksColumns = (
   },
   {
     id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} />,
+    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} onView={onView} />,
   },
 ]

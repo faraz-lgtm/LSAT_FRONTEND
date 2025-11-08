@@ -8,6 +8,7 @@ import { useGetAllAutomationLogsQuery, type AutomationLogOutputDto } from "@/red
 import { getRouteApi } from "@tanstack/react-router";
 import { AutomationLogsTable } from "./components/automation-logs-table";
 import { AutomationLogsProvider } from "./components/automation-logs-provider";
+import { AutomationLogsDialogs } from "./components/automation-logs-dialogs";
 
 const route = getRouteApi("/_authenticated/automation-logs/");
 
@@ -81,6 +82,8 @@ export function AutomationLogs() {
           />
         </div>
       </Main>
+
+      <AutomationLogsDialogs />
     </AutomationLogsProvider>
   );
 }

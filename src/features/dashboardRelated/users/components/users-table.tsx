@@ -26,6 +26,7 @@ import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
 import type { UserOutput } from '@/types/api/data-contracts'
+import { useUsers } from './users-provider'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,6 +46,7 @@ type DataTableProps = {
 } 
 
 export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter }: DataTableProps) {
+  const { setOpen, setCurrentRow } = useUsers()
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -69,6 +71,8 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
     columnFilters: [
       // username per-column text filter
       ...(hideUsernameColumn ? [] : [{ columnId: 'username', searchKey: 'username', type: 'string' as const }]),
+      // name filter when username column is hidden
+      ...(hideUsernameColumn ? [{ columnId: 'name', searchKey: 'name', type: 'string' as const }] : []),
       { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' as const },
       ...(hideRolesFilter ? [] : [{ columnId: 'roles', searchKey: 'roles', type: 'array' as const }]),
       ...(hideCustomerTypeFilter ? [] : [{ columnId: 'ordersCount', searchKey: 'leads', type: 'array' as const }]),
@@ -161,7 +165,7 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
       <DataTableToolbar
         table={table}
         searchPlaceholder='Filter users...'
-        searchKey={hideUsernameColumn ? undefined : 'username'}
+        searchKey={hideUsernameColumn ? 'name' : 'username'}
         filters={[
           {
             columnId: 'isAccountDisabled',
@@ -225,7 +229,11 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  className='group/row cursor-pointer'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('edit')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
