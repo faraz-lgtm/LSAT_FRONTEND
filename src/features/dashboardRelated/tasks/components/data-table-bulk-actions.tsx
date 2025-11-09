@@ -11,6 +11,7 @@ import { DataTableBulkActions as BulkActionsToolbar } from '@/components/dashboa
 import { TasksMultiDeleteDialog } from './tasks-multi-delete-dialog'
 import type { TaskOutputDto } from '@/types/api/data-contracts'
 import { useGenerateRescheduleLinkMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { isTask, isOrderAppointment } from '@/utils/task-helpers'
 
 
 type DataTableBulkActionsProps<TData> = {
@@ -100,7 +101,8 @@ export function DataTableBulkActions<TData>({
               </Tooltip>
             )}
 
-            {selectedTask?.label === 'meeting' && (
+            {/* Reschedule: Only show for order appointments */}
+            {selectedTask && isOrderAppointment(selectedTask) && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -121,7 +123,8 @@ export function DataTableBulkActions<TData>({
               </Tooltip>
             )}
             
-            {onEdit && (
+            {/* Edit: Only show for tasks */}
+            {selectedTask && isTask(selectedTask) && onEdit && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -147,7 +150,8 @@ export function DataTableBulkActions<TData>({
               </Tooltip>
             )}
 
-            {onDelete && (
+            {/* Delete: Only show for tasks */}
+            {selectedTask && isTask(selectedTask) && onDelete && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -174,25 +178,38 @@ export function DataTableBulkActions<TData>({
             )}
           </>
         ) : (
-          // Multiple selection: Show only delete button
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='destructive'
-                size='icon'
-                onClick={() => setShowDeleteConfirm(true)}
-                className='size-8'
-                aria-label='Delete selected tasks'
-                title='Delete selected tasks'
-              >
-                <Trash2 />
-                <span className='sr-only'>Delete selected tasks</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Delete selected tasks</p>
-            </TooltipContent>
-          </Tooltip>
+          // Multiple selection: Show delete button only if all selected are tasks
+          (() => {
+            const selectedTasks = selectedRows
+              .map(row => row.original as TaskOutputDto)
+              .filter(isTask)
+            const hasOnlyTasks = selectedTasks.length === selectedRows.length
+            
+            if (!hasOnlyTasks) {
+              return null // Don't show delete if there are appointments
+            }
+            
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant='destructive'
+                    size='icon'
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className='size-8'
+                    aria-label='Delete selected tasks'
+                    title='Delete selected tasks'
+                  >
+                    <Trash2 />
+                    <span className='sr-only'>Delete selected tasks</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete selected tasks</p>
+                </TooltipContent>
+              </Tooltip>
+            )
+          })()
         )}
       </BulkActionsToolbar>
 

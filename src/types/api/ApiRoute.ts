@@ -56,6 +56,7 @@ import {
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
+  UpdateAppointmentNotesDto,
   UpdateAutomationConfigDto,
   UpdateInvoiceStatusDto,
   UpdateOrderNotesDto,
@@ -370,6 +371,24 @@ export namespace Api {
     };
     export type RequestQuery = {};
     export type RequestBody = MarkAppointmentAttendanceDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerUpdateAppointmentNotes
+   * @summary Update appointment notes
+   * @request PATCH:/api/v1/order/appointments/{appointmentId}/notes
+   * @secure
+   */
+  export namespace OrderControllerUpdateAppointmentNotes {
+    export type RequestParams = {
+      appointmentId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateAppointmentNotesDto;
     export type RequestHeaders = {};
     export type ResponseBody = void;
   }

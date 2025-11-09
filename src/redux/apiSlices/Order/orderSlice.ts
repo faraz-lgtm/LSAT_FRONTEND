@@ -1,5 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
@@ -119,6 +119,16 @@ export const ordersApi = api.injectEndpoints({
       invalidatesTags: ['Orders'],
     }),
 
+    // Update appointment notes
+    updateAppointmentNotes: builder.mutation<void, { appointmentId: number; body: UpdateAppointmentNotesDto }>({
+      query: ({ appointmentId, body }) => ({
+        url: `order/appointments/${appointmentId}/notes`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Orders', 'Tasks'],
+    }),
+
     // Generate a short-lived reschedule link for customer self-service
     generateRescheduleLink: builder.mutation<
       BaseApiResponse<{ url: string }> | { data: { url: string }; meta: unknown },
@@ -232,6 +242,7 @@ export const {
   useGetOrdersQuery, 
   useGetOrderByIdQuery,
   useUpdateOrderNotesMutation,
+  useUpdateAppointmentNotesMutation,
   useListOrderAppointmentsQuery,
   useMarkAppointmentAttendanceMutation,
   useGenerateRescheduleLinkMutation,

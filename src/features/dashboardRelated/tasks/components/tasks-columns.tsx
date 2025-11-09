@@ -9,6 +9,8 @@ import type { UserOutput } from '@/types/api/data-contracts'
 import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
 import { ClickableTutorCell } from './clickable-tutor-cell'
 import { ClickableCustomerCell } from './clickable-customer-cell'
+import { isOrderAppointment } from '@/utils/task-helpers'
+import { useNavigate } from '@tanstack/react-router'
 
 // Filter options for the columns
 const labels = [
@@ -70,6 +72,43 @@ export const createTasksColumns = (
     cell: ({ row }) => <div className='w-[80px] font-medium'>#{row.getValue('id')}</div>,
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    id: 'type',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Type' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      const isAppointment = isOrderAppointment(task)
+      
+      return (
+        <div className='flex w-[140px] items-center'>
+          <Badge variant={isAppointment ? 'secondary' : 'outline'}>
+            {isAppointment ? 'Order Appointment' : 'Personal Task'}
+          </Badge>
+        </div>
+      )
+    },
+    enableSorting: false,
+  },
+  {
+    id: 'orderId',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Order ID' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      
+      if (!isOrderAppointment(task) || !task.orderId) {
+        return <div className='w-[100px]'>—</div>
+      }
+      
+      return (
+        <OrderIdCell orderId={task.orderId} />
+      )
+    },
+    enableSorting: false,
   },
   {
     accessorKey: 'title',
@@ -170,7 +209,18 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='Label' />
     ),
     cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
       const label = labels.find((label) => label.value === row.getValue('label'))
+      
+      // Show label for tasks, show "Appointment" badge for order appointments
+      if (isOrderAppointment(task)) {
+        return (
+          <div className='flex w-[100px] items-center'>
+            <Badge variant='secondary'>Appointment</Badge>
+          </div>
+        )
+      }
+      
       return (
         <div className='flex w-[100px] items-center'>
           {label && <Badge variant='outline'>{label.label}</Badge>}
@@ -262,6 +312,13 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='Priority' />
     ),
     cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      
+      // Only show priority for tasks, not order appointments
+      if (isOrderAppointment(task)) {
+        return <div className='w-[100px]'>—</div>
+      }
+      
       const priority = priorities.find(
         (priority) => priority.value === row.getValue('priority')
       )
@@ -280,6 +337,11 @@ export const createTasksColumns = (
       )
     },
     filterFn: (row, id, value) => {
+      const task = row.original as TaskOutputDto
+      // Only filter tasks, not appointments
+      if (isOrderAppointment(task)) {
+        return false
+      }
       return value.includes(row.getValue(id))
     },
   },
@@ -288,3 +350,25 @@ export const createTasksColumns = (
     cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} onView={onView} />,
   },
 ]
+
+// Component for clickable Order ID cell
+function OrderIdCell({ orderId }: { orderId: number }) {
+  const navigate = useNavigate()
+  
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation()
+        navigate({
+          to: '/orders',
+          search: {
+            orderId: orderId,
+          },
+        })
+      }}
+      className='w-[100px] font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left'
+    >
+      #{orderId}
+    </button>
+  )
+}

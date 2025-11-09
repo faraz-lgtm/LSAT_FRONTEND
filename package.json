@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run routes:generate && vite",
+    "dev": "npm run routes:generate && npm run typegen && vite",
     "build:local": "npm run typegen && npm run routes:generate && ./node_modules/.bin/tsc -b && vite build",
     "build": "npm run routes:generate && tsc -b && vite build",
     "typeCheck": "./node_modules/.bin/tsc -b",
-    "typegen": "swagger-typescript-api generate -p https://api.betterlsat.com/swagger-json -o ./src/types/api -n api.ts --modular --route-types --no-client",
+    "typegen": "swagger-typescript-api generate -p http://localhost:3000/swagger-json -o ./src/types/api -n api.ts --modular --route-types --no-client",
     "routes:generate": "npx @tanstack/router-cli generate",
     "routes:watch": "npx @tanstack/router-cli generate --watch",
     "routes:show": "grep -E \"id: '/\" src/routeTree.gen.ts | sed \"s/.*id: '//\" | sed \"s/',//\" | sort",

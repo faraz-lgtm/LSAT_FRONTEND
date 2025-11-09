@@ -502,6 +502,14 @@ export interface MarkAppointmentAttendanceDto {
   status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
 }
 
+export interface UpdateAppointmentNotesDto {
+  /**
+   * Notes about the appointment
+   * @example "Student needs extra help with logic games"
+   */
+  notes?: object;
+}
+
 export interface ItemInput {
   /**
    * Item ID
@@ -1437,6 +1445,11 @@ export interface TaskOutputDto {
    */
   id: number;
   /**
+   * Source type of the task (task or order_appointment)
+   * @example "task"
+   */
+  type: "task" | "order_appointment";
+  /**
    * Task title
    * @example "Prepare lesson materials"
    */
@@ -1511,6 +1524,33 @@ export interface TaskOutputDto {
    * @example "2024-01-15T12:00:00.000Z"
    */
   updatedAt: string;
+  /**
+   * Order ID (if this task is from an order appointment)
+   * @example 501
+   */
+  orderId?: number;
+  /**
+   * Order item/product ID (if this task is from an order appointment)
+   * @example 5
+   */
+  itemId?: number;
+  /** Attendance status (if this task is from an order appointment) */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * When the attendance was marked (if this task is from an order appointment)
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  attendanceMarkedAt?: object;
+  /**
+   * User ID who marked the attendance (if this task is from an order appointment)
+   * @example 1
+   */
+  attendanceMarkedBy?: object;
+  /**
+   * Notes about the appointment/task
+   * @example "Student needs extra help with logic games"
+   */
+  notes?: object;
 }
 
 export interface TaskQueryDto {

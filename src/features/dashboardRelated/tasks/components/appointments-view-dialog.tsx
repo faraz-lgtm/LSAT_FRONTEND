@@ -9,11 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
+import { Textarea } from '@/components/dashboard/ui/textarea'
 import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import { format } from 'date-fns'
 import { ExternalLink, CalendarClock } from 'lucide-react'
-import { useGenerateRescheduleLinkMutation } from '@/redux/apiSlices/Order/orderSlice'
-import { useState } from 'react'
+import { useGenerateRescheduleLinkMutation, useUpdateAppointmentNotesMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { taskApi } from '@/redux/apiSlices/Task/taskSlice'
+import { useState, useEffect } from 'react'
+import { isOrderAppointment } from '@/utils/task-helpers'
+import { toast } from 'sonner'
+import { useDispatch } from 'react-redux'
 
 type AppointmentsViewDialogProps = {
   currentRow: TaskOutputDto
@@ -30,13 +35,71 @@ export function AppointmentsViewDialog({
   userIdToUser,
   emailToUser,
 }: AppointmentsViewDialogProps) {
+  const dispatch = useDispatch()
   const [generateLink, { isLoading: isGenerating }] = useGenerateRescheduleLinkMutation()
   const [isRescheduling, setIsRescheduling] = useState(false)
+  const [updateAppointmentNotes, { isLoading: isSavingNotes }] = useUpdateAppointmentNotesMutation()
+  
+  // Notes state - only for order appointments
+  // Check both type field and presence of orderId as fallback
+  const isAppointment = isOrderAppointment(currentRow) || (currentRow.type === undefined && currentRow.orderId !== undefined)
+  
+  // Get appointmentId - for order appointments, the id field is the appointment ID
+  const getAppointmentId = (): number | undefined => {
+    if (!isAppointment) return undefined
+    // First check if appointmentId is explicitly available in the task object
+    const anyTask = currentRow as unknown as { appointmentId?: number }
+    if (anyTask.appointmentId) {
+      return anyTask.appointmentId
+    }
+    // For order appointments, the id field should be the appointment ID
+    // This is the ID shown in the dialog as "Appointment ID"
+    return currentRow.id
+  }
+  
+  const appointmentId = getAppointmentId()
+  
+  // Handle notes - it's typed as object but should be string
+  const getNotesString = (notes: unknown): string => {
+    if (typeof notes === 'string') return notes
+    if (notes === null || notes === undefined) return ''
+    return String(notes)
+  }
+  
+  const [notes, setNotes] = useState<string>(() => getNotesString(currentRow.notes))
+  
+  useEffect(() => {
+    if (open) {
+      setNotes(getNotesString(currentRow.notes))
+    }
+  }, [open, currentRow.notes])
 
   const tutor = currentRow.tutorId && userIdToUser ? userIdToUser[currentRow.tutorId] : undefined
   const customerInvitee = currentRow.invitees?.find((i) => i.name === 'Customer')
   const customerEmail = customerInvitee?.email
   const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+  
+  const handleSaveNotes = async () => {
+    if (!appointmentId) {
+      toast.error('Appointment ID not found')
+      return
+    }
+    
+    try {
+      // UpdateAppointmentNotesDto type says object, but API expects string
+      // Type assertion needed due to type mismatch in generated types
+      await updateAppointmentNotes({ 
+        appointmentId, 
+        body: { notes: notes as unknown as object } 
+      }).unwrap()
+      // Invalidate Tasks cache so the updated notes show in the table
+      dispatch(taskApi.util.invalidateTags(['Tasks']))
+      toast.success('Appointment notes saved successfully')
+    } catch (error) {
+      console.error('Error saving appointment notes:', error)
+      toast.error('Failed to save appointment notes')
+    }
+  }
 
   const handleReschedule = async () => {
     setIsRescheduling(true)
@@ -191,6 +254,31 @@ export function AppointmentsViewDialog({
               <p className='text-sm text-muted-foreground font-mono'>
                 {currentRow.googleCalendarEventId}
               </p>
+            </div>
+          )}
+
+          {/* Notes - Only for order appointments */}
+          {isAppointment && (
+            <div className='space-y-3'>
+              <h3 className='text-lg font-semibold'>Appointment Notes</h3>
+              <div className='space-y-2'>
+                <Textarea
+                  placeholder='Add appointment notes...'
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                />
+                <div className='flex justify-end'>
+                  <Button
+                    size='sm'
+                    disabled={isSavingNotes || !appointmentId}
+                    onClick={handleSaveNotes}
+                    title={!appointmentId ? 'Appointment ID not available' : ''}
+                  >
+                    {isSavingNotes ? 'Saving...' : 'Save Notes'}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 

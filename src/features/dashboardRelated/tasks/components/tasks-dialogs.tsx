@@ -5,6 +5,7 @@ import { useDeleteTaskMutation } from '@/redux/apiSlices/Task/taskSlice'
 import { toast } from 'sonner'
 import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import type { Dispatch, SetStateAction } from 'react'
+import { isOrderAppointment } from '@/utils/task-helpers'
 
 type TasksDialogsProps = {
   open: 'create' | 'update' | 'delete' | 'view' | null
@@ -21,9 +22,9 @@ export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow, userIdT
   const handleDelete = async () => {
     if (!currentRow) return
     
-    // Check if task ID is 0 and show warning
-    if (currentRow.id === 0) {
-      toast.warning("Cannot delete orders!")
+    // Check if this is an order appointment and show warning
+    if (isOrderAppointment(currentRow)) {
+      toast.warning("Order appointments cannot be deleted. Manage them through orders.")
       setOpen(null)
       setTimeout(() => {
         setCurrentRow(undefined)
@@ -71,21 +72,24 @@ export function TasksDialogs({ open, setOpen, currentRow, setCurrentRow, userIdT
             emailToUser={emailToUser}
           />
 
-          <TasksMutateDrawer
-            key={`task-update-${currentRow.id}`}
-            open={open === 'update'}
-            onOpenChange={(v) => {
-              if (!v) {
-                setOpen(null)
-                setTimeout(() => {
-                  setCurrentRow(undefined)
-                }, 500)
-              } else {
-                setOpen('update')
-              }
-            }}
-            currentRow={currentRow}
-          />
+          {/* Only show edit drawer for tasks, not order appointments */}
+          {currentRow.type === 'task' && (
+            <TasksMutateDrawer
+              key={`task-update-${currentRow.id}`}
+              open={open === 'update'}
+              onOpenChange={(v) => {
+                if (!v) {
+                  setOpen(null)
+                  setTimeout(() => {
+                    setCurrentRow(undefined)
+                  }, 500)
+                } else {
+                  setOpen('update')
+                }
+              }}
+              currentRow={currentRow}
+            />
+          )}
 
           <ConfirmDialog
             key='task-delete'
