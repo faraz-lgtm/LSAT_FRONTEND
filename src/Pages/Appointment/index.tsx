@@ -388,7 +388,7 @@ const Appointment = () => {
 
   const footerFns: Record<
     "appointments" | "information",
-    Function
+    () => Promise<void> | void
   > = {
     information: async () => {
       if (formRef.current) {

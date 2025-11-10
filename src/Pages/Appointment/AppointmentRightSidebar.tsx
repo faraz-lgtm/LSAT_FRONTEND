@@ -1,5 +1,5 @@
 interface RightPanelProps {
-  title: "Appointments" | "Your Information";
+  title: "Schedule Your Sessions" | "Your Information";
   children?: React.ReactNode;
   footerFn: () => Promise<void> | void;
   setSelected?: React.Dispatch<React.SetStateAction<"information" | "appointments">>;
@@ -11,7 +11,7 @@ interface RightPanelProps {
 
 const RightPanel = ({ title, children, footerFn, isLoading = false, loadingText = "Creating Customer...", hideFooter = false }: RightPanelProps) => {
   // Hide footer for "Your Information" panel since button is now inline, or if explicitly hidden
-  const showFooter = title === "Appointments" && !hideFooter;
+  const showFooter = title === "Schedule Your Sessions" && !hideFooter;
   const isInformationPanel = title === "Your Information";
   
   return (
