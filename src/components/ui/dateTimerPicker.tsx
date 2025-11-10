@@ -59,7 +59,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
 
   // Fetch available slots from API (package mode or reschedule mode)
   const isRescheduleMode = (props as any).token !== undefined;
-  const { data: packageSlotsData, isLoading: pkgLoading, error: pkgError } = useGetAvailableSlotsQuery(
+  const { data: packageSlotsData, isLoading: pkgLoading,isFetching: pkgFetching, error: pkgError } = useGetAvailableSlotsQuery(
     {
       packageId: (props as any).packageId as number,
       date: date && date instanceof Date ? new Date(date).toISOString() : new Date().toISOString(),
@@ -68,7 +68,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
       skip: !date || !(date instanceof Date) || isRescheduleMode,
     }
   );
-  const { data: rescheduleSlotsData, isLoading: resLoading, error: resError } = useGetPublicRescheduleSlotsQuery(
+  const { data: rescheduleSlotsData, isLoading: resLoading,isFetching: resFetching, error: resError } = useGetPublicRescheduleSlotsQuery(
     { token: (props as any).token as string, dateISO: date && date instanceof Date ? new Date(date).toISOString() : undefined },
     { skip: !isRescheduleMode || !date || !(date instanceof Date) }
   );
@@ -156,7 +156,10 @@ export function DateTimePicker(props: DateTimePickerProps) {
     });
   }
 
-  const slotsLoading = isRescheduleMode ? resLoading : pkgLoading;
+  const slotsLoading = isRescheduleMode ? resLoading || resFetching : pkgLoading || pkgFetching;
+  console.log('slotsLoading', slotsLoading);
+  console.log('resLoading', resLoading);
+  console.log('pkgLoading', pkgLoading);
   const slotsError = isRescheduleMode ? resError : pkgError;
   const effectiveData = isRescheduleMode ? (rescheduleSlotsData as any)?.data : (packageSlotsData as any)?.data;
   const availableSlots: Slot[] = React.useMemo(() => {
@@ -280,7 +283,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
+          {!slotsLoading && !slotsError && <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
             {availableSlots.length === 0 && !slotsLoading ? (
               <div className="col-span-2 sm:col-span-3 p-4 text-center text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300">
                 No available slots for this date
@@ -307,7 +310,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
                );
              })
             )}
-           </div>
+           </div>}
 
           {/* <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
             <ScrollArea className="w-64 sm:w-auto">

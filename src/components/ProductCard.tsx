@@ -46,7 +46,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   return (
     <div
       onClick={handleCardClick}
-      className={`relative h-full flex flex-col ${isPopular ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group cursor-pointer ${
+      style={isPopular ? { backgroundColor: '#0D47A1' } : undefined}
+      className={`relative h-full flex flex-col ${isPopular ? '' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group cursor-pointer ${
         isPopular ? "border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800" : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
       }`}
     >
@@ -122,7 +123,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 <>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    One-on-one tutoring session
+                    One personalized tutoring session
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
@@ -130,7 +131,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Personalized study plan
+                    Targeted practice on weak areas
                   </li>
                 </>
               )}
@@ -138,15 +139,15 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 <>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    5 one-on-one sessions
+                    5 one-on-one tutoring sessions
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Comprehensive study plan
+                    Custom weekly study plan
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Progress tracking
+                    Progress tracking & feedback
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
@@ -158,23 +159,19 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 <>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    10 one-on-one sessions
+                    10 one-on-one tutoring sessions
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Complete prep program
+                    Complete MCAT prep roadmap
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Detailed progress tracking
+                    Progress tracking & mock exams
                   </li>
                   <li className="flex items-center">
                     <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    All practice materials
-                  </li>
-                  <li className="flex items-center">
-                    <Check className={`w-4 h-4 ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'} mr-3 flex-shrink-0`} />
-                    Mock exam sessions
+                    All study materials included
                   </li>
                 </>
               )}
@@ -189,12 +186,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             disabled={isLoading}
             className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
               isInCart
-                ? isPopular
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-red-500 hover:bg-red-600 text-white'
-                : isPopular
-                  ? 'bg-white hover:bg-gray-100 text-blue-600'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
             }`}
           >
             {isInCart ? (

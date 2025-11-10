@@ -7,19 +7,28 @@ import { ArrowLeft } from "lucide-react";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
 import { useCurrencyFormatter } from "../../utils/currency";
+import { useGetProductsQuery } from "../../redux/apiSlices/Product/productSlice";
 
 const Cart = () => {
   const { items } = useSelector((state: RootState) => state.cart);
   const navigate = useNavigate();
   const formatCurrency = useCurrencyFormatter();
+  const { data: productsData } = useGetProductsQuery();
   
   // Get current checkout progress step
   const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
 
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // Calculate total discount by matching cart items with products
+  const totalDiscount = items.reduce((sum, item) => {
+    const product = productsData?.data?.find(p => p.id === item.id);
+    const itemDiscount = (product?.save || 0) * item.quantity;
+    return sum + itemDiscount;
+  }, 0);
+
+  // const total = items.reduce(
+  //   (sum, item) => sum + item.price * item.quantity,
+  //   0
+  // );
 
   const handleBackToHome = () => {
     navigate("/");
@@ -29,7 +38,7 @@ const Cart = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 relative flex flex-col">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#0D47A1' }}></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse delay-2000"></div>
         <div className="absolute top-20 left-20 w-64 h-64 bg-cyan-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-500"></div>
@@ -57,16 +66,17 @@ const Cart = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
               <div>
                 <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-0.5">
-                  Your Shopping Cart
+                  Review your Booking
                 </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-300">Please review your Order Details</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300">Double-check your sessions before you continue — 
+                you can still edit or remove any bundle.</p>
               </div>
-              <div className="text-left sm:text-right">
-                <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400">
+              {/* <div className="text-left sm:text-right">
+                <div className="text-lg sm:text-xl font-bold" style={{ color: '#0D47A1' }}>
                   {formatCurrency(total * 100)}
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">Cart Total</p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -79,12 +89,12 @@ const Cart = () => {
                 <span className="text-2xl">🛒</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Your cart is empty</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add some amazing LSAT prep sessions to get started!</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Go back to choose your prep sessions and start your LSAT journey.”</p>
               <button
                 onClick={handleBackToHome}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors text-sm"
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-5 py-2 rounded-lg font-medium transition-all duration-300 text-sm shadow-lg hover:shadow-xl"
               >
-                Browse Products
+                Browse Packages
               </button>
             </div>
           ) : (
@@ -114,6 +124,7 @@ const Cart = () => {
                     (acc, item) => acc + item.price * item.quantity,
                     0
                   )}
+                  totalDiscount={totalDiscount}
                 />
               </div>
             </div>

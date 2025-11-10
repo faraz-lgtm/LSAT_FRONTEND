@@ -1,7 +1,7 @@
 interface RightPanelProps {
   title: "Appointments" | "Your Information";
   children?: React.ReactNode;
-  footerFn: Function;
+  footerFn: () => Promise<void> | void;
   setSelected?: React.Dispatch<React.SetStateAction<"information" | "appointments">>;
   isLoading?: boolean;
   loadingText?: string;
@@ -15,14 +15,14 @@ const RightPanel = ({ title, children, footerFn, isLoading = false, loadingText 
   const isInformationPanel = title === "Your Information";
   
   return (
-    <div className={`w-full bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex flex-col`}>
+    <div className={`w-full max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex flex-col`}>
       {/* Header */}
       <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2.5 border-b border-gray-200 dark:border-gray-600 flex-shrink-0">
         <h2 className="text-base font-bold text-gray-900 dark:text-white">{title}</h2>
       </div>
 
       {/* Content - Natural flow */}
-      <div className={`${isInformationPanel ? "flex-none p-3" : "flex-1 p-3"} w-full`}>
+      <div className={`${isInformationPanel ? "flex-1 p-4 sm:p-6" : "flex-1 p-4 sm:p-6"} w-full`}>
         {children}
       </div>
 
@@ -34,11 +34,14 @@ const RightPanel = ({ title, children, footerFn, isLoading = false, loadingText 
               onClick={() => footerFn()}
               disabled={isLoading}
               type="button"
-              className={`px-6 py-2.5 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg text-sm min-w-[120px] ${
+              className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-sm min-w-[120px] ${
                 isLoading 
                   ? 'bg-gray-400 text-white cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'text-white'
               }`}
+              style={!isLoading ? { background: '#0D47A1' } : undefined}
+              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#0a3d8a'; }}
+              onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = '#0D47A1'; }}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

@@ -478,7 +478,7 @@ const Appointment = () => {
   > = {
     appointments: (
       <RightPanel
-        title="Appointments"
+        title="Schedule Your Sessions"
         footerFn={footerFns["appointments"]}
         setSelected={setSelected}
         isLoading={isValidatingSlots || isCreatingOrder}
@@ -499,16 +499,18 @@ const Appointment = () => {
                 </div>
               </div>
             )}
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-2.5 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1.5 text-xs sm:text-sm">
+            <div className="p-4 sm:p-5 rounded-xl border-2 shadow-lg mb-4" style={{ background: 'linear-gradient(to right, #0D47A1, #1565C0)', borderColor: '#0D47A1' }}>
+              <h3 className="font-bold text-white mb-2.5 text-base sm:text-lg">
                 Prep Session Details
               </h3>
-              <p className="text-blue-700 dark:text-blue-200 text-[10px] sm:text-xs">
+              <p className="text-white font-semibold mb-2 text-sm sm:text-base">
                 You have{" "}
-                {items.reduce(
-                  (total, item) => total + (item.DateTime?.length || 0),
-                  0
-                )}{" "}
+                <span className="text-yellow-300 dark:text-yellow-200 font-extrabold text-base sm:text-lg">
+                  {items.reduce(
+                    (total, item) => total + (item.DateTime?.length || 0),
+                    0
+                  )}
+                </span>{" "}
                 appointment
                 {items.reduce(
                   (total, item) => total + (item.DateTime?.length || 0),
@@ -518,8 +520,9 @@ const Appointment = () => {
                   : ""}{" "}
                 to schedule
               </p>
-              <p className="text-blue-700 dark:text-blue-200 text-[10px] sm:text-xs">
-                We already chose the best time slots for you. You can change them if you want.
+              <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
+                We've pre-selected the best available times for you. 
+                Tap any slot to adjust or reschedule
               </p>
             </div>
 
@@ -567,7 +570,7 @@ const Appointment = () => {
                           className={`${packageIndex > 0 ? 'mt-3' : ''} p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600`}
                         >
                           <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center text-[10px] sm:text-xs">
-                            <span className="w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold mr-1.5">
+                            <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold mr-1.5" style={{ backgroundColor: '#0D47A1' }}>
                               {packageIndex + 1}
                             </span>
                             {item.quantity > 1 ? `${item.name} - Package ${packageIndex + 1}` : item.name} ({packageSlots.length}{" "}
@@ -582,7 +585,7 @@ const Appointment = () => {
                                   key={`${item.id}-${globalIndex}`}
                                   className="flex flex-row items-center gap-2"
                                 >
-                                  <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-[9px] sm:text-[10px] font-medium flex-shrink-0">
+                                  <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full text-[9px] sm:text-[10px] font-medium flex-shrink-0" style={{ backgroundColor: 'rgba(13, 71, 161, 0.1)', color: '#0D47A1' }}>
                                     {slotIndex + 1}
                                   </span>
                                   <div className="flex-1 min-w-0">
@@ -624,10 +627,10 @@ const Appointment = () => {
               onClick={() => footerFns["appointments"]()}
               disabled={isValidatingSlots || isCreatingOrder}
               type="button"
-              className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] lg:shadow-xl lg:hover:shadow-2xl ${
+              className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] lg:shadow-xl lg:hover:shadow-2xl ${
                 isValidatingSlots || isCreatingOrder
                   ? 'bg-gray-400 text-white cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
               }`}
             >
               {isValidatingSlots || isCreatingOrder ? (
@@ -655,34 +658,38 @@ const Appointment = () => {
       >
         <div className="space-y-3 pb-20 sm:pb-2">
           <form className="space-y-3" ref={formRef}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1.5">
-                  First Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  name="firstName"
-                  defaultValue={firstName}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                  placeholder="Enter first name"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1.5">
+                First Name *
+              </label>
+              <input
+                type="text"
+                required
+                name="firstName"
+                defaultValue={firstName}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
+                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
+                placeholder="Enter first name"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1.5">
-                  Last Name *
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  required
-                  defaultValue={lastName}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
-                  placeholder="Enter last name"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-900 dark:text-white mb-1.5">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                required
+                defaultValue={lastName}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
+                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
+                placeholder="Enter last name"
+              />
             </div>
 
             <div>
@@ -694,7 +701,10 @@ const Appointment = () => {
                 name="email"
                 required
                 defaultValue={email}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
+                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
                 placeholder="Enter email address"
               />
             </div>
@@ -707,7 +717,8 @@ const Appointment = () => {
                 country={defaultCountry}
                 value={phoneInp}
                 onChange={(val) => setPhoneInp("+" + val)}
-                inputClass="!w-full !rounded-lg !border !border-gray-300 dark:!border-gray-600 px-2.5 py-1.5 focus:!outline-none focus:!ring-2 focus:!ring-blue-500 dark:!bg-gray-700 dark:!text-white !text-sm"
+                inputClass="!w-full !rounded-lg !border !border-gray-300 dark:!border-gray-600 px-2.5 py-1.5 focus:!outline-none focus:!ring-2 dark:!bg-gray-700 dark:!text-white !text-sm phone-input-focus"
+                containerStyle={{ '--focus-ring-color': '#0D47A1' } as React.CSSProperties}
               />
             </div>
 
@@ -716,10 +727,10 @@ const Appointment = () => {
                 onClick={() => footerFns["information"]()}
                 disabled={isCreatingCustomer}
                 type="button"
-                className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] fixed bottom-3 left-6 right-6 max-w-[calc(100%-3rem)] sm:max-w-none sm:static sm:bottom-auto sm:left-auto sm:right-auto z-50 ${
+                className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] fixed bottom-3 left-6 right-6 max-w-[calc(100%-3rem)] sm:max-w-none sm:static sm:bottom-auto sm:left-auto sm:right-auto z-50 ${
                   isCreatingCustomer 
                     ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
                 }`}
               >
                 {isCreatingCustomer ? (
@@ -756,7 +767,7 @@ const Appointment = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 relative flex flex-col">
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#0D47A1' }}></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse delay-2000"></div>
         <div className="absolute top-20 left-20 w-64 h-64 bg-cyan-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-500"></div>
@@ -787,14 +798,14 @@ const Appointment = () => {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                 <div>
                   <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                    Book Your Appointment
+                  Enter Your Details to Continue
                   </h1>
                   <p className="text-xs text-gray-600 dark:text-gray-300">
-                    Complete your LSAT prep session booking
+                  We’ll use this information to confirm your sessions and send your schedule.
                   </p>
                 </div>
                 <div className="text-left sm:text-right">
-                  <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="text-lg sm:text-xl font-bold" style={{ color: '#0D47A1' }}>
                     {formatCurrency(total * 100)}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">

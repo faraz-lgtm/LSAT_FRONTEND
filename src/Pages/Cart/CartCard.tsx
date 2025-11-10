@@ -21,11 +21,22 @@ const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) =
   };
 
   return (
-    <div className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300 dark:hover:border-blue-600">
+    <div 
+      className="group relative bg-white dark:bg-gray-800 border rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200"
+      style={{ 
+        borderColor: 'rgb(229, 231, 235)',
+      }}
+      onMouseEnter={(e) => { 
+        e.currentTarget.style.borderColor = '#0D47A1';
+      }}
+      onMouseLeave={(e) => { 
+        e.currentTarget.style.borderColor = 'rgb(229, 231, 235)';
+      }}
+    >
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Product Icon */}
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xs sm:text-sm shadow-md">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg text-white font-bold text-xs sm:text-sm shadow-md" style={{ background: 'linear-gradient(to bottom right, #0D47A1, #1565C0)' }}>
             {BigText}
           </div>
         </div>

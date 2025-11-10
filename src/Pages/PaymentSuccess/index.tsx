@@ -46,7 +46,7 @@ export default function PaymentSuccess() {
 
     // Clear cart and user info on successful payment
 
-    console.log("✅ Payment successful - clearing cart and user info");
+    console.log("✅ Booking successful - clearing cart and user info");
     dispatch(clearCart());
     dispatch(clearInfo());
 
@@ -83,7 +83,7 @@ export default function PaymentSuccess() {
               <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              {isFreeSession ? "Meeting booked successfully" : "Payment Successful!"}
+              {isFreeSession ? "Meeting booked successfully" : "Booking Successful!"}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
               {isFreeSession
@@ -143,8 +143,7 @@ export default function PaymentSuccess() {
                           Confirmation Email
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          You'll receive a confirmation email with your receipt and
-                          order details.
+                        Your sessions are confirmed — a confirmation email with your schedule has been sent
                         </p>
                       </div>
                     </div>
@@ -160,7 +159,7 @@ export default function PaymentSuccess() {
                           Schedule Your Sessions
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Our team will contact you to schedule your LSAT/MCAT
+                          Our team will contact you to schedule your LSAT
                           preparation sessions.
                         </p>
                       </div>
@@ -177,7 +176,7 @@ export default function PaymentSuccess() {
                           Start Learning
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Begin your personalized LSAT/MCAT preparation journey with
+                          Begin your personalized LSAT preparation journey with
                           expert guidance.
                         </p>
                       </div>
@@ -197,8 +196,8 @@ export default function PaymentSuccess() {
                           Confirmation Email/SMS
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          You will receive email/SMS with your receipt and
-                          order details.
+                        Your sessions are confirmed — a confirmation email with your schedule has been sent
+
                         </p>
                       </div>
                     </div>
@@ -214,7 +213,7 @@ export default function PaymentSuccess() {
                           Start Learning
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Begin your personalized LSAT/MCAT preparation journey with
+                          Begin your personalized LSAT preparation journey with
                           expert guidance.
                         </p>
                       </div>
