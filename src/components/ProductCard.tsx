@@ -78,7 +78,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h5 className={`${isPopular ? 'bg-white text-blue-500' : 'bg-green-500 text-white'} text-base sm:text-lg font-bold mb-2 leading-tight px-3 sm:px-4 py-2 rounded-lg transition-all duration-300`}>
+          <h5 className={`${isPopular ? 'bg-white text-blue-500' : 'bg-green-500 text-white'} text-sm sm:text-base lg:text-lg font-bold mb-2 leading-tight px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-300`}>
             {product.name}
           </h5>
           <div className={`w-12 sm:w-16 h-1 ${isPopular ? 'bg-white' : 'bg-blue-600'} mx-auto rounded-full transition-all duration-300`}></div>
@@ -88,10 +88,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         <div className="text-center mb-4 sm:mb-6">
           <div className="flex items-center justify-center space-x-2">
             {isFree ? (
-              <span className={`text-3xl sm:text-4xl font-bold ${isPopular ? 'text-white' : 'text-green-600'}`}>Free</span>
+              <span className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${isPopular ? 'text-white' : 'text-green-600'}`}>Free</span>
             ) : (
               <>
-                <span className={`text-3xl sm:text-4xl font-bold ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`}>
+                <span className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`}>
                   {formatCurrency(product.price * 100)}
                 </span>
               </>
@@ -107,7 +107,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
         {/* Description */}
         <div className="mb-6 sm:mb-8">
-          <p className={`text-center leading-relaxed text-sm sm:text-base ${isPopular ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
+          <p className={`text-center leading-relaxed text-xs sm:text-sm lg:text-base ${isPopular ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
             {product.Description}
           </p>
         </div>
@@ -180,11 +180,11 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         )}
 
         {/* Add to Cart / Remove from Cart Button */}
-        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
           <button
             onClick={handleButtonClick}
             disabled={isLoading}
-            className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+            className={`w-auto max-w-[85%] sm:w-full flex items-center justify-center space-x-2 py-2.5 px-4 text-sm sm:py-3 sm:text-base rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
               isInCart
                 ? 'bg-red-500 hover:bg-red-600 text-white'
                 : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
@@ -192,12 +192,12 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           >
             {isInCart ? (
               <>
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Remove from Cart</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Add to Cart</span>
               </>
             )}

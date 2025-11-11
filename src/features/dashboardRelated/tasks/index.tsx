@@ -81,9 +81,9 @@ export function Tasks() {
       <Main>
         <div className='mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Appointments</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Tasks & Appointments</h2>
             <p className='text-muted-foreground'>
-              Here&apos;s a list of your appointments for this month.
+              All your scheduled work items, including personal tasks and customer appointments.
             </p>
           </div>
           <TasksPrimaryButtons 

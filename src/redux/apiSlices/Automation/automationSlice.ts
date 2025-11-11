@@ -64,13 +64,8 @@ export const automationApi = api.injectEndpoints({
         url: `automation/${key}/logs`,
         method: "GET",
         params: {
-          ...(params || {}),
-          // Add timestamp to prevent 304 caching
-          _t: Date.now(),
-        },
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        },
+          ...(params || {})
+        }
       }),
       providesTags: ['Automation'],
       // Force refetch on mount and don't keep unused data
@@ -83,13 +78,8 @@ export const automationApi = api.injectEndpoints({
         url: "automation/logs",
         method: "GET",
         params: {
-          ...(params || {}),
-          // Add timestamp to prevent 304 caching
-          _t: Date.now(),
-        },
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        },
+          ...(params || {})
+        }
       }),
       providesTags: ['Automation'],
       // Force refetch on mount and don't keep unused data

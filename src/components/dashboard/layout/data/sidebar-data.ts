@@ -56,7 +56,7 @@ const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Appointments",
+          title: "Work Items",
           url: "/tasks",
           icon: Calendar,
         },
@@ -219,37 +219,6 @@ const sidebarData: SidebarData = {
       title: "Other",
       items: [
         {
-          title: "Settings",
-          icon: Settings,
-          items: [
-            {
-              title: "Profile",
-              url: "/settings",
-              icon: UserCog,
-            },
-            {
-              title: "Account",
-              url: "/settings/account",
-              icon: Wrench,
-            },
-            {
-              title: "Appearance",
-              url: "/settings/appearance",
-              icon: Palette,
-            },
-            {
-              title: "Notifications",
-              url: "/settings/notifications",
-              icon: Bell,
-            },
-            {
-              title: "Display",
-              url: "/settings/display",
-              icon: Monitor,
-            },
-          ],
-        },
-        {
           title: "Help Center",
           url: "/help-center",
           icon: HelpCircle,
@@ -286,10 +255,6 @@ if (ENV !== "DEVELOPMENT") {
           "/automation-logs",
           cartUrl
         ].includes(item.url)) {
-          return true;
-        }
-        // Allow Settings (collapsible item without direct URL)
-        if (item.title === "Settings") {
           return true;
         }
         return false;

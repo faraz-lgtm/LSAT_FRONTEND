@@ -10,10 +10,15 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import { Textarea } from '@/components/dashboard/ui/textarea'
+import { Badge } from '@/components/dashboard/ui/badge'
 import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import { format } from 'date-fns'
-import { ExternalLink, CalendarClock } from 'lucide-react'
-import { useGenerateRescheduleLinkMutation, useUpdateAppointmentNotesMutation } from '@/redux/apiSlices/Order/orderSlice'
+import { ExternalLink, CalendarClock, Clipboard, Check } from 'lucide-react'
+import { 
+  useGenerateRescheduleLinkMutation, 
+  useUpdateAppointmentNotesMutation,
+  useMarkAppointmentAttendanceMutation 
+} from '@/redux/apiSlices/Order/orderSlice'
 import { taskApi } from '@/redux/apiSlices/Task/taskSlice'
 import { useState, useEffect } from 'react'
 import { isOrderAppointment } from '@/utils/task-helpers'
@@ -39,6 +44,14 @@ export function AppointmentsViewDialog({
   const [generateLink, { isLoading: isGenerating }] = useGenerateRescheduleLinkMutation()
   const [isRescheduling, setIsRescheduling] = useState(false)
   const [updateAppointmentNotes, { isLoading: isSavingNotes }] = useUpdateAppointmentNotesMutation()
+  
+  // Attendance mutation - only for order appointments
+  const [markAttendance, { isLoading: isMarking }] = useMarkAppointmentAttendanceMutation()
+  
+  // State for copy reschedule link
+  const [copyingApptId, setCopyingApptId] = useState<number | null>(null)
+  const [copiedApptId, setCopiedApptId] = useState<number | null>(null)
+  const [copyErrorApptId, setCopyErrorApptId] = useState<number | null>(null)
   
   // Notes state - only for order appointments
   // Check both type field and presence of orderId as fallback
@@ -78,6 +91,60 @@ export function AppointmentsViewDialog({
   const customerInvitee = currentRow.invitees?.find((i) => i.name === 'Customer')
   const customerEmail = customerInvitee?.email
   const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+  
+  // Handler for marking attendance - only for order appointments
+  const handleMarkAttendance = async (status: 'SHOWED' | 'NO_SHOW' | 'UNKNOWN') => {
+    if (!appointmentId) {
+      toast.error('Appointment ID not found')
+      return
+    }
+    
+    try {
+      await markAttendance({ 
+        appointmentId, 
+        body: { status } 
+      }).unwrap()
+      // Invalidate Tasks cache so the updated attendance shows in the table
+      dispatch(taskApi.util.invalidateTags(['Tasks']))
+      toast.success(`Attendance marked as ${status}`)
+    } catch (error) {
+      console.error('Error marking attendance:', error)
+      toast.error('Failed to mark attendance')
+    }
+  }
+
+  // Handler for copy reschedule link
+  const handleCopyRescheduleLink = async () => {
+    if (!appointmentId) {
+      toast.error('Appointment ID not found')
+      return
+    }
+    
+    setCopyErrorApptId(null)
+    setCopiedApptId(null)
+    setCopyingApptId(appointmentId)
+    
+    try {
+      const resp = await generateLink({ appointmentId }).unwrap()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const url = (resp as any)?.data?.url ?? (resp as any)?.url
+      if (url) {
+        await navigator.clipboard.writeText(url)
+        setCopiedApptId(appointmentId)
+        setTimeout(() => setCopiedApptId(null), 1500)
+        toast.success('Reschedule link copied to clipboard')
+      } else {
+        setCopyErrorApptId(appointmentId)
+        toast.error('Could not generate reschedule link')
+      }
+    } catch (error) {
+      console.error('Error generating reschedule link:', error)
+      setCopyErrorApptId(appointmentId)
+      toast.error('Failed to generate reschedule link')
+    } finally {
+      setCopyingApptId(null)
+    }
+  }
   
   const handleSaveNotes = async () => {
     if (!appointmentId) {
@@ -247,13 +314,69 @@ export function AppointmentsViewDialog({
             </div>
           )}
 
-          {/* Google Calendar Event ID */}
-          {currentRow.googleCalendarEventId && (
+          {/* Attendance Section - Only for order appointments */}
+          {isAppointment && (
             <div className='space-y-3'>
-              <h3 className='text-lg font-semibold'>Google Calendar</h3>
-              <p className='text-sm text-muted-foreground font-mono'>
-                {currentRow.googleCalendarEventId}
-              </p>
+              <h3 className='text-lg font-semibold'>Attendance</h3>
+              <div className='border rounded-lg p-4 bg-muted/30'>
+                <div className='flex items-center justify-between mb-3'>
+                  <div>
+                    <label className='text-sm font-medium text-muted-foreground'>Status</label>
+                    <div className='mt-1'>
+                      <Badge variant='outline' className='uppercase'>
+                        {currentRow.attendanceStatus || 'UNKNOWN'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Button 
+                    size='sm' 
+                    variant='secondary' 
+                    disabled={isMarking || !appointmentId} 
+                    onClick={() => handleMarkAttendance('SHOWED')}
+                  >
+                    Showed
+                  </Button>
+                  <Button 
+                    size='sm' 
+                    variant='secondary' 
+                    disabled={isMarking || !appointmentId} 
+                    onClick={() => handleMarkAttendance('NO_SHOW')}
+                  >
+                    No Show
+                  </Button>
+                  <Button 
+                    size='sm' 
+                    variant='outline' 
+                    disabled={isMarking || !appointmentId} 
+                    onClick={() => handleMarkAttendance('UNKNOWN')}
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    disabled={isGenerating || copyingApptId === appointmentId || !appointmentId}
+                    onClick={handleCopyRescheduleLink}
+                  >
+                    {copiedApptId === appointmentId ? (
+                      <span className='inline-flex items-center gap-1'>
+                        <Check className='h-4 w-4 text-green-600' /> Copied
+                      </span>
+                    ) : copyingApptId === appointmentId ? (
+                      <span className='inline-flex items-center gap-1'>Generating…</span>
+                    ) : (
+                      <span className='inline-flex items-center gap-1'>
+                        <Clipboard className='h-4 w-4' /> Copy reschedule link
+                      </span>
+                    )}
+                  </Button>
+                  {copyErrorApptId === appointmentId && (
+                    <span className='text-xs text-destructive'>Failed to copy. Try again.</span>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

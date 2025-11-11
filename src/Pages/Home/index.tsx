@@ -7,7 +7,7 @@ import type { RootState, AppDispatch } from "../../redux/store";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
 
@@ -31,6 +31,9 @@ const Home = ({ showFree = false }: HomeProps) => {
     // Initialize from cart items on component mount
     return new Set(cartItems.map(item => item.id));
   });
+
+  // Carousel state for mobile - track current card index
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   
   // Sync selected products when cart items change (for when items are added/removed elsewhere)
   useEffect(() => {
@@ -116,6 +119,30 @@ const Home = ({ showFree = false }: HomeProps) => {
     }
   }, [dispatch, cartError]);
 
+  // Calculate products early for carousel reset effect
+  const products = isSuccess && productsData ? productsData.data : [];
+  const sortedProducts = products.length > 0 ? [...products].sort((a, b) => {
+    const getSortOrder = (product: ProductOutput): number => {
+      const name = product.name.toLowerCase();
+      if (product.id === 5) return 1;
+      if (product.id === 6) return 2;
+      if (product.id === 7) return 3;
+      if (name.includes('60') || name.includes('60-minute')) return 1;
+      if (name.includes('5x') || name.includes('5 x')) return 2;
+      if (name.includes('10x') || name.includes('10 x')) return 3;
+      return 4;
+    };
+    return getSortOrder(a) - getSortOrder(b);
+  }) : [];
+  const filteredProducts = showFree 
+    ? sortedProducts 
+    : sortedProducts.filter((elem) => elem.id !== 8);
+
+  // Reset carousel index when filtered products change
+  useEffect(() => {
+    setCurrentCardIndex(0);
+  }, [filteredProducts.length]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -150,27 +177,19 @@ const Home = ({ showFree = false }: HomeProps) => {
     );
   }
 
-  const products = isSuccess && productsData ? productsData.data : [];
-  
-  // Sort products: 60-minute first, then 5x, then 10x, then others
-  const sortedProducts = [...products].sort((a, b) => {
-    const getSortOrder = (product: ProductOutput): number => {
-      const name = product.name.toLowerCase();
-      // Check by ID first (most reliable)
-      if (product.id === 5) return 1; // 60-Minute Single Prep
-      if (product.id === 6) return 2; // 5X Prep Session Bundle
-      if (product.id === 7) return 3; // 10X Prep Session Bundle
-      
-      // Fallback to name matching
-      if (name.includes('60') || name.includes('60-minute')) return 1;
-      if (name.includes('5x') || name.includes('5 x')) return 2;
-      if (name.includes('10x') || name.includes('10 x')) return 3;
-      
-      return 4; // Everything else comes after
-    };
-    
-    return getSortOrder(a) - getSortOrder(b);
-  });
+
+  // Carousel navigation handlers
+  const handleNextCard = () => {
+    setCurrentCardIndex((prev) => (prev + 1) % filteredProducts.length);
+  };
+
+  const handlePrevCard = () => {
+    setCurrentCardIndex((prev) => (prev - 1 + filteredProducts.length) % filteredProducts.length);
+  };
+
+  const handleDotClick = (index: number) => {
+    setCurrentCardIndex(index);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 relative">
@@ -190,35 +209,83 @@ const Home = ({ showFree = false }: HomeProps) => {
           
           {/* Spacing between progress bar and product cards */}
           <div className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
-            {sortedProducts &&
-              (showFree
-                ? sortedProducts.map((p, index) => (
-                    <div 
-                      key={p.id} 
-                      className="animate-fade-in-up transition-all duration-300 hover:scale-102 h-full" 
-                      style={{ animationDelay: `${index * 100}ms` }}
+            {/* Mobile: Carousel - Show one card at a time (Horizontal) */}
+            <div className="block sm:hidden">
+              <div className="relative px-10">
+                {/* Navigation Arrows */}
+                {filteredProducts.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrevCard}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all"
+                      aria-label="Previous card"
                     >
-                      <ProductCard
-                        product={p}
-                        onAddToCart={handleAddToCart}
-                      />
-                    </div>
-                  ))
-                : sortedProducts
-                    .filter((elem) => elem.id !== 8)
-                    .map((p, index) => (
+                      <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    </button>
+                    <button
+                      onClick={handleNextCard}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all"
+                      aria-label="Next card"
+                    >
+                      <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    </button>
+                  </>
+                )}
+
+                {/* Card Container */}
+                <div className="overflow-hidden py-6">
+                  <div 
+                    className="flex transition-transform duration-300 ease-in-out"
+                    style={{ transform: `translateX(-${currentCardIndex * 100}%)` }}
+                  >
+                    {filteredProducts.map((p) => (
                       <div 
                         key={p.id} 
-                        className="animate-fade-in-up transition-all duration-300 hover:scale-102 h-full" 
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className="w-full flex-shrink-0"
                       >
-                      <ProductCard
-                        product={p}
-                        onAddToCart={handleAddToCart}
-                      />
+                        <ProductCard
+                          product={p}
+                          onAddToCart={handleAddToCart}
+                        />
                       </div>
-                    )))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dots Indicator */}
+                {filteredProducts.length > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    {filteredProducts.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleDotClick(index)}
+                        className={`h-2 rounded-full transition-all ${
+                          index === currentCardIndex
+                            ? 'bg-blue-600 w-6'
+                            : 'bg-gray-300 dark:bg-gray-600 w-2'
+                        }`}
+                        aria-label={`Go to card ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop: Grid Layout - Show all cards */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+              {filteredProducts.map((p, index) => (
+                <div 
+                  key={p.id} 
+                  className="animate-fade-in-up transition-all duration-300 hover:scale-102 h-full" 
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ProductCard
+                    product={p}
+                    onAddToCart={handleAddToCart}
+                  />
+                </div>
+              ))}
             </div>
           </div>
           
@@ -233,20 +300,20 @@ const Home = ({ showFree = false }: HomeProps) => {
               <button
                 onClick={handleAddSelectedToCart}
                 disabled={isAddingToCart}
-                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 px-8 lg:py-3 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-2.5 px-6 text-sm lg:py-3 lg:px-6 lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                <ShoppingCart size={20} className="lg:w-5 lg:h-5" />
-                <span className="lg:text-sm">
+                <ShoppingCart size={18} className="lg:w-5 lg:h-5" />
+                <span>
                   {isAddingToCart ? 'Adding...' : `Add ${selectedProducts.size} to Cart`}
                 </span>
               </button>
             ) : (
               <button
                 onClick={handleGoToCart}
-                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 px-8 lg:py-3 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-2.5 px-6 text-sm lg:py-3 lg:px-6 lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                <ShoppingCart size={20} className="lg:w-5 lg:h-5" />
-                <span className="lg:text-sm">
+                <ShoppingCart size={18} className="lg:w-5 lg:h-5" />
+                <span>
                   Go to Cart ({totalCartItems} {totalCartItems === 1 ? 'item' : 'items'})
                 </span>
               </button>

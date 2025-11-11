@@ -70,7 +70,6 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='ID' />
     ),
     cell: ({ row }) => <div className='w-[80px] font-medium'>#{row.getValue('id')}</div>,
-    enableSorting: false,
     enableHiding: false,
   },
   {
@@ -90,7 +89,12 @@ export const createTasksColumns = (
         </div>
       )
     },
-    enableSorting: false,
+    accessorFn: (row) => isOrderAppointment(row) ? 'Order Appointment' : 'Personal Task',
+    sortingFn: (rowA, rowB) => {
+      const typeA = isOrderAppointment(rowA.original) ? 'Order Appointment' : 'Personal Task'
+      const typeB = isOrderAppointment(rowB.original) ? 'Order Appointment' : 'Personal Task'
+      return typeA.localeCompare(typeB)
+    },
   },
   {
     id: 'orderId',
@@ -108,7 +112,20 @@ export const createTasksColumns = (
         <OrderIdCell orderId={task.orderId} />
       )
     },
-    enableSorting: false,
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      if (!isOrderAppointment(task) || !task.orderId) {
+        return -1
+      }
+      return task.orderId
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const orderIdA = (isOrderAppointment(taskA) && taskA.orderId) ? taskA.orderId : -1
+      const orderIdB = (isOrderAppointment(taskB) && taskB.orderId) ? taskB.orderId : -1
+      return orderIdA - orderIdB
+    },
   },
   {
     accessorKey: 'title',
@@ -142,7 +159,23 @@ export const createTasksColumns = (
         />
       )
     },
-    enableSorting: false,
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      const tutorId = task.tutorId
+      const user = tutorId && userIdToUser ? userIdToUser[tutorId] : undefined
+      return user?.name || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const tutorIdA = taskA.tutorId
+      const tutorIdB = taskB.tutorId
+      const userA = tutorIdA && userIdToUser ? userIdToUser[tutorIdA] : undefined
+      const userB = tutorIdB && userIdToUser ? userIdToUser[tutorIdB] : undefined
+      const nameA = userA?.name || ''
+      const nameB = userB?.name || ''
+      return nameA.localeCompare(nameB)
+    },
   },
   {
     id: 'customer',
@@ -172,7 +205,31 @@ export const createTasksColumns = (
         />
       )
     },
-    enableSorting: false,
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      const customerInvitee = task.invitees?.find((i) => i.name === 'Customer')
+      if (!customerInvitee) {
+        return ''
+      }
+      const customerEmail = customerInvitee.email
+      const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+      return customer?.name || customerInvitee.name || customerEmail || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const customerInviteeA = taskA.invitees?.find((i) => i.name === 'Customer')
+      const customerInviteeB = taskB.invitees?.find((i) => i.name === 'Customer')
+      
+      const customerEmailA = customerInviteeA?.email
+      const customerEmailB = customerInviteeB?.email
+      const customerA = customerEmailA && emailToUser ? emailToUser[customerEmailA.toLowerCase()] : undefined
+      const customerB = customerEmailB && emailToUser ? emailToUser[customerEmailB.toLowerCase()] : undefined
+      
+      const nameA = customerA?.name || customerInviteeA?.name || customerEmailA || ''
+      const nameB = customerB?.name || customerInviteeB?.name || customerEmailB || ''
+      return nameA.localeCompare(nameB)
+    },
   },
   {
     id: 'meetingLink',
@@ -201,7 +258,15 @@ export const createTasksColumns = (
         </div>
       )
     },
-    enableSorting: false,
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      return task.meetingLink || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const meetingLinkA = rowA.original.meetingLink || ''
+      const meetingLinkB = rowB.original.meetingLink || ''
+      return meetingLinkA.localeCompare(meetingLinkB)
+    },
   },
   {
     accessorKey: 'label',

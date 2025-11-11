@@ -43,22 +43,22 @@ const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) =
 
         {/* Product Details */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-0.5 line-clamp-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">
             {name}
           </h3>
-          <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 line-clamp-1">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2 sm:mb-2.5 line-clamp-1">
             {Desc}
           </p>
           
           {/* Price and Quantity */}
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300">Qty:</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Qty:</span>
               <QuantityController initial={quantity} id={id} />
             </div>
             <div className="text-right">
-              <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-                {price}
+              <div className="text-xs sm:text-base font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                {price} + tax
               </div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) =
         {/* Delete Button */}
         <div className="flex-shrink-0">
           <button 
-            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+            className="p-1 sm:p-1.5 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
             onClick={() => handleDelete(id)}
             title="Remove item"
           >

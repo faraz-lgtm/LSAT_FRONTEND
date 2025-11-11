@@ -366,33 +366,39 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
               (() => {
                 const now = new Date()
                 const rows = table.getRowModel().rows
+                const hasSorting = sorting.length > 0
                 
-                // Separate and sort tasks
-                const activeTasks = rows
-                  .filter(row => {
-                    const endDateTime = new Date(row.original.endDateTime)
-                    return endDateTime > now
-                  })
-                  .sort((a, b) => {
+                // If user has applied sorting, respect it and still separate active/expired
+                // If no sorting, use default behavior (sort by endDateTime within each group)
+                let activeTasks = rows.filter(row => {
+                  const endDateTime = new Date(row.original.endDateTime)
+                  return endDateTime > now
+                })
+                
+                let expiredTasks = rows.filter(row => {
+                  const endDateTime = new Date(row.original.endDateTime)
+                  return endDateTime <= now
+                })
+                
+                // If no sorting is applied, sort by endDateTime within each group
+                if (!hasSorting) {
+                  activeTasks = activeTasks.sort((a, b) => {
                     const dateA = new Date(a.original.endDateTime)
                     const dateB = new Date(b.original.endDateTime)
                     return dateA.getTime() - dateB.getTime() // Ascending order (earliest first)
                   })
-                
-                const expiredTasks = rows
-                  .filter(row => {
-                    const endDateTime = new Date(row.original.endDateTime)
-                    return endDateTime <= now
-                  })
-                  .sort((a, b) => {
+                  
+                  expiredTasks = expiredTasks.sort((a, b) => {
                     const dateA = new Date(a.original.endDateTime)
                     const dateB = new Date(b.original.endDateTime)
                     return dateB.getTime() - dateA.getTime() // Descending order (most recent first)
                   })
+                }
+                // If sorting is applied, the rows are already sorted by the table, so we just use them as-is
                 
                 return (
                   <>
-                    {/* Active Tasks - Upcoming tasks in ascending order */}
+                    {/* Active Tasks */}
                     {activeTasks.map((row) => (
                       <TableRow
                         key={row.id}
@@ -411,7 +417,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                       </TableRow>
                     ))}
                     
-                    {/* Expired Tasks - Past tasks in descending order */}
+                    {/* Expired Tasks */}
                     {expiredTasks.map((row) => (
                       <TableRow
                         key={row.id}

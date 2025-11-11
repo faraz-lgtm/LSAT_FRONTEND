@@ -15,7 +15,7 @@ import { format } from 'date-fns'
 import { ExternalLink, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { formatCurrency, formatCurrencyWithSymbol } from '@/utils/currency'
+import { formatCurrencyWithSymbol } from '@/utils/currency'
 import { cn } from '@/lib/dashboardRelated/utils'
 
 type AutomationLogsViewDialogProps = {
@@ -260,7 +260,7 @@ export function AutomationLogsViewDialog({
                               <span>Sessions: {item.sessions || 0}</span>
                               {item.Duration && <span>Duration: {item.Duration} min</span>}
                               {item.price && (
-                                <span>Price: {formatCurrency(item.price * (item.quantity || 1))}</span>
+                                <span>Price: {item.price * (item.quantity || 1)} CAD</span>
                               )}
                             </div>
                           </div>
@@ -286,7 +286,7 @@ export function AutomationLogsViewDialog({
                       <label className='text-sm font-medium text-muted-foreground'>Amount Paid</label>
                       <p className='text-sm'>
                         {stripeMeta.amountPaid
-                          ? formatCurrencyWithSymbol(stripeMeta.amountPaid, (stripeMeta.currency || 'CAD').toUpperCase())
+                          ? formatCurrencyWithSymbol(stripeMeta.amountPaid, (stripeMeta.paidCurrency || 'CAD').toUpperCase())
                           : '—'}
                       </p>
                     </div>

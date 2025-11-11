@@ -12,7 +12,7 @@ export function TasksPrimaryButtons({ onCreateTask }: TasksPrimaryButtonsProps) 
         className='space-x-1'
         onClick={onCreateTask}
       >
-        <span>Create Appointment</span> <PlusIcon size={18} />
+        <span>Create Task</span> <PlusIcon size={18} />
       </Button>
     </div>
   )

@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { CommandMenu } from '@/components/dashboard/command-menu'
+import { createContext, useContext, useEffect, useState, useMemo, lazy, Suspense } from 'react'
+
+const CommandMenu = lazy(() => import('@/components/dashboard/command-menu').then(module => ({ default: module.CommandMenu })))
 
 type SearchContextType = {
   open: boolean
@@ -26,10 +27,14 @@ export function SearchProvider({ children }: SearchProviderProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  const contextValue = useMemo(() => ({ open, setOpen }), [open])
+
   return (
-    <SearchContext.Provider value={{ open, setOpen }}>
+    <SearchContext.Provider value={contextValue}>
       {children}
-      <CommandMenu />
+      <Suspense fallback={null}>
+        <CommandMenu />
+      </Suspense>
     </SearchContext.Provider>
   )
 }
