@@ -9,8 +9,10 @@ import { useCurrencyFormatter } from "../utils/currency";
 const Layout = () => {
   const location = useLocation();
   const isFreePurchase = location.pathname === '/free_purchase';
-  const { items } = useSelector((state: RootState) => state.cart);
+  const { items: allItems } = useSelector((state: RootState) => state.cart);
   const formatCurrency = useCurrencyFormatter();
+  // Filter out free package (id === 8) when not on free purchase route
+  const items = isFreePurchase ? allItems : allItems.filter(item => item.id !== 8);
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (

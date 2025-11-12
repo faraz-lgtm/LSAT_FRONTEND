@@ -12,7 +12,7 @@ import { PackagesPrimaryButtons } from "./components/packages-primary-buttons";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import { ROLE } from "@/constants/roles";
+import { isAdminOrSuperAdmin } from "@/utils/rbac";
 import { useEffect } from "react";
 import type { ProductOutput } from "@/types/api/data-contracts";
 
@@ -23,7 +23,7 @@ export function Packages() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
-  const isAdmin = user?.roles?.includes(ROLE.ADMIN) || false;
+  const isAdmin = isAdminOrSuperAdmin(user?.roles) || false;
 
   // Redirect non-admin users
   useEffect(() => {

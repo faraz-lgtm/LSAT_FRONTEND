@@ -13,13 +13,13 @@ import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { ROLE } from '@/constants/roles'
+import { isAdminOrSuperAdmin } from '@/utils/rbac'
 import { useMemo } from 'react'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useSelector((state: RootState) => state.auth)
-  const isAdmin = user?.roles?.includes(ROLE.ADMIN) || false
+  const isAdmin = isAdminOrSuperAdmin(user?.roles) || false
 
   // Filter sidebar items based on user role
   const filteredNavGroups = useMemo(() => {

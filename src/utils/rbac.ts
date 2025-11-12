@@ -2,6 +2,129 @@ import { ROLE } from '@/constants/roles'
 import type { UserOutput } from '@/types/api/data-contracts'
 
 /**
+ * Check if user has ADMIN or SUPER_ADMIN role
+ * Helper function to check if user has admin-level permissions
+ * 
+ * @param userRoles - Array of user roles
+ * @returns boolean indicating if user is admin or super admin
+ */
+export function isAdminOrSuperAdmin(userRoles: string[] | undefined | null): boolean {
+  if (!userRoles) return false
+  return userRoles.includes(ROLE.ADMIN) || (userRoles as string[]).includes('SUPER_ADMIN')
+}
+
+/**
+ * Check if current user can edit a target user based on role-based access control
+ * 
+ * Rules:
+ * - SUPER_ADMIN: Can edit anyone (including themselves)
+ * - ADMIN: Can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
+ * - USER: Can edit CUSTOMER and themselves
+ * - CUSTOMER: Cannot edit anyone (they don't use dashboard)
+ * 
+ * @param currentUser - The currently authenticated user
+ * @param targetUser - The user being targeted for edit
+ * @returns boolean indicating if the action is allowed
+ */
+export function canEditUser(currentUser: UserOutput | null, targetUser: UserOutput): boolean {
+  if (!currentUser || !currentUser.roles) {
+    return false
+  }
+
+  const currentUserRoles = currentUser.roles
+  const targetUserRoles = targetUser.roles || []
+  const isCurrentUser = currentUser.id === targetUser.id
+  const isTargetAdmin = targetUserRoles.includes(ROLE.ADMIN)
+  const isTargetSuperAdmin = (targetUserRoles as string[]).includes('SUPER_ADMIN')
+  const isTargetCustomer = targetUserRoles.includes(ROLE.CUSTOMER)
+  const isTargetUser = targetUserRoles.includes(ROLE.USER)
+  const isCurrentUserSuperAdmin = (currentUserRoles as string[]).includes('SUPER_ADMIN')
+  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN)
+
+  // SUPER_ADMIN can edit anyone (including themselves)
+  if (isCurrentUserSuperAdmin) {
+    return true
+  }
+
+  // ADMIN can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
+  if (isCurrentUserAdmin) {
+    if (isCurrentUser) {
+      return true // Can edit themselves
+    }
+    // Cannot edit other admins or super admin
+    if (isTargetAdmin || isTargetSuperAdmin) {
+      return false
+    }
+    // Can edit CUSTOMER and USER
+    return isTargetCustomer || isTargetUser
+  }
+
+  // USER can edit CUSTOMER and themselves
+  if (currentUserRoles.includes(ROLE.USER)) {
+    return isCurrentUser || isTargetCustomer
+  }
+
+  // CUSTOMER cannot edit anyone
+  return false
+}
+
+/**
+ * Check if current user can delete a target user based on role-based access control
+ * 
+ * Rules:
+ * - SUPER_ADMIN: Can delete anyone except themselves
+ * - ADMIN: Can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
+ * - USER: Can delete CUSTOMER only (not themselves)
+ * - CUSTOMER: Cannot delete anyone (they don't use dashboard)
+ * 
+ * @param currentUser - The currently authenticated user
+ * @param targetUser - The user being targeted for delete
+ * @returns boolean indicating if the action is allowed
+ */
+export function canDeleteUser(currentUser: UserOutput | null, targetUser: UserOutput): boolean {
+  if (!currentUser || !currentUser.roles) {
+    return false
+  }
+
+  // Cannot delete yourself
+  if (currentUser.id === targetUser.id) {
+    return false
+  }
+
+  const currentUserRoles = currentUser.roles
+  const targetUserRoles = targetUser.roles || []
+  const isTargetAdmin = targetUserRoles.includes(ROLE.ADMIN)
+  const isTargetSuperAdmin = (targetUserRoles as string[]).includes('SUPER_ADMIN')
+  const isTargetCustomer = targetUserRoles.includes(ROLE.CUSTOMER)
+  const isTargetUser = targetUserRoles.includes(ROLE.USER)
+  const isCurrentUserSuperAdmin = (currentUserRoles as string[]).includes('SUPER_ADMIN')
+  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN)
+
+  // SUPER_ADMIN can delete anyone except themselves
+  if (isCurrentUserSuperAdmin) {
+    return true
+  }
+
+  // ADMIN can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
+  if (isCurrentUserAdmin) {
+    // Cannot delete other admins or super admin
+    if (isTargetAdmin || isTargetSuperAdmin) {
+      return false
+    }
+    // Can delete CUSTOMER and USER
+    return isTargetCustomer || isTargetUser
+  }
+
+  // USER can only delete CUSTOMER
+  if (currentUserRoles.includes(ROLE.USER)) {
+    return isTargetCustomer
+  }
+
+  // CUSTOMER cannot delete anyone
+  return false
+}
+
+/**
  * Check if current user can edit/delete a target user based on role-based access control
  * 
  * Rules:
@@ -44,6 +167,7 @@ export function canEditOrDeleteUser(currentUser: UserOutput | null, targetUser: 
  * Check if current user can add new users
  * 
  * Rules:
+ * - SUPER_ADMIN: Can add any user
  * - ADMIN: Can add any user
  * - USER: Can add CUSTOMER only
  * - CUSTOMER: Cannot add users
@@ -58,8 +182,8 @@ export function canAddUser(currentUser: UserOutput | null): boolean {
 
   const currentUserRoles = currentUser.roles
 
-  // ADMIN can add any user
-  if (currentUserRoles.includes(ROLE.ADMIN)) {
+  // SUPER_ADMIN and ADMIN can add any user
+  if (isAdminOrSuperAdmin(currentUserRoles)) {
     return true
   }
 
@@ -76,6 +200,7 @@ export function canAddUser(currentUser: UserOutput | null): boolean {
  * Get available roles that current user can assign to new users
  * 
  * Rules:
+ * - SUPER_ADMIN: Can assign any role
  * - ADMIN: Can assign any role
  * - USER: Can only assign CUSTOMER role
  * - CUSTOMER: Cannot assign roles
@@ -90,8 +215,8 @@ export function getAvailableRolesForNewUser(currentUser: UserOutput | null): ROL
 
   const currentUserRoles = currentUser.roles
 
-  // ADMIN can assign any role
-  if (currentUserRoles.includes(ROLE.ADMIN)) {
+  // SUPER_ADMIN and ADMIN can assign any role
+  if (isAdminOrSuperAdmin(currentUserRoles)) {
     return [ROLE.ADMIN, ROLE.USER, ROLE.CUSTOMER]
   }
 
@@ -108,6 +233,7 @@ export function getAvailableRolesForNewUser(currentUser: UserOutput | null): ROL
  * Filter users based on current user's role
  * 
  * Rules:
+ * - SUPER_ADMIN: Can see all users
  * - ADMIN: Can see all users
  * - USER: Can see USER and CUSTOMER
  * - CUSTOMER: Cannot see anyone (they don't use dashboard)
@@ -123,8 +249,8 @@ export function filterUsersByRole(users: UserOutput[], currentUser: UserOutput |
 
   const currentUserRoles = currentUser.roles
 
-  // ADMIN can see all users
-  if (currentUserRoles.includes(ROLE.ADMIN)) {
+  // SUPER_ADMIN and ADMIN can see all users
+  if (isAdminOrSuperAdmin(currentUserRoles)) {
     return users
   }
 

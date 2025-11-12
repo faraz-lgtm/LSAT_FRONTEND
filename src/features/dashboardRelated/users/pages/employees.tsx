@@ -22,7 +22,11 @@ export function EmployeesPage() {
   const employees = useMemo(() => {
     if (!isSuccess) return [];
     const all = usersData?.data || [];
-    return all.filter(u => u.roles.includes('ADMIN') || u.roles.includes('USER'));
+    return all.filter(u => 
+      u.roles.includes('ADMIN') || 
+      u.roles.includes('USER') || 
+      (u.roles as string[]).includes('SUPER_ADMIN')
+    );
   }, [isSuccess, usersData?.data]);
 
   return (

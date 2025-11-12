@@ -4,7 +4,7 @@ import { useGetProductsQuery } from "../../redux/apiSlices/Product/productSlice"
 import type { ItemInput, ProductOutput } from "../../types/api/data-contracts";
 import { addToCartAsync, clearError, removeFromCart } from "../../redux/cartSlice";
 import type { RootState, AppDispatch } from "../../redux/store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
@@ -21,24 +21,38 @@ const Home = ({ showFree = false }: HomeProps) => {
   const { data: productsData, isSuccess, isLoading, error } = useGetProductsQuery();
   
   // Get cart state for loading, error handling, and items count
-  const { isLoading: isAddingToCart, error: cartError, items: cartItems } = useSelector((state: RootState) => state.cart);
+  const { isLoading: isAddingToCart, error: cartError, items: allCartItems } = useSelector((state: RootState) => state.cart);
+  
+  // Filter out free package (id === 8) from cart items - Home page is for paid purchases only
+  // Memoize to prevent infinite loops in useEffect
+  const cartItems = useMemo(() => {
+    return allCartItems.filter(item => item.id !== 8);
+  }, [allCartItems]);
   
   // Get current checkout progress step
   const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
   
-  // Track selected products - initialize from cart items
+  // Track selected products - initialize from cart items (excluding free package)
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(() => {
-    // Initialize from cart items on component mount
-    return new Set(cartItems.map(item => item.id));
+    // Initialize from cart items on component mount (excluding free package)
+    const filteredItems = allCartItems.filter(item => item.id !== 8);
+    return new Set(filteredItems.map(item => item.id));
   });
-
+  
   // Carousel state for mobile - track current card index
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   
   // Sync selected products when cart items change (for when items are added/removed elsewhere)
   useEffect(() => {
     const cartProductIds = new Set(cartItems.map(item => item.id));
-    setSelectedProducts(cartProductIds);
+    // Only update if the Set contents have actually changed
+    setSelectedProducts(prev => {
+      if (prev.size !== cartProductIds.size || 
+          !Array.from(cartProductIds).every(id => prev.has(id))) {
+        return cartProductIds;
+      }
+      return prev;
+    });
   }, [cartItems]);
   
   const handleAddToCart = (product: ItemInput) => {
@@ -304,7 +318,7 @@ const Home = ({ showFree = false }: HomeProps) => {
               >
                 <ShoppingCart size={18} className="lg:w-5 lg:h-5" />
                 <span>
-                  {isAddingToCart ? 'Adding...' : `Add ${selectedProducts.size} to Cart`}
+                  {isAddingToCart ? 'Adding...' : `Go to Cart (${cartItems.length} ${cartItems.length === 1 ? 'item' : 'items'})`}
                 </span>
               </button>
             ) : (
@@ -314,7 +328,7 @@ const Home = ({ showFree = false }: HomeProps) => {
               >
                 <ShoppingCart size={18} className="lg:w-5 lg:h-5" />
                 <span>
-                  Go to Cart ({totalCartItems} {totalCartItems === 1 ? 'item' : 'items'})
+                  Go to Cart ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
                 </span>
               </button>
             )}

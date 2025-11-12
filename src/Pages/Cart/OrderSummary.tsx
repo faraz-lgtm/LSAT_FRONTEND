@@ -22,7 +22,7 @@ const OrderSummary = ({totalPrice, totalDiscount = 0}:OrderSummaryProps) => {
       <div className="space-y-2 sm:space-y-2.5 mb-4 sm:mb-6 flex-shrink-0">
         <div className="flex justify-between items-center py-1 sm:py-1.5 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
           <span className="text-xs sm:text-sm" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Subtotal</span>
-          <span className="font-semibold text-sm sm:text-base">{formatCurrency(totalPrice * 100)}</span>
+          <span className="font-semibold text-sm sm:text-base">{formatCurrency((totalPrice + totalDiscount) * 100)}</span>
         </div>
 
         {totalDiscount > 0 && (
@@ -41,7 +41,7 @@ const OrderSummary = ({totalPrice, totalDiscount = 0}:OrderSummaryProps) => {
         {/* Total - Prominent */}
         <div className="flex justify-between items-center py-2 sm:py-2.5 bg-white/10 rounded-lg px-3 sm:px-4">
           <span className="text-sm sm:text-base font-bold">Total</span>
-          <span className="text-lg sm:text-xl font-bold">{formatCurrency((totalPrice - totalDiscount) * 100)}</span>
+          <span className="text-lg sm:text-xl font-bold">{formatCurrency(totalPrice * 100)}</span>
         </div>
 
         {/* Trust Indicators */}

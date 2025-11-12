@@ -14,7 +14,7 @@ import { useOrders } from './orders-provider'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { ROLE } from '@/constants/roles'
+import { isAdminOrSuperAdmin } from '@/utils/rbac'
 import { useCompleteOrderMutation } from '@/redux/apiSlices/Order/orderSlice'
 import { toast } from 'sonner'
 
@@ -25,7 +25,7 @@ type DataTableRowActionsProps = {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useOrders()
   const user = useSelector((state: RootState) => state.auth.user)
-  const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
+  const isAdmin = isAdminOrSuperAdmin(user?.roles)
   const [completeOrder, { isLoading: isCompleting }] = useCompleteOrderMutation()
   
   const orderStatus = row.original.orderStatus

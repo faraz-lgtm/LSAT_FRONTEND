@@ -13,11 +13,11 @@ import type { TaskOutputDto, TaskQueryDto, UserOutput } from '@/types/api/data-c
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
-import { ROLE } from '@/constants/roles'
+import { isAdminOrSuperAdmin } from '@/utils/rbac'
 
 export function Tasks() {
   const user=useSelector((state: RootState) => state.auth.user)
-  const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
+  const isAdmin = isAdminOrSuperAdmin(user?.roles)
   const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({})
   const [filters, setFilters] = useState<TaskQueryDto>(() => {
     const now = new Date()

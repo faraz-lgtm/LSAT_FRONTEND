@@ -14,7 +14,7 @@ import { type UserOutput } from '@/types/api/data-contracts'
 import { useUsers } from './users-provider'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { canEditOrDeleteUser } from '@/utils/rbac'
+import { canEditUser, canDeleteUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 
 type DataTableRowActionsProps = {
@@ -30,11 +30,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   // Convert AuthUser to UserOutput format for RBAC functions
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   
-  // Check if current user can edit/delete this user
-  const canEditDelete = canEditOrDeleteUser(currentUserForRBAC, row.original)
+  // Check if current user can edit/delete this user separately
+  const canEdit = canEditUser(currentUserForRBAC, row.original)
+  const canDelete = canDeleteUser(currentUserForRBAC, row.original)
   
-  // Don't show actions if user can't edit/delete
-  if (!canEditDelete) {
+  // Don't show actions if user can't edit or delete
+  if (!canEdit && !canDelete) {
     return null
   }
   
@@ -51,30 +52,36 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[160px]'>
-          <DropdownMenuItem
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('edit')
-            }}
-          >
-            Edit
-            <DropdownMenuShortcut>
-              <UserPen size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('delete')
-            }}
-            className='text-red-500!'
-          >
-            Delete
-            <DropdownMenuShortcut>
-              <Trash2 size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
+          {canEdit && (
+            <DropdownMenuItem
+              onClick={() => {
+                setCurrentRow(row.original)
+                setOpen('edit')
+              }}
+            >
+              Edit
+              <DropdownMenuShortcut>
+                <UserPen size={16} />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
+          {canDelete && (
+            <>
+              {canEdit && <DropdownMenuSeparator />}
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('delete')
+                }}
+                className='text-red-500!'
+              >
+                Delete
+                <DropdownMenuShortcut>
+                  <Trash2 size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

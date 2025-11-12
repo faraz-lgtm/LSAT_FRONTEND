@@ -27,6 +27,10 @@ import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
 import type { UserOutput } from '@/types/api/data-contracts'
 import { useUsers } from './users-provider'
+import { useSelector } from 'react-redux'
+import type { RootState } from '@/redux/store'
+import { canEditUser } from '@/utils/rbac'
+import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -47,6 +51,8 @@ type DataTableProps = {
 
 export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter }: DataTableProps) {
   const { setOpen, setCurrentRow } = useUsers()
+  const currentUser = useSelector((state: RootState) => state.auth.user)
+  const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -231,8 +237,11 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
                   data-state={row.getIsSelected() && 'selected'}
                   className='group/row cursor-pointer'
                   onDoubleClick={() => {
-                    setCurrentRow(row.original)
-                    setOpen('edit')
+                    // Check if current user can edit this user before opening dialog
+                    if (canEditUser(currentUserForRBAC, row.original)) {
+                      setCurrentRow(row.original)
+                      setOpen('edit')
+                    }
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

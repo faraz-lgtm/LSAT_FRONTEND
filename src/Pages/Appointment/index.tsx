@@ -241,9 +241,10 @@ const Appointment = () => {
   const defaultCountry = detectUserCountry();
   
   // Filter items to only package ID 8 for free purchase route
+  // For paid purchases route, exclude free package (id === 8)
   const items = isFreePurchase 
     ? allItems.filter(item => item.id === 8)
-    : allItems;
+    : allItems.filter(item => item.id !== 8);
 
   
   const handleBack = () => {
@@ -459,9 +460,9 @@ const Appointment = () => {
         }).unwrap(); // unwrap() lets us use try/catch
         console.log("✅ Order created:", result);
         
-        // For free purchase route, redirect to success page instead of Stripe
+        // For free purchase route, redirect to confirmation page
         if (isFreePurchase) {
-          navigate("/success?type=free_session");
+          window.location.href = "https://betterlsat.com/confirmation/";
         } else if (result?.data?.url) {
           window.location.href = result.data.url;
         }

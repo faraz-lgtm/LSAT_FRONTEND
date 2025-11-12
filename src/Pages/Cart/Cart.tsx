@@ -10,10 +10,13 @@ import { useCurrencyFormatter } from "../../utils/currency";
 import { useGetProductsQuery } from "../../redux/apiSlices/Product/productSlice";
 
 const Cart = () => {
-  const { items } = useSelector((state: RootState) => state.cart);
+  const { items: allItems } = useSelector((state: RootState) => state.cart);
   const navigate = useNavigate();
   const formatCurrency = useCurrencyFormatter();
   const { data: productsData } = useGetProductsQuery();
+  
+  // Filter out free package (id === 8) from cart - cart is for paid purchases only
+  const items = allItems.filter(item => item.id !== 8);
   
   // Get current checkout progress step
   const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
