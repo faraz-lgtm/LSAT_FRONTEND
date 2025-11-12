@@ -123,9 +123,6 @@ const Home = ({ showFree = false }: HomeProps) => {
     // Selections will be synced automatically by the useEffect that watches cartItems
   };
 
-  // Calculate total unique packages in cart (not considering quantity)
-  const totalCartItems = cartItems.length;
-
   // Clear cart error when component mounts
   useEffect(() => {
     if (cartError) {

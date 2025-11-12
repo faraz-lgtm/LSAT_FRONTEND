@@ -17,7 +17,7 @@ export function ClickableTutorCell({ tutorId, userIdToUser, displayName }: Click
     const user = userIdToUser[tutorId]
     if (!user) return
 
-    // Check user roles: if 'ADMIN', 'USER', or 'SUPER_ADMIN' → navigate to employees page, if 'CUST' → navigate to customers page
+    // Check user roles: if 'ADMIN' or 'USER' → navigate to employees page, if 'CUST' → navigate to customers page
     const isEmployee = user.roles?.some(role => role === 'ADMIN' || role === 'USER' || role === 'SUPER_ADMIN')
     
     if (isEmployee) {

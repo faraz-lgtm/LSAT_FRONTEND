@@ -17,7 +17,8 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | 
     id: authUser.id,
     name: authUser.username, // Using username as name since AuthUser doesn't have name
     username: authUser.username,
-    roles: authUser.roles || [], // Convert string[] to ROLE[], handle undefined case
+    // Filter out SUPER_ADMIN since UserOutput.roles type only allows "USER" | "ADMIN" | "CUST"
+    roles: (authUser.roles || []) || [],
     email: '', // AuthUser doesn't have email
     isAccountDisabled: false,
     phone: '',

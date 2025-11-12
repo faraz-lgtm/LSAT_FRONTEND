@@ -268,7 +268,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                 items={[
                   { label: 'All Employees', value: 'all' },
                   ...(usersData?.data
-                    ?.filter((u) => (u.roles || []).some(r => r === ROLE.USER || r === ROLE.ADMIN || r === 'SUPER_ADMIN'))
+                    ?.filter((u) => (u.roles || []).some(r => r === ROLE.USER || r === ROLE.ADMIN || r === ROLE.SUPER_ADMIN))
                     .map((u) => ({ label: `${u.name} (@${u.username})`, value: String(u.id) })) || []),
                 ]}
               />

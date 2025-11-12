@@ -146,7 +146,7 @@ export namespace Api {
        * Filter users by role
        * @example "USER"
        */
-      role?: "USER" | "ADMIN" | "CUST";
+      role?: "USER" | "ADMIN" | "SUPER_ADMIN" | "CUST";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};

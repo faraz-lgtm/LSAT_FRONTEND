@@ -33,7 +33,7 @@ import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 import { toast } from 'sonner';
 import PhoneInput from "react-phone-input-2";
 import { useUpdateUserMutation } from '@/redux/apiSlices/User/userSlice'
-import { type UserOutput } from '@/types/api/data-contracts'
+import { type UserOutput, type UpdateUserInput, type RegisterInput } from '@/types/api/data-contracts'
 import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
 import { useEffect, useState } from 'react'
 
@@ -46,7 +46,7 @@ const formSchema = z.object({
     error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
   }),
   password: z.string().optional(),
-  roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER]))
+  roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER, ROLE.SUPER_ADMIN]))
     .min(1, 'At least one role is required.'),
   workHours: z.record(z.string(), z.array(z.string())).optional(),
   isEdit: z.boolean(),
@@ -188,7 +188,7 @@ export function UsersActionDialog({
         // Auto-set role to CUST when adding from customers page
         const finalRoles = isAddingCustomer ? [ROLE.CUSTOMER] : values.roles
         
-        const userData = {
+        const userData: RegisterInput = {
           name: values.name,
           email: values.email,
           phone: values.phone,
@@ -205,14 +205,8 @@ export function UsersActionDialog({
         console.log("📝 Edit user - values:", values);
         console.log("📝 Edit user - currentRow:", currentRow);
         const isCustomerOnly = isEditingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
-        const userData: {
-          name: string
-          email: string
-          phone: string
-          username: string
-          roles: ("USER" | "ADMIN" | "CUST")[]
-          workHours?: Record<string, string[]>
-        } = {
+        
+        const userData: UpdateUserInput = {
           name: values.name,
           email: values.email,
           phone: values.phone,

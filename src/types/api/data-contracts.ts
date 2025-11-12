@@ -19,7 +19,7 @@ export interface GetUsersQueryParams {
    * Filter users by role
    * @example "USER"
    */
-  role?: "USER" | "ADMIN" | "CUST";
+  role?: "USER" | "ADMIN" | "SUPER_ADMIN" | "CUST";
 }
 
 export interface MetaResponse {
@@ -48,7 +48,7 @@ export interface UserOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;
@@ -122,7 +122,7 @@ export interface BaseUserOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;
@@ -169,7 +169,7 @@ export interface UpdateUserInput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
   /**
    * Account disabled status
    * @example false
@@ -220,7 +220,7 @@ export interface UserAccessTokenClaims {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
 }
 
 export interface LoginOutput {
@@ -243,7 +243,7 @@ export interface RegisterInput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
   /**
    * Employee working hours in UTC format (HH:MM-HH:MM)
    * @example {"Monday":["09:00-17:00"],"Tuesday":["09:00-17:00"]}
@@ -259,7 +259,7 @@ export interface RegisterOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;
