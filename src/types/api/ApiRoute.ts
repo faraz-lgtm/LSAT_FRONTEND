@@ -16,6 +16,7 @@ import {
   CancelRefundDto,
   CreateConversationDto,
   CreateInvoiceDto,
+  CreateOrganizationDto,
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
@@ -97,6 +98,72 @@ export namespace Api {
 
   /**
    * No description
+   * @tags organizations
+   * @name OrganizationControllerGetAll
+   * @summary Get all organizations
+   * @request GET:/api/v1/organizations
+   * @secure
+   */
+  export namespace OrganizationControllerGetAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags organizations
+   * @name OrganizationControllerCreate
+   * @summary Create a new organization
+   * @request POST:/api/v1/organizations
+   * @secure
+   */
+  export namespace OrganizationControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateOrganizationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags organizations
+   * @name OrganizationControllerGetMyOrganization
+   * @summary Get current user's organization
+   * @request GET:/api/v1/organizations/my-organization
+   * @secure
+   */
+  export namespace OrganizationControllerGetMyOrganization {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags organizations
+   * @name OrganizationControllerGetById
+   * @summary Get organization by ID
+   * @request GET:/api/v1/organizations/{id}
+   * @secure
+   */
+  export namespace OrganizationControllerGetById {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
    * @tags users
    * @name UserControllerGetMyProfile
    * @summary Get user me API
@@ -146,7 +213,7 @@ export namespace Api {
        * Filter users by role
        * @example "USER"
        */
-      role?: "USER" | "ADMIN" | "SUPER_ADMIN" | "CUST";
+      role?: "USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};

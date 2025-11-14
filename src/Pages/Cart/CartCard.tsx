@@ -10,24 +10,31 @@ interface CartCardProps {
   price: string;     // e.g. "$575.00"
   quantity:number;
   name:string;
-  itemSessions:number
+  itemSessions:number;
+  index: number;
 }
 
-const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) => {
+const CartCard = ({ id,BigText, Desc, price , quantity, name, index }: CartCardProps) => {
   const dispatch = useDispatch();
 
   const handleDelete = (id:number) => {
     dispatch(removeFromCart(id));
   };
 
+  const isOdd = index % 2 === 0; // index 0, 2, 4... are odd items (1st, 3rd, 5th...)
+  const backgroundColor = isOdd 
+    ? 'rgba(50, 185, 106, 0.1)' // Light greenish from --customer-button-green (#32B96A)
+    : 'rgba(13, 71, 161, 0.1)'; // Light blue from --customer-primary (#0D47A1)
+
   return (
     <div 
-      className="group relative bg-white dark:bg-gray-800 border rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200"
+      className="group relative border rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200"
       style={{ 
         borderColor: 'rgb(229, 231, 235)',
+        backgroundColor: backgroundColor,
       }}
       onMouseEnter={(e) => { 
-        e.currentTarget.style.borderColor = '#0D47A1';
+        e.currentTarget.style.borderColor = 'var(--customer-primary)';
       }}
       onMouseLeave={(e) => { 
         e.currentTarget.style.borderColor = 'rgb(229, 231, 235)';
@@ -36,7 +43,7 @@ const CartCard = ({ id,BigText, Desc, price , quantity, name }: CartCardProps) =
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Product Icon */}
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg text-white font-bold text-xs sm:text-sm shadow-md" style={{ background: 'linear-gradient(to bottom right, #0D47A1, #1565C0)' }}>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg text-white font-bold text-xs sm:text-sm shadow-md" style={{ background: 'var(--customer-primary-gradient-bottom)' }}>
             {BigText}
           </div>
         </div>

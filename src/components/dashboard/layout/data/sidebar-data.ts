@@ -50,7 +50,7 @@ const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Work Items",
+          title: "Tasks & appointments",
           url: "/tasks",
           icon: Calendar,
         },
@@ -242,6 +242,7 @@ if (ENV !== "DEVELOPMENT") {
           "/packages",
           "/help-center",
           "/tasks",
+          "/chats",
           "/invoices",
           "/refunds",
           "/transactions",

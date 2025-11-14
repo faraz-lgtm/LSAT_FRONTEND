@@ -500,11 +500,11 @@ const Appointment = () => {
                 </div>
               </div>
             )}
-            <div className="p-4 sm:p-5 rounded-xl border-2 shadow-lg mb-4" style={{ background: 'linear-gradient(to right, #0D47A1, #1565C0)', borderColor: '#0D47A1' }}>
+            <div className="p-4 sm:p-5 rounded-xl border-2 shadow-lg mb-4" style={{ background: 'var(--customer-primary-gradient)', borderColor: 'var(--customer-primary)' }}>
               <h3 className="font-bold text-white mb-2.5 text-base sm:text-lg">
                 Prep Session Details
               </h3>
-              <p className="text-white font-semibold mb-2 text-sm sm:text-base">
+              <p className="font-semibold mb-2 text-sm sm:text-base" style={{ color: 'var(--customer-text-white)' }}>
                 You have{" "}
                 <span className="text-yellow-300 dark:text-yellow-200 font-extrabold text-base sm:text-lg">
                   {items.reduce(
@@ -521,7 +521,7 @@ const Appointment = () => {
                   : ""}{" "}
                 to schedule
               </p>
-              <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
+              <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--customer-text-white)' }}>
                 We've pre-selected the best available times for you. 
                 Tap any slot to adjust or reschedule
               </p>
@@ -571,7 +571,7 @@ const Appointment = () => {
                           className={`${packageIndex > 0 ? 'mt-3' : ''} p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600`}
                         >
                           <h6 className="font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center text-[10px] sm:text-xs">
-                            <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold mr-1.5" style={{ backgroundColor: '#0D47A1' }}>
+                            <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold mr-1.5" style={{ backgroundColor: 'var(--customer-primary)' }}>
                               {packageIndex + 1}
                             </span>
                             {item.quantity > 1 ? `${item.name} - Package ${packageIndex + 1}` : item.name} ({packageSlots.length}{" "}
@@ -586,7 +586,7 @@ const Appointment = () => {
                                   key={`${item.id}-${globalIndex}`}
                                   className="flex flex-row items-center gap-2"
                                 >
-                                  <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full text-[9px] sm:text-[10px] font-medium flex-shrink-0" style={{ backgroundColor: 'rgba(13, 71, 161, 0.1)', color: '#0D47A1' }}>
+                                  <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full text-[9px] sm:text-[10px] font-medium flex-shrink-0" style={{ backgroundColor: 'var(--customer-primary-rgba-10)', color: 'var(--customer-primary)' }}>
                                     {slotIndex + 1}
                                   </span>
                                   <div className="flex-1 min-w-0">
@@ -631,8 +631,9 @@ const Appointment = () => {
               className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] lg:shadow-xl lg:hover:shadow-2xl ${
                 isValidatingSlots || isCreatingOrder
                   ? 'bg-gray-400 text-white cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
+                  : 'text-white'
               }`}
+              style={!(isValidatingSlots || isCreatingOrder) ? { backgroundColor: 'var(--customer-button-orange)' } : undefined}
             >
               {isValidatingSlots || isCreatingOrder ? (
                 <div className="flex items-center justify-center">
@@ -668,9 +669,9 @@ const Appointment = () => {
                 required
                 name="firstName"
                 defaultValue={firstName}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
-                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
-                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-sm"
+                style={{ '--tw-ring-color': 'var(--customer-primary)' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px var(--customer-primary)'; }}
                 onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
                 placeholder="Enter first name"
               />
@@ -685,9 +686,9 @@ const Appointment = () => {
                 name="lastName"
                 required
                 defaultValue={lastName}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
-                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
-                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-sm"
+                style={{ '--tw-ring-color': 'var(--customer-primary)' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px var(--customer-primary)'; }}
                 onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
                 placeholder="Enter last name"
               />
@@ -702,9 +703,9 @@ const Appointment = () => {
                 name="email"
                 required
                 defaultValue={email}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 dark:text-white text-sm"
-                style={{ '--tw-ring-color': '#0D47A1' } as React.CSSProperties}
-                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #0D47A1'; }}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1.5 focus:outline-none focus:ring-2 dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-sm"
+                style={{ '--tw-ring-color': 'var(--customer-primary)' } as React.CSSProperties}
+                onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px var(--customer-primary)'; }}
                 onBlur={(e) => { e.currentTarget.style.boxShadow = ''; }}
                 placeholder="Enter email address"
               />
@@ -718,8 +719,8 @@ const Appointment = () => {
                 country={defaultCountry}
                 value={phoneInp}
                 onChange={(val) => setPhoneInp("+" + val)}
-                inputClass="!w-full !rounded-lg !border !border-gray-300 dark:!border-gray-600 px-2.5 py-1.5 focus:!outline-none focus:!ring-2 dark:!bg-gray-700 dark:!text-white !text-sm phone-input-focus"
-                containerStyle={{ '--focus-ring-color': '#0D47A1' } as React.CSSProperties}
+                inputClass="!w-full !rounded-lg !border !border-gray-300 dark:!border-gray-600 px-2.5 py-1.5 focus:!outline-none focus:!ring-2 dark:!bg-gray-700 !text-gray-900 dark:!text-gray-900 !text-sm phone-input-focus"
+                containerStyle={{ '--focus-ring-color': 'var(--customer-primary)' } as React.CSSProperties}
               />
             </div>
 
@@ -731,8 +732,9 @@ const Appointment = () => {
                 className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm min-w-[100px] sm:min-w-[120px] fixed bottom-3 left-6 right-6 max-w-[calc(100%-3rem)] sm:max-w-none sm:static sm:bottom-auto sm:left-auto sm:right-auto z-50 ${
                   isCreatingCustomer 
                     ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
+                    : 'text-white'
                 }`}
+                style={!isCreatingCustomer ? { backgroundColor: 'var(--customer-button-orange)' } : undefined}
               >
                 {isCreatingCustomer ? (
                   <div className="flex items-center justify-center">
@@ -765,48 +767,43 @@ const Appointment = () => {
   const currentStep = getCurrentStep();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 relative flex flex-col">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#0D47A1' }}></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse delay-2000"></div>
-        <div className="absolute top-20 left-20 w-64 h-64 bg-cyan-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-500"></div>
-        <div className="absolute bottom-20 right-20 w-64 h-64 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-1500"></div>
-      </div>
-      
-      <div className="relative z-10 flex flex-col min-h-screen p-3 sm:p-4">
-        {/* Top Section - Fixed Height */}
-        <div className="flex-shrink-0 space-y-2 mb-4">
+    <div className="min-h-screen customer-page-bg relative flex flex-col">
+      {/* Main Content Section */}
+      <div className="relative z-10 py-4 sm:py-6 pb-32 sm:pb-6 lg:pb-6">
+        <div className="customer-container customer-content w-full">
+          {/* Top Section - Fixed Height */}
+          <div className="flex-shrink-0 space-y-2 mb-4">
           {/* Back Button */}
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 text-[10px] sm:text-xs"
-          >
-            <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
-            <span className="font-medium">
-              {selected === "information" ? "Back to Cart" : 
-               "Back to Information"}
-            </span>
-          </button>
+          <div>
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md text-xs"
+            >
+              <ArrowLeft size={16} />
+              <span className="font-medium">
+                {selected === "information" ? "Back to Cart" : 
+                 "Back to Information"}
+              </span>
+            </button>
+          </div>
 
           {/* Global Progress Bar - Hidden for free purchase */}
           {!isFreePurchase && <GlobalProgressBar currentStep={currentStep} />}
 
           {/* Cart Total Display - Only show on information step */}
           {selected === "information" && (
-            <div className="hidden sm:block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+            <div className="hidden sm:block w-full max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                 <div>
                   <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                   Enter Your Details to Continue
                   </h1>
                   <p className="text-xs text-gray-600 dark:text-gray-300">
-                  We’ll use this information to confirm your sessions and send your schedule.
+                  We'll use this information to confirm your sessions and send your schedule.
                   </p>
                 </div>
                 <div className="text-left sm:text-right">
-                  <div className="text-lg sm:text-xl font-bold" style={{ color: '#0D47A1' }}>
+                  <div className="text-lg sm:text-xl font-bold" style={{ color: 'var(--customer-primary)' }}>
                     {formatCurrency(total * 100)}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -844,6 +841,7 @@ const Appointment = () => {
             <div className="w-full">
               {panels[selected]}
             </div>
+          </div>
           </div>
         </div>
       </div>

@@ -18,52 +18,52 @@ export const GlobalProgressBar: React.FC<GlobalProgressBarProps> = ({
   className = '' 
 }) => {
   return (
-    <div className={`w-full bg-white dark:bg-gray-800 rounded-lg p-1 sm:p-1.5 ${className}`}>
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between px-0.5 sm:px-1">
+    <div className={`flex justify-center ${className}`}>
+      <div className="customer-progress-bar bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-4 flex items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = step.id < currentStep;
           const isCurrent = step.id === currentStep;
           
           return (
-            <div key={step.id} className="flex flex-col items-center relative flex-1 min-w-0">
-              {/* Step Circle */}
-              <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center text-[8px] sm:text-[10px] font-semibold z-10 flex-shrink-0 ${
-                isCompleted 
-                  ? 'bg-green-500 text-white' 
-                  : isCurrent 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-              }`}>
-                {isCompleted ? (
-                  <CheckCircle className="w-1 h-1 sm:w-1.5 sm:h-1.5" />
-                ) : (
-                  step.id
-                )}
-              </div>
-              
-              {/* Step Label */}
-              <div className="mt-0.5">
-                <div className={`text-[9px] sm:text-[10px] font-medium text-center truncate w-full ${
-                  isCurrent 
+            <React.Fragment key={step.id}>
+              <div className="flex items-center">
+                {/* Step Circle */}
+                <div className={`flex items-center justify-center rounded-full font-semibold z-10 flex-shrink-0 ${
+                  isCompleted || isCurrent
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                }`} style={{ 
+                  width: 'clamp(1.25rem, var(--customer-progress-bar-circle-size), 2rem)',
+                  height: 'clamp(1.25rem, var(--customer-progress-bar-circle-size), 2rem)',
+                  fontSize: 'var(--customer-progress-bar-text-size)'
+                }}>
+                  {isCompleted ? (
+                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    step.id
+                  )}
+                </div>
+                
+                {/* Step Label */}
+                <div className={`ml-2 sm:ml-3 font-medium whitespace-nowrap ${
+                  isCurrent || isCompleted
                     ? 'text-blue-600 dark:text-blue-400' 
-                    : isCompleted 
-                    ? 'text-green-600 dark:text-green-400' 
                     : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  {step.shortLabel}
+                }`} style={{ fontSize: 'var(--customer-progress-bar-text-size)' }}>
+                  <span className="hidden sm:inline">{step.label}</span>
+                  <span className="sm:hidden">{step.shortLabel}</span>
                 </div>
               </div>
               
-              {/* Connecting Line - Only between circles */}
+              {/* Connecting Line - Only between steps */}
               {index < steps.length - 1 && (
-                <div className={`absolute top-1.25 sm:top-1.5 left-1/2 w-full h-0.5 ${
+                <div className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
                   isCompleted 
-                    ? 'bg-green-500' 
+                    ? 'bg-blue-600' 
                     : 'bg-gray-300 dark:bg-gray-600'
-                }`} style={{ transform: 'translateX(50%)' }} />
+                }`} />
               )}
-            </div>
+            </React.Fragment>
           );
         })}
       </div>

@@ -19,10 +19,13 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { Card } from "@/components/dashboard/ui/calendarRelatedUI/ui/card";
 import { Separator } from "@/components/dashboard/ui/calendarRelatedUI/ui/separator";
 import { type CalendarEvent } from "@/utils/calendar/data";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import CalendarNav from "./components/calendar-nav";
 import { TasksMutateDrawer } from "@/features/dashboardRelated/tasks/components/tasks-mutate-drawer";
 import { useGetTasksQuery } from "@/redux/apiSlices/Task/taskSlice";
+import { AppointmentsViewDialog } from "@/features/dashboardRelated/tasks/components/appointments-view-dialog";
+import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
+import type { TaskOutputDto, UserOutput } from "@/types/api/data-contracts";
 
 type EventItemProps = {
   info: EventContentArg;
@@ -54,7 +57,31 @@ export default function Calendar() {
     googleCalendar: true,
   });
 
+  // Fetch users for the appointment dialog
+  const { data: usersData } = useGetUsersQuery({});
+
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskOutputDto | undefined>(undefined);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+
+  // Create user lookup maps
+  const userIdToUser = useMemo(() => {
+    if (!usersData?.data) return {};
+    return (usersData.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
+      acc[u.id] = u;
+      return acc;
+    }, {});
+  }, [usersData]);
+
+  const emailToUser = useMemo(() => {
+    if (!usersData?.data) return {};
+    return (usersData.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
+      if (u.email) {
+        acc[u.email.toLowerCase()] = u;
+      }
+      return acc;
+    }, {});
+  }, [usersData]);
 
   const events: CalendarEvent[] = useMemo(() => {
     const tasks = data?.data ?? [];
@@ -65,6 +92,9 @@ export default function Calendar() {
       end: new Date(t.endDateTime),
       backgroundColor: pickColorByLabel(t.label),
       description: t.description ?? "",
+      extendedProps: {
+        taskData: t as TaskOutputDto,
+      },
     }));
   }, [data]);
 
@@ -94,8 +124,21 @@ export default function Calendar() {
     const startTimeFormatted = formatTime(startTime);
     const endTimeFormatted = formatTime(endTime);
 
+    // Handle double-click on event
+    const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+      e.stopPropagation();
+      const taskData = event.extendedProps?.taskData as TaskOutputDto | undefined;
+      if (taskData) {
+        setSelectedTask(taskData);
+        setAppointmentDialogOpen(true);
+      }
+    }, [event]);
+
     return (
-      <div className="overflow-hidden w-full">
+      <div 
+        className="overflow-hidden w-full"
+        onDoubleClick={handleDoubleClick}
+      >
         {info.view.type == "dayGridMonth" ? (
           <div
             style={{ backgroundColor: info.backgroundColor }}
@@ -233,6 +276,21 @@ export default function Calendar() {
         </div>
       </div>
       <TasksMutateDrawer open={createTaskOpen} onOpenChange={setCreateTaskOpen} />
+      {selectedTask && (
+        <AppointmentsViewDialog
+          open={appointmentDialogOpen}
+          onOpenChange={(open) => {
+            setAppointmentDialogOpen(open);
+            if (!open) {
+              // Clear selected task after a delay to allow dialog to close
+              setTimeout(() => setSelectedTask(undefined), 300);
+            }
+          }}
+          currentRow={selectedTask}
+          userIdToUser={userIdToUser}
+          emailToUser={emailToUser}
+        />
+      )}
     </div>
   );
 }

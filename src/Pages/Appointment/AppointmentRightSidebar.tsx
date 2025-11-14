@@ -39,9 +39,9 @@ const RightPanel = ({ title, children, footerFn, isLoading = false, loadingText 
                   ? 'bg-gray-400 text-white cursor-not-allowed' 
                   : 'text-white'
               }`}
-              style={!isLoading ? { background: '#0D47A1' } : undefined}
-              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#0a3d8a'; }}
-              onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = '#0D47A1'; }}
+              style={!isLoading ? { background: 'var(--customer-button-orange)' } : undefined}
+              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#FF8C00'; }}
+              onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = 'var(--customer-button-orange)'; }}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

@@ -38,18 +38,10 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 relative flex flex-col">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#0D47A1' }}></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse delay-2000"></div>
-        <div className="absolute top-20 left-20 w-64 h-64 bg-cyan-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-500"></div>
-        <div className="absolute bottom-20 right-20 w-64 h-64 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-15 animate-pulse delay-1500"></div>
-      </div>
+    <div className="min-h-screen customer-page-bg relative flex flex-col">
       {/* Main Content Section */}
-      <div className="relative z-10 px-3 sm:px-4 lg:px-8 py-4 sm:py-6 pb-32 sm:pb-6 lg:pb-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative z-10 py-4 sm:py-6 pb-32 sm:pb-6 lg:pb-6">
+        <div className="customer-container customer-content">
           {/* Top Section - Fixed Height */}
           <div className="flex-shrink-0 space-y-2 mb-4">
             {/* Back Button */}
@@ -91,7 +83,8 @@ const Cart = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Go back to choose your prep sessions and start your LSAT journey."</p>
                 <button
                   onClick={handleBackToHome}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-5 py-2 rounded-lg font-medium transition-all duration-300 text-sm shadow-lg hover:shadow-xl"
+                  className="text-white px-5 py-2 rounded-lg font-medium transition-all duration-300 text-sm shadow-lg hover:shadow-xl"
+                  style={{ backgroundColor: 'var(--customer-button-green)' }}
                 >
                   Browse Packages
                 </button>
@@ -102,7 +95,7 @@ const Cart = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2 sm:p-3 flex flex-col">
                     <h2 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-2 flex-shrink-0">Cart Items</h2>
                     <div className="space-y-2">
-                      {items.map((item) => (
+                      {items.map((item, index) => (
                         <CartCard
                           key={item.id}
                           id={item.id}
@@ -112,6 +105,7 @@ const Cart = () => {
                           itemSessions={item.sessions}
                           price={formatCurrency(item.price * 100)}
                           quantity={item.quantity}
+                          index={index}
                         />
                       ))}
                     </div>
@@ -134,11 +128,12 @@ const Cart = () => {
 
       {/* Footer - Continue to Checkout Button */}
       {items.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:bottom-0 z-50 flex justify-center animate-slide-up bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-blue-800 dark:to-purple-800 lg:bg-transparent lg:from-transparent lg:via-transparent lg:to-transparent lg:dark:from-transparent lg:dark:via-transparent lg:dark:to-transparent pb-4 pt-2">
+        <div className="fixed customer-fixed-button left-0 right-0 z-50 flex justify-center animate-slide-up lg:bg-transparent pb-4 pt-2">
           <div className="lg:inline-block">
             <div className="px-4 py-3 lg:px-0 lg:py-0">
               <button 
-                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-2.5 px-6 text-sm lg:py-3 lg:px-6 lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl" 
+                className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 text-white font-semibold py-2.5 px-6 text-sm lg:py-3 lg:px-6 lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                style={{ backgroundColor: 'var(--customer-button-orange)' }} 
                 onClick={() => navigate("/Appointment")}
               >
                 Continue to Checkout

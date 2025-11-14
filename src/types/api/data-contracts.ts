@@ -10,6 +10,26 @@
  * ---------------------------------------------------------------
  */
 
+export interface CreateOrganizationDto {
+  /**
+   * Organization name
+   * @example "BetterLSAT"
+   */
+  name: string;
+  /**
+   * Organization slug (used in subdomain)
+   * @example "betterlsat"
+   */
+  slug: string;
+  /**
+   * Organization domain
+   * @example "betterlsat.com"
+   */
+  domain?: string;
+  /** Organization settings */
+  settings?: object;
+}
+
 export interface GetUsersQueryParams {
   /** Optional, defaults to 100 */
   limit?: number;
@@ -19,7 +39,7 @@ export interface GetUsersQueryParams {
    * Filter users by role
    * @example "USER"
    */
-  role?: "USER" | "ADMIN" | "SUPER_ADMIN" | "CUST";
+  role?: "USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST";
 }
 
 export interface MetaResponse {
@@ -48,7 +68,7 @@ export interface UserOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;
@@ -122,7 +142,7 @@ export interface BaseUserOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;
@@ -169,7 +189,7 @@ export interface UpdateUserInput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   /**
    * Account disabled status
    * @example false
@@ -220,7 +240,12 @@ export interface UserAccessTokenClaims {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
 }
 
 export interface LoginOutput {
@@ -243,7 +268,7 @@ export interface RegisterInput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   /**
    * Employee working hours in UTC format (HH:MM-HH:MM)
    * @example {"Monday":["09:00-17:00"],"Tuesday":["09:00-17:00"]}
@@ -259,7 +284,7 @@ export interface RegisterOutput {
    * User roles
    * @example ["USER"]
    */
-  roles: ("USER" | "ADMIN" | "SUPER_ADMIN" | "CUST")[];
+  roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   email: string;
   isAccountDisabled: boolean;
   phone: string;

@@ -59,7 +59,7 @@ const QuantityController: React.FC<QuantityControllerProps> = ({ initial = 1 ,id
         }`}
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-3 w-3 border-b-2" style={{ borderColor: '#0D47A1' }}></div>
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2" style={{ borderColor: 'var(--customer-primary)' }}></div>
         ) : (
           <Plus size={12} className="text-gray-600 dark:text-gray-300" />
         )}
