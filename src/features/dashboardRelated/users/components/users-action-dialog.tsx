@@ -130,12 +130,17 @@ export function UsersActionDialog({
         const phoneValue = currentRow.phone || ''
         const phoneWithoutPlus = phoneValue ? phoneValue.replace(/^\+/, '') : ''
         
+        // Filter out COMPANY_ADMIN role as it's not in the User schema
+        const validRoles = currentRow.roles.filter(role => 
+          role === 'USER' || role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
+        ) as ('USER' | 'ADMIN' | 'SUPER_ADMIN' | 'CUST')[]
+        
         const formValues = {
           name: currentRow.name,
           phone: phoneValue,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
-          roles: currentRow.roles,
+          roles: validRoles,
           workHours: currentRow.workHours || {},
           serviceIds: currentRow.serviceIds || [],
           isEdit: true,

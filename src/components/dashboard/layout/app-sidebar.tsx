@@ -21,9 +21,9 @@ export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useSelector((state: RootState) => state.auth)
   const isAdmin = isAdminOrSuperAdmin(user?.roles) || false
-  // Check for SUPER_ADMIN role - handle both ROLE enum and string format
+  // Check for SUPER_ADMIN role
   const isSuperAdmin = user?.roles?.some(role => 
-    role === ROLE.SUPER_ADMIN || role === 'SUPER_ADMIN'
+    role === ROLE.SUPER_ADMIN
   ) || false
 
   // Filter sidebar items based on user role

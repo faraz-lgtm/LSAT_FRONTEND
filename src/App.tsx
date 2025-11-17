@@ -1,5 +1,5 @@
 import "react-phone-input-2/lib/style.css";
-import { Route, Routes, useParams, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Cart from "./Pages/Cart/Cart";
 import Layout from "./Layouts/DefaultLayout";
 // import About from "./Pages/About";
@@ -9,12 +9,10 @@ import PaymentSuccess from "./Pages/PaymentSuccess";
 import PaymentCancel from "./Pages/PaymentCancel";
 import DashboardApp from "./DashboardApp";
 import { ReschedulePage } from "./routes/reschedule";
-import { isOnOrganizationDomain, getCurrentDomain } from "./utils/organization";
+import { isOnOrganizationDomain } from "./utils/organization";
 
 // Component to handle domain/slug-based routing
 function DomainOrSlugHome() {
-  const { slug } = useParams<{ slug: string }>();
-  
   // If slug is provided, show Home page (backend will handle organization context via slug)
   // The slug will be available in the URL and can be used by the backend
   return <Home />;

@@ -1,7 +1,6 @@
 import { api } from "@/redux/api";
 import type { 
   OrganizationOutput,
-  SwaggerBaseApiResponseForClassOrganizationOutput,
   MetaResponse,
   CreateOrganizationDto
 } from "@/types/api/data-contracts";

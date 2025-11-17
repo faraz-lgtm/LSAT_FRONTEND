@@ -2,6 +2,27 @@ import { UsersActionDialog } from './users-action-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
 import { useUsers } from './users-provider'
+import type { UserOutput } from '@/types/api/data-contracts'
+import type { User } from '../data/schema'
+
+// Convert UserOutput to User type (filter out COMPANY_ADMIN role)
+function convertUserOutputToUser(userOutput: UserOutput): User {
+  const validRoles = userOutput.roles.filter(role => 
+    role === 'USER' || role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
+  ) as ('USER' | 'ADMIN' | 'SUPER_ADMIN' | 'CUST')[]
+  
+  return {
+    id: userOutput.id,
+    name: userOutput.name,
+    username: userOutput.username,
+    roles: validRoles,
+    email: userOutput.email,
+    phone: userOutput.phone,
+    isAccountDisabled: userOutput.isAccountDisabled,
+    createdAt: userOutput.createdAt,
+    updatedAt: userOutput.updatedAt,
+  }
+}
 
 export function UsersDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers()
@@ -42,7 +63,7 @@ export function UsersDialogs() {
                 setCurrentRow(null)
               }, 500)
             }}
-            currentRow={currentRow}
+            currentRow={convertUserOutputToUser(currentRow)}
           />
         </>
       )}

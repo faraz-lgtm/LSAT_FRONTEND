@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { ChevronsUpDown, Plus, Building2 } from 'lucide-react'
+import { ChevronsUpDown, Building2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
@@ -37,7 +36,7 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
   
   // Check if user is SUPER_ADMIN
   const isSuperAdmin = user?.roles?.some(role => 
-    role === ROLE.SUPER_ADMIN || role === 'SUPER_ADMIN'
+    role === ROLE.SUPER_ADMIN
   ) || false
 
   // Fetch all organizations for Super Admin (without domain filter for switcher)

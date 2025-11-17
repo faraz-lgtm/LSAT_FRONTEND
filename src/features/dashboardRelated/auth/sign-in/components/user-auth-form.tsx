@@ -10,6 +10,7 @@ import { setUser, setTokens, setOrganization } from '@/redux/authSlice'
 import { getOrganizationSlugFromSubdomain } from '@/utils/organization'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { useLoginMutation } from '@/redux/apiSlices/Auth/authSlice'
+import { ROLE } from '@/constants/roles'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   Form,
@@ -103,10 +104,14 @@ export function UserAuthForm({
       const organizationSlug = getOrganizationSlugFromSubdomain()
 
       // Set user and tokens from API response
+      // Filter roles to only include those in ROLE enum (exclude COMPANY_ADMIN)
+      const validRoles = (result.data.user.roles || []).filter((role): role is ROLE => 
+        role === 'USER' || role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
+      )
       dispatch(setUser({
         id: result.data.user.id,
         username: result.data.user.username,
-        roles: result.data.user.roles || []
+        roles: validRoles
       }))
       dispatch(setTokens({
         accessToken: result.data.auth.accessToken,

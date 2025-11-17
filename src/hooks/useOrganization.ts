@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useGetMyOrganizationQuery, type OrganizationOutput } from '@/redux/apiSlices/Organization/organizationSlice'
 import { setOrganization } from '@/redux/authSlice'
 import type { RootState } from '@/redux/store'
-import { getOrganizationSlug } from '@/utils/organization'
 
 interface UseOrganizationReturn {
   organization: OrganizationOutput | null
@@ -46,9 +45,6 @@ export function useOrganization(): UseOrganizationReturn {
       )
     }
   }, [organizationData, dispatch])
-
-  // Get organization slug from subdomain if not in state
-  const finalOrganizationSlug = organizationSlug || getOrganizationSlug()
 
   return {
     organization: organizationData?.data || null,

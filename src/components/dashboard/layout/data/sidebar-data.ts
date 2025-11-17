@@ -9,7 +9,6 @@ import {
   ServerOff,
   UserX,
   Users,
-  MessagesSquare,
   ShieldCheck,
   Command,
   GalleryVerticalEnd,

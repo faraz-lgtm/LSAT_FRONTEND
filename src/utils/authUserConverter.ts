@@ -6,9 +6,10 @@ import type { UserOutput } from '@/types/api/data-contracts'
  * This is needed because AuthUser has a different structure than UserOutput
  * 
  * @param authUser - The user from auth state
+ * @param organizationId - Optional organization ID from auth state
  * @returns UserOutput format or null if authUser is null
  */
-export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | null {
+export function convertAuthUserToIUser(authUser: AuthUser | null, organizationId?: number | null): UserOutput | null {
   if (!authUser) {
     return null
   }
@@ -22,6 +23,7 @@ export function convertAuthUserToIUser(authUser: AuthUser | null): UserOutput | 
     email: '', // AuthUser doesn't have email
     isAccountDisabled: false,
     phone: '',
+    organizationId: organizationId || 0, // Default to 0 if not provided
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     lastAssignedOrderCount: 0,
