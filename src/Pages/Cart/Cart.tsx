@@ -8,12 +8,17 @@ import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
 import { useCurrencyFormatter } from "../../utils/currency";
 import { useGetProductsQuery } from "../../redux/apiSlices/Product/productSlice";
+import { getOrganizationSlugFromUrl } from "../../utils/organization";
 
 const Cart = () => {
   const { items: allItems } = useSelector((state: RootState) => state.cart);
+  const { organizationSlug } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const formatCurrency = useCurrencyFormatter();
   const { data: productsData } = useGetProductsQuery();
+  
+  // Get organization slug from URL
+  const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
   
   // Filter out free package (id === 8) from cart - cart is for paid purchases only
   const items = allItems.filter(item => item.id !== 8);
@@ -34,7 +39,8 @@ const Cart = () => {
   // );
 
   const handleBackToHome = () => {
-    navigate("/");
+    const homePath = currentSlug ? `/${currentSlug}` : "/";
+    navigate(homePath);
   };
 
   return (
@@ -134,7 +140,10 @@ const Cart = () => {
               <button 
                 className="w-full lg:w-auto flex items-center justify-center space-x-2 lg:space-x-3 text-white font-semibold py-2.5 px-6 text-sm lg:py-3 lg:px-6 lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                 style={{ backgroundColor: 'var(--customer-button-orange)' }} 
-                onClick={() => navigate("/Appointment")}
+                onClick={() => {
+                  const appointmentPath = currentSlug ? `/${currentSlug}/Appointment` : "/Appointment";
+                  navigate(appointmentPath);
+                }}
               >
                 Continue to Checkout
               </button>

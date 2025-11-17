@@ -305,7 +305,9 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             {isInCart ? (
               <>
                 <X className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
-                <span className="truncate">Remove from Cart</span>
+                <span className="truncate" style={{ color: 'var(--customer-text-white)' }}>
+                  Remove from Cart
+                </span>
               </>
             ) : (
               <>

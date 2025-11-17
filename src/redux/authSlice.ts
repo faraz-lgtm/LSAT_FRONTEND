@@ -23,6 +23,8 @@ function decodeJWT(token: string): any {
 
 const ACCESS_TOKEN = 'accessToken'
 const REFRESH_TOKEN = 'refreshToken'
+const ORGANIZATION_ID = 'organizationId'
+const ORGANIZATION_SLUG = 'organizationSlug'
 
 export interface AuthUser {
   id: number;
@@ -34,15 +36,20 @@ interface AuthState {
   user: AuthUser | null
   accessToken: string
   refreshToken: string
+  organizationId: number | null
+  organizationSlug: string | null
   isAuthenticated: boolean
 }
 
 // Initialize state from cookies
 const accessToken = getCookie(ACCESS_TOKEN) ? JSON.parse(getCookie(ACCESS_TOKEN)!) : ''
 const refreshToken = getCookie(REFRESH_TOKEN) ? JSON.parse(getCookie(REFRESH_TOKEN)!) : ''
+const organizationId = getCookie(ORGANIZATION_ID) ? Number(JSON.parse(getCookie(ORGANIZATION_ID)!)) : null
+const organizationSlug = getCookie(ORGANIZATION_SLUG) ? JSON.parse(getCookie(ORGANIZATION_SLUG)!) : null
 
 // Decode user info from access token if available
 let user: AuthUser | null = null
+let decodedOrganizationId: number | null = null
 if (accessToken) {
   const decodedToken = decodeJWT(accessToken)
   if (decodedToken) {
@@ -51,13 +58,20 @@ if (accessToken) {
       username: decodedToken.username || '',
       roles: decodedToken.roles || []
     }
+    // Extract organizationId from token if present
+    decodedOrganizationId = decodedToken.organizationId ? Number(decodedToken.organizationId) : null
   }
 }
+
+// Use organizationId from token if available, otherwise use cookie
+const finalOrganizationId = decodedOrganizationId || organizationId
 
 const initialState: AuthState = {
   user,
   accessToken,
   refreshToken,
+  organizationId: finalOrganizationId,
+  organizationSlug,
   isAuthenticated: !!(accessToken && refreshToken && user), // Set to true if all exist
 }
 
@@ -91,13 +105,31 @@ const authSlice = createSlice({
       state.refreshToken = ''
       removeCookie(REFRESH_TOKEN)
     },
+    setOrganization: (state, action: PayloadAction<{ organizationId: number | null; organizationSlug: string | null }>) => {
+      state.organizationId = action.payload.organizationId
+      state.organizationSlug = action.payload.organizationSlug
+      if (action.payload.organizationId !== null) {
+        setCookie(ORGANIZATION_ID, JSON.stringify(action.payload.organizationId))
+      } else {
+        removeCookie(ORGANIZATION_ID)
+      }
+      if (action.payload.organizationSlug) {
+        setCookie(ORGANIZATION_SLUG, JSON.stringify(action.payload.organizationSlug))
+      } else {
+        removeCookie(ORGANIZATION_SLUG)
+      }
+    },
     reset: (state) => {
       state.user = null
       state.accessToken = ''
       state.refreshToken = ''
+      state.organizationId = null
+      state.organizationSlug = null
       state.isAuthenticated = false
       removeCookie(ACCESS_TOKEN)
       removeCookie(REFRESH_TOKEN)
+      removeCookie(ORGANIZATION_ID)
+      removeCookie(ORGANIZATION_SLUG)
     },
   },
 })
@@ -107,6 +139,7 @@ export const {
   setAccessToken, 
   setRefreshToken, 
   setTokens, 
+  setOrganization,
   resetAccessToken, 
   resetRefreshToken, 
   reset 

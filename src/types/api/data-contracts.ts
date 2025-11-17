@@ -10,38 +10,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface CreateOrganizationDto {
-  /**
-   * Organization name
-   * @example "BetterLSAT"
-   */
-  name: string;
-  /**
-   * Organization slug (used in subdomain)
-   * @example "betterlsat"
-   */
-  slug: string;
-  /**
-   * Organization domain
-   * @example "betterlsat.com"
-   */
-  domain?: string;
-  /** Organization settings */
-  settings?: object;
-}
-
-export interface GetUsersQueryParams {
-  /** Optional, defaults to 100 */
-  limit?: number;
-  /** Optional, defaults to 0 */
-  offset?: number;
-  /**
-   * Filter users by role
-   * @example "USER"
-   */
-  role?: "USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST";
-}
-
 export interface MetaResponse {
   /**
    * Current page number
@@ -60,6 +28,144 @@ export interface MetaResponse {
   total?: number;
 }
 
+export interface OrganizationOutput {
+  /**
+   * Organization ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Whether the organization is archived
+   * @example false
+   */
+  archived: boolean;
+  /**
+   * Organization name
+   * @example "BetterLSAT"
+   */
+  name: string;
+  /**
+   * Organization slug (used in subdomain)
+   * @example "betterlsat"
+   */
+  slug: string;
+  /**
+   * Organization domain (kept for backward compatibility)
+   * @example "betterlsat.com"
+   */
+  domain?: string;
+  /**
+   * Array of domains for this organization
+   * @example ["betterlsat.com","www.betterlsat.com"]
+   */
+  domains?: string[];
+  /** Organization settings */
+  settings?: object;
+  /**
+   * Organization creation date
+   * @example "2024-01-01T00:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Organization last update date
+   * @example "2024-01-01T00:00:00.000Z"
+   */
+  updatedAt: string;
+}
+
+export interface SwaggerBaseApiResponseForClassOrganizationOutput {
+  meta: MetaResponse;
+  data: OrganizationOutput[];
+}
+
+export interface BaseApiErrorObject {
+  statusCode: number;
+  message: string;
+  localizedMessage?: string;
+  errorName: string;
+  details: object;
+  path: string;
+  requestId: string;
+  timestamp: string;
+}
+
+export interface BaseApiErrorResponse {
+  error: BaseApiErrorObject;
+}
+
+export interface SwaggerBaseApiResponseForClassOrganizationOutput {
+  meta: MetaResponse;
+  data: OrganizationOutput;
+}
+
+export interface CreateOrganizationDto {
+  /**
+   * Organization name
+   * @example "BetterLSAT"
+   */
+  name: string;
+  /**
+   * Organization slug (used in subdomain)
+   * @example "betterlsat"
+   */
+  slug: string;
+  /**
+   * Organization domain (kept for backward compatibility)
+   * @example "betterlsat.com"
+   */
+  domain?: string;
+  /**
+   * Array of domains for this organization (e.g., ["betterlsat.com", "www.betterlsat.com"])
+   * @example ["betterlsat.com","www.betterlsat.com"]
+   */
+  domains?: string[];
+  /**
+   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email)
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT","sendgridFromChatEmail":"chat@betterlsat.com"}}}
+   */
+  settings?: object;
+}
+
+export interface UpdateOrganizationDto {
+  /**
+   * Organization name
+   * @example "BetterLSAT"
+   */
+  name?: string;
+  /**
+   * Organization slug (used in subdomain)
+   * @example "betterlsat"
+   */
+  slug?: string;
+  /**
+   * Organization domain (kept for backward compatibility)
+   * @example "betterlsat.com"
+   */
+  domain?: string;
+  /**
+   * Array of domains for this organization (e.g., ["betterlsat.com", "www.betterlsat.com"])
+   * @example ["betterlsat.com","www.betterlsat.com"]
+   */
+  domains?: string[];
+  /**
+   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email)
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT","sendgridFromChatEmail":"chat@betterlsat.com"}}}
+   */
+  settings?: object;
+}
+
+export interface GetUsersQueryParams {
+  /** Optional, defaults to 100 */
+  limit?: number;
+  /** Optional, defaults to 0 */
+  offset?: number;
+  /**
+   * Filter users by role
+   * @example "USER"
+   */
+  role?: "USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST";
+}
+
 export interface UserOutput {
   id: number;
   name: string;
@@ -72,6 +178,11 @@ export interface UserOutput {
   email: string;
   isAccountDisabled: boolean;
   phone: string;
+  /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
   createdAt: string;
   updatedAt: string;
   /**
@@ -89,26 +200,16 @@ export interface UserOutput {
    * @example 5
    */
   lastAssignedOrderCount: number;
+  /**
+   * Array of service IDs this employee can work on
+   * @example [5,6,7,8]
+   */
+  serviceIds?: number[];
 }
 
 export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
   meta: MetaResponse;
   data: UserOutput;
-}
-
-export interface BaseApiErrorObject {
-  statusCode: number;
-  message: string;
-  localizedMessage?: string;
-  errorName: string;
-  details: object;
-  path: string;
-  requestId: string;
-  timestamp: string;
-}
-
-export interface BaseApiErrorResponse {
-  error: BaseApiErrorObject;
 }
 
 export interface UserInput {
@@ -146,6 +247,11 @@ export interface BaseUserOutput {
   email: string;
   isAccountDisabled: boolean;
   phone: string;
+  /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -270,10 +376,20 @@ export interface RegisterInput {
    */
   roles: ("USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST")[];
   /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
+  /**
    * Employee working hours in UTC format (HH:MM-HH:MM)
    * @example {"Monday":["09:00-17:00"],"Tuesday":["09:00-17:00"]}
    */
   workHours?: Record<string, string[]>;
+  /**
+   * Array of service IDs this employee can work on
+   * @example [5,6,7,8]
+   */
+  serviceIds?: number[];
 }
 
 export interface RegisterOutput {
@@ -288,6 +404,11 @@ export interface RegisterOutput {
   email: string;
   isAccountDisabled: boolean;
   phone: string;
+  /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
   createdAt: string;
   updatedAt: string;
 }

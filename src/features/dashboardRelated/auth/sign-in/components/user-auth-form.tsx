@@ -6,7 +6,8 @@ import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
 import { useDispatch } from 'react-redux'
-import { setUser, setTokens } from '@/redux/authSlice'
+import { setUser, setTokens, setOrganization } from '@/redux/authSlice'
+import { getOrganizationSlugFromSubdomain } from '@/utils/organization'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { useLoginMutation } from '@/redux/apiSlices/Auth/authSlice'
 import { Button } from '@/components/dashboard/ui/button'
@@ -65,6 +66,41 @@ export function UserAuthForm({
 
       console.log("Result", result)
 
+      // Decode JWT token to extract organizationId
+      const decodeJWT = (token: string): any => {
+        try {
+          const base64Url = token.split('.')[1]
+          if (!base64Url) return null
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          )
+          return JSON.parse(jsonPayload)
+        } catch (error) {
+          console.error('Failed to decode JWT:', error)
+          return null
+        }
+      }
+
+      const accessToken = result.data.auth.accessToken
+      const decodedToken = decodeJWT(accessToken)
+      
+      // Extract organizationId from token if present
+      let organizationId: number | null = null
+      if (decodedToken?.organizationId) {
+        organizationId = Number(decodedToken.organizationId)
+      }
+      
+      // Fallback to API response if token doesn't have it
+      if (!organizationId && result.data.user.organizationId) {
+        organizationId = Number(result.data.user.organizationId)
+      }
+
+      // Get organization slug from subdomain (for UI purposes only, not for headers)
+      const organizationSlug = getOrganizationSlugFromSubdomain()
 
       // Set user and tokens from API response
       dispatch(setUser({
@@ -76,6 +112,15 @@ export function UserAuthForm({
         accessToken: result.data.auth.accessToken,
         refreshToken: result.data.auth.refreshToken
       }))
+
+      // Store organizationId in Redux (for reference, not for headers)
+      // Note: Backend extracts organizationId from JWT token automatically
+      if (organizationId !== null) {
+        dispatch(setOrganization({
+          organizationId,
+          organizationSlug, // Optional: for UI purposes only
+        }))
+      }
 
       // Show success message
       toast.success(`Welcome back, ${data.email}!`)

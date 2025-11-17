@@ -23,6 +23,7 @@ import { DateTimePicker } from '@/components/ui/dateTimerPicker';
 import PhoneInput from "react-phone-input-2";
 import { useCurrency } from '@/context/currency-provider';
 import { useCurrencyFormatter } from '@/utils/currency';
+import { fetchSlotsForPackage } from '@/utils/slotFetcher';
 
 interface OrderCreateFormProps {
   isOpen: boolean;
@@ -131,35 +132,77 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     }
   }, [isOpen]);
 
-  const handlePackageToggle = (packageId: number, checked: boolean) => {
+  const handlePackageToggle = async (packageId: number, checked: boolean) => {
     const packageIdNum = packageId;
     const slotsNeeded = getSlotsPerPackage(packageIdNum);
     
-    setFormData(prev => {
-      let newPackageIds = [...prev.packageIds];
-      let newSelectedSlots = [...prev.selectedSlots];
-      
-      if (checked) {
-        // Add package
-        if (!newPackageIds.includes(packageIdNum)) {
-          newPackageIds.push(packageIdNum);
-          newSelectedSlots.push({
-            packageId: packageIdNum,
-            slots: new Array(slotsNeeded).fill(undefined)
-          });
-        }
-      } else {
-        // Remove package
-        newPackageIds = newPackageIds.filter(id => id !== packageIdNum);
-        newSelectedSlots = newSelectedSlots.filter(slot => slot.packageId !== packageIdNum);
+    if (checked) {
+      // Add package and auto-populate slots
+      try {
+        // Get all already selected slots from other packages to exclude
+        const allSelectedSlots = formData.selectedSlots
+          .flatMap(slotData => slotData.slots)
+          .filter(slot => slot !== undefined)
+          .map(slot => slot!.toISOString());
+        
+        // Fetch available slots for this package
+        const fetchedSlots = await fetchSlotsForPackage(
+          packageIdNum,
+          slotsNeeded,
+          new Date().toISOString(),
+          allSelectedSlots
+        );
+        
+        // Convert ISO strings to Date objects
+        const dateSlots = fetchedSlots.map(slot => new Date(slot));
+        
+        setFormData(prev => {
+          // Double-check package hasn't been added in the meantime
+          if (prev.packageIds.includes(packageIdNum)) {
+            return prev;
+          }
+          
+          return {
+            ...prev,
+            packageIds: [...prev.packageIds, packageIdNum],
+            selectedSlots: [
+              ...prev.selectedSlots,
+              {
+                packageId: packageIdNum,
+                slots: dateSlots
+              }
+            ],
+          };
+        });
+      } catch (error) {
+        console.error('Error fetching slots for package:', error);
+        // If fetching fails, still add the package but with undefined slots
+        setFormData(prev => {
+          if (prev.packageIds.includes(packageIdNum)) {
+            return prev;
+          }
+          
+          return {
+            ...prev,
+            packageIds: [...prev.packageIds, packageIdNum],
+            selectedSlots: [
+              ...prev.selectedSlots,
+              {
+                packageId: packageIdNum,
+                slots: new Array(slotsNeeded).fill(undefined)
+              }
+            ],
+          };
+        });
       }
-      
-      return {
+    } else {
+      // Remove package
+      setFormData(prev => ({
         ...prev,
-        packageIds: newPackageIds,
-        selectedSlots: newSelectedSlots,
-      };
-    });
+        packageIds: prev.packageIds.filter(id => id !== packageIdNum),
+        selectedSlots: prev.selectedSlots.filter(slot => slot.packageId !== packageIdNum),
+      }));
+    }
   };
 
   const handleSlotChange = (packageId: number, slotIndex: number, date: Date) => {

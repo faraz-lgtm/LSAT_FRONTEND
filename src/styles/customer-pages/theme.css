@@ -133,6 +133,24 @@
   --customer-progress-bar-circle-size: 2rem; /* Circle size for progress steps */
 }
 
+:root.dark {
+  --customer-theme-secondary: #0b1120;
+
+  --customer-text-blue: #f8fafc;
+  --customer-text-gray: rgba(248, 250, 252, 0.75);
+  --customer-text-white: #f8fafc;
+  --customer-text-white-90: rgba(248, 250, 252, 0.9);
+  --customer-text-white-95: rgba(248, 250, 252, 0.95);
+  --customer-text-white-20: rgba(248, 250, 252, 0.2);
+
+  --customer-bg: var(--customer-bg-dark-start);
+  --customer-bg-gradient-start: var(--customer-bg-dark-start);
+  --customer-bg-gradient-mid: var(--customer-bg-dark-mid);
+  --customer-bg-gradient-end: var(--customer-bg-dark-end);
+
+  --customer-border-white-20: rgba(248, 250, 252, 0.2);
+}
+
 /* Custom utility class for customer pages max-width */
 .customer-container {
   max-width: var(--customer-max-width);
@@ -169,11 +187,28 @@
   font-family: var(--customer-font-family); /* Consistent font across all customer pages */
 }
 
+.dark .customer-page-bg {
+  color: var(--customer-text-white);
+}
+
 /* Apply default text color to text elements within customer pages */
 .customer-page-bg p,
 .customer-page-bg span:not([class*="text-"]):not([style*="color"]),
 .customer-page-bg div:not([class*="text-"]):not([style*="color"]) {
   color: var(--customer-text-blue);
+}
+
+.dark .customer-page-bg p,
+.dark .customer-page-bg span:not([class*="text-"]):not([style*="color"]),
+.dark .customer-page-bg div:not([class*="text-"]):not([style*="color"]) {
+  color: var(--customer-text-white);
+}
+
+.dark .customer-page-bg input,
+.dark .customer-page-bg select,
+.dark .customer-page-bg textarea {
+  color: var(--customer-text-white);
+  background-color: rgba(15, 23, 42, 0.9);
 }
 
 /* Custom utility class for fixed bottom buttons */

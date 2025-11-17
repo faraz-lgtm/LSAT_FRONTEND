@@ -24,13 +24,15 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
-import { usersColumns as columns } from './users-columns'
+import { usersColumns as baseColumns } from './users-columns'
 import type { UserOutput } from '@/types/api/data-contracts'
 import { useUsers } from './users-provider'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { canEditUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
+import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
+import { useMemo } from 'react'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,10 +55,18 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
   const { setOpen, setCurrentRow } = useUsers()
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
+  
+  // Fetch products for serviceIds mapping
+  const { data: productsData } = useGetProductsQuery()
+  const products = useMemo(() => productsData?.data || [], [productsData?.data])
+  
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  
+  // Create columns with products in meta
+  const columns = useMemo(() => baseColumns, [])
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
@@ -88,6 +98,9 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
   const table = useReactTable({
     data,
     columns,
+    meta: {
+      products,
+    },
     state: {
       sorting,
       pagination,

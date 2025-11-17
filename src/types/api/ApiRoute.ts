@@ -44,6 +44,7 @@ import {
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassMessageOutputDto,
   SwaggerBaseApiResponseForClassOrderOutput,
+  SwaggerBaseApiResponseForClassOrganizationOutput,
   SwaggerBaseApiResponseForClassParticipantOutputDto,
   SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity,
   SwaggerBaseApiResponseForClassProductOutput,
@@ -62,6 +63,7 @@ import {
   UpdateInvoiceStatusDto,
   UpdateOrderNotesDto,
   UpdateOrderStatusDto,
+  UpdateOrganizationDto,
   UpdateProductInput,
   UpdateUserInput,
   UserInput,
@@ -97,7 +99,7 @@ export namespace Api {
   }
 
   /**
-   * No description
+   * @description Retrieve a list of all organizations. Only SUPER_ADMIN can access this endpoint.
    * @tags organizations
    * @name OrganizationControllerGetAll
    * @summary Get all organizations
@@ -109,11 +111,11 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
   }
 
   /**
-   * No description
+   * @description Create a new organization with the provided details. Only SUPER_ADMIN can create organizations. Domains array is used for domain-based organization detection in unauthenticated routes.
    * @tags organizations
    * @name OrganizationControllerCreate
    * @summary Create a new organization
@@ -125,11 +127,11 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = CreateOrganizationDto;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
   }
 
   /**
-   * No description
+   * @description Retrieve the organization associated with the current authenticated user. Organization is determined from JWT token.
    * @tags organizations
    * @name OrganizationControllerGetMyOrganization
    * @summary Get current user's organization
@@ -141,11 +143,11 @@ export namespace Api {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
   }
 
   /**
-   * No description
+   * @description Retrieve a specific organization by its ID. Only SUPER_ADMIN can access this endpoint.
    * @tags organizations
    * @name OrganizationControllerGetById
    * @summary Get organization by ID
@@ -154,12 +156,38 @@ export namespace Api {
    */
   export namespace OrganizationControllerGetById {
     export type RequestParams = {
+      /**
+       * Organization ID
+       * @example 1
+       */
       id: number;
     };
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * @description Update an existing organization. Only SUPER_ADMIN can update organizations. All fields are optional - only provided fields will be updated.
+   * @tags organizations
+   * @name OrganizationControllerUpdate
+   * @summary Update an organization
+   * @request PATCH:/api/v1/organizations/{id}
+   * @secure
+   */
+  export namespace OrganizationControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Organization ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateOrganizationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
   }
 
   /**
@@ -777,7 +805,7 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve a list of all available products. This endpoint is public and does not require authentication.
+   * @description Retrieve a list of all available products. This endpoint is public and does not require authentication. Products are filtered by organization based on the request origin domain.
    * @tags products
    * @name ProductControllerFindAll
    * @summary Get all products
@@ -808,7 +836,7 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve a specific product by its ID. This endpoint is public and does not require authentication.
+   * @description Retrieve a specific product by its ID. This endpoint is public and does not require authentication. Product is filtered by organization based on the request origin domain.
    * @tags products
    * @name ProductControllerFindOne
    * @summary Get product by ID
@@ -2003,6 +2031,92 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassAutomationLog;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerGetAll
+   * @summary Get all message templates
+   * @request GET:/api/v1/message-templates
+   * @secure
+   */
+  export namespace MessageTemplateControllerGetAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerCreate
+   * @summary Create a new message template
+   * @request POST:/api/v1/message-templates
+   * @secure
+   */
+  export namespace MessageTemplateControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerGetByKey
+   * @summary Get message template by key
+   * @request GET:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerGetByKey {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerUpdate
+   * @summary Update a message template
+   * @request PUT:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerUpdate {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerDelete
+   * @summary Delete a message template
+   * @request DELETE:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerDelete {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 
   /**

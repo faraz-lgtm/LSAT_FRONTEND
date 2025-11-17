@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
+import { getOrganizationSlugFromUrl } from "../../utils/organization";
 
 type HomeProps = {
   showFree?: boolean;
@@ -28,6 +29,10 @@ const Home = ({ showFree = false }: HomeProps) => {
     isLoading,
     error,
   } = useGetProductsQuery();
+
+  // Get organization slug from URL
+  const { organizationSlug } = useSelector((state: RootState) => state.auth);
+  const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
 
   // Get cart state for loading, error handling, and items count
   const {
@@ -86,8 +91,9 @@ const Home = ({ showFree = false }: HomeProps) => {
   };
 
   const handleGoToCart = () => {
-    console.log("Go to Cart clicked, navigating to /cart");
-    navigate("/cart");
+    console.log("Go to Cart clicked, navigating to cart");
+    const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
+    navigate(cartPath);
   };
 
   const handleAddSelectedToCart = async () => {
@@ -106,9 +112,11 @@ const Home = ({ showFree = false }: HomeProps) => {
       return !isAlreadyInCart;
     });
 
+    const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
+
     if (itemsToAdd.length === 0) {
       // All selected items are already in cart, just navigate
-      navigate("/cart");
+      navigate(cartPath);
       return;
     }
 
@@ -131,11 +139,11 @@ const Home = ({ showFree = false }: HomeProps) => {
       // Wait for all items to be added
       await Promise.all(addPromises);
       // Navigate to cart page after successful addition
-      navigate("/cart");
+      navigate(cartPath);
     } catch (error) {
       console.error("Error adding items to cart:", error);
       // Still navigate even if there's an error (items might have been partially added)
-      navigate("/cart");
+      navigate(cartPath);
     }
 
     // Selections will be synced automatically by the useEffect that watches cartItems

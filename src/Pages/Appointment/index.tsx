@@ -20,6 +20,7 @@ import { useCurrency } from "@/context/currency-provider";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
 import { addToCartAsync } from "@/redux/cartSlice";
 import type { ItemInput } from "@/types/api/data-contracts";
+import { getOrganizationSlugFromUrl } from "../../utils/organization";
 
 /**
  * Detect user's country code based on browser locale and timezone
@@ -222,7 +223,7 @@ const detectUserCountry = (): string => {
 const Appointment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isFreePurchase = location.pathname === '/free_purchase';
+  const isFreePurchase = location.pathname.includes('/free_purchase');
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
   const [getOrCreateCustomer, { isLoading: isCreatingCustomer }] = useGetOrCreateCustomerMutation();
   const { data: productsData, isSuccess: productsSuccess } = useGetProductsQuery();
@@ -234,7 +235,11 @@ const Appointment = () => {
   const { firstName, lastName, email, phone } = useSelector(
     (state: RootState) => state.info
   );
+  const { organizationId, organizationSlug } = useSelector((state: RootState) => state.auth);
   const formatCurrency = useCurrencyFormatter();
+  
+  // Get organization slug from URL
+  const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
 
   const {currency: selectedCurrency} = useCurrency();
   const [phoneInp, setPhoneInp] = useState(phone || "");
@@ -250,9 +255,11 @@ const Appointment = () => {
   const handleBack = () => {
     if (selected === "information") {
       if (isFreePurchase) {
-        navigate("/");
+        const homePath = currentSlug ? `/${currentSlug}` : "/";
+        navigate(homePath);
       } else {
-        navigate("/cart");
+        const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
+        navigate(cartPath);
       }
     } else if (selected === "appointments") {
       setSelected("information");
@@ -261,9 +268,11 @@ const Appointment = () => {
 
   const handleNavigateBack = () => {
     if (isFreePurchase) {
-      navigate("/");
+      const homePath = currentSlug ? `/${currentSlug}` : "/";
+      navigate(homePath);
     } else {
-      navigate("/cart");
+      const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
+      navigate(cartPath);
     }
   };
   const handleError = (str: string) => {
@@ -406,7 +415,12 @@ const Appointment = () => {
 
         if (isComplete(values) || isComplete({ firstName, lastName, email, phone })) {
           try {
-            await getOrCreateCustomer(values).unwrap();
+            // Include organizationId in the request if available
+            const customerData = organizationId 
+              ? { ...values, organizationId } as any
+              : values
+            
+            await getOrCreateCustomer(customerData).unwrap();
             dispatch(addInfo(values));
             setSelected("appointments");
           } catch (error) {

@@ -36,6 +36,8 @@ import { useUpdateUserMutation } from '@/redux/apiSlices/User/userSlice'
 import { type UserOutput, type UpdateUserInput, type RegisterInput } from '@/types/api/data-contracts'
 import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
 import { useEffect, useState } from 'react'
+import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
+import type { ProductOutput } from '@/types/api/data-contracts'
 
 
 
@@ -49,6 +51,7 @@ const formSchema = z.object({
   roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER, ROLE.SUPER_ADMIN]))
     .min(1, 'At least one role is required.'),
   workHours: z.record(z.string(), z.array(z.string())).optional(),
+  serviceIds: z.array(z.number()).optional(),
   isEdit: z.boolean(),
 }).refine((data) => {
   // Password is required only for new users (not edit mode) and not for CUSTOMER role
@@ -79,7 +82,8 @@ export function UsersActionDialog({
   const { setOpen, pageType } = useUsers()
   const [registerUser, { isLoading }] = useRegisterUserMutation()
   const [updateUser,{isLoading:updateLoading}]=useUpdateUserMutation()
-  // Get current user from auth state
+  // Get current user and organizationId from auth state
+  const { organizationId } = useSelector((state: RootState) => state.auth)
   const currentUser = useSelector((state: RootState) => state.auth.user)
   
   // Convert AuthUser to UserOutput format for RBAC functions
@@ -108,9 +112,14 @@ export function UsersActionDialog({
       password: '',
       roles: [],
       workHours: {},
+      serviceIds: [],
       isEdit: false,
     },
   })
+
+  // Fetch products/packages for serviceIds selection
+  const { data: productsData } = useGetProductsQuery()
+  const packages = productsData?.data || []
 
   // Reset form when dialog opens/closes or currentRow changes
   useEffect(() => {
@@ -128,6 +137,7 @@ export function UsersActionDialog({
           password: '', // Don't pre-fill password for edit
           roles: currentRow.roles,
           workHours: currentRow.workHours || {},
+          serviceIds: currentRow.serviceIds || [],
           isEdit: true,
         }
         console.log('📝 Form values being set:', formValues)
@@ -146,6 +156,7 @@ export function UsersActionDialog({
           password: '',
           roles: initialRoles,
           workHours: {},
+          serviceIds: [],
           isEdit: false,
         })
         setPhoneInputValue('')
@@ -188,6 +199,11 @@ export function UsersActionDialog({
         // Auto-set role to CUST when adding from customers page
         const finalRoles = isAddingCustomer ? [ROLE.CUSTOMER] : values.roles
         
+        if (!organizationId) {
+          toast.error("Organization ID is required. Please ensure you're in an organization context.")
+          return
+        }
+
         const userData: RegisterInput = {
           name: values.name,
           email: values.email,
@@ -195,7 +211,9 @@ export function UsersActionDialog({
           username: autoUsername,
           password: values.password,
           roles: finalRoles,
+          organizationId: organizationId,
           workHours: (isCustomerOnly || isAddingCustomer) ? undefined : values.workHours,
+          serviceIds: (isCustomerOnly || isAddingCustomer) ? undefined : (values.serviceIds || []),
         }
         
         await registerUser(userData).unwrap()
@@ -206,7 +224,7 @@ export function UsersActionDialog({
         console.log("📝 Edit user - currentRow:", currentRow);
         const isCustomerOnly = isEditingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
         
-        const userData: UpdateUserInput = {
+        const userData: UpdateUserInput & { serviceIds?: number[] } = {
           name: values.name,
           email: values.email,
           phone: values.phone,
@@ -215,6 +233,12 @@ export function UsersActionDialog({
         }
         if (!isCustomerOnly && values.workHours) {
           userData.workHours = values.workHours
+        }
+        // Add serviceIds for employees (non-customers)
+        if (!isCustomerOnly && values.serviceIds && values.serviceIds.length > 0) {
+          userData.serviceIds = values.serviceIds
+        } else if (!isCustomerOnly && (!values.serviceIds || values.serviceIds.length === 0)) {
+          userData.serviceIds = []
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
         const result = await updateUser({id: currentRow.id, userData}).unwrap()
@@ -400,22 +424,48 @@ export function UsersActionDialog({
                 />
               )}
               {!isCustomerOnly && (
-                <FormField
-                  control={form.control}
-                  name='workHours'
-                  render={({ field }) => (
-                    <FormItem className='space-y-2'>
-                      <FormLabel className='text-sm font-medium'>Work Hours</FormLabel>
-                      <FormControl>
-                        <WorkHoursSelector
-                          value={field.value || {}}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name='workHours'
+                    render={({ field }) => (
+                      <FormItem className='space-y-2'>
+                        <FormLabel className='text-sm font-medium'>Work Hours</FormLabel>
+                        <FormControl>
+                          <WorkHoursSelector
+                            value={field.value || {}}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='serviceIds'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Service Packages</FormLabel>
+                        <FormControl>
+                          <MultiSelectDropdown
+                            value={field.value?.map(id => id.toString()) || []}
+                            onValueChange={(values) => {
+                              field.onChange(values.map(v => parseInt(v, 10)).filter(id => !isNaN(id)))
+                            }}
+                            placeholder='Select packages'
+                            className='col-span-4'
+                            items={packages.map((pkg: ProductOutput) => ({
+                              label: pkg.name,
+                              value: pkg.id.toString(),
+                            }))}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
             </form>
           </Form>

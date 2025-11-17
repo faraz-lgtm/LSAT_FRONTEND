@@ -13,9 +13,11 @@ class ChatSocketService {
       return this.socket
     }
 
+    // Only send JWT token - organizationId is automatically extracted from token by backend
+    // Do NOT send X-Organization-Id or X-Organization-Slug headers
     this.socket = io(`${this.apiBaseUrl}/chat`, {
       auth: {
-        token: token, // JWT access token
+        token: token, // JWT access token contains organizationId
       },
       transports: ['websocket', 'polling'],
       reconnection: true,
