@@ -18,7 +18,7 @@ const Layout = () => {
   const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
   
   // Filter out free package (id === 8) when not on free purchase route
-  const items = isFreePurchase ? allItems : allItems.filter(item => item.id !== 8);
+  const items = isFreePurchase ? allItems : allItems.filter(item => item.price !== 0);
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Build navigation paths with slug

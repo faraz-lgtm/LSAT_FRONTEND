@@ -244,12 +244,14 @@ const Appointment = () => {
   const {currency: selectedCurrency} = useCurrency();
   const [phoneInp, setPhoneInp] = useState(phone || "");
   const defaultCountry = detectUserCountry();
+  const [sessionAgreement, setSessionAgreement] = useState(false);
+  const [termsAgreement, setTermsAgreement] = useState(false);
   
   // Filter items to only package ID 8 for free purchase route
   // For paid purchases route, exclude free package (id === 8)
   const items = isFreePurchase 
-    ? allItems.filter(item => item.id === 8)
-    : allItems.filter(item => item.id !== 8);
+    ? allItems.filter(item => item.price === 0)
+    : allItems.filter(item => item.price !== 0);
 
   
   const handleBack = () => {
@@ -292,8 +294,8 @@ const Appointment = () => {
   // Auto-load package ID 8 when accessing /free_purchase route
   useEffect(() => {
     if (isFreePurchase && productsSuccess && productsData && !hasLoadedFreePackage.current) {
-      const freePackage = productsData.data.find(p => p.id === 8);
-      if (freePackage && !allItems.some(item => item.id === 8)) {
+      const freePackage = productsData.data.find(p => p.price===0);
+      if (freePackage && !allItems.some(item => item.price===0)) {
         hasLoadedFreePackage.current = true;
         const itemInput: ItemInput = {
           id: freePackage.id,
@@ -413,11 +415,16 @@ const Appointment = () => {
         const isComplete = (info: InformationState) =>
           !!(info.firstName && info.lastName && info.email && info.phone);
 
+        if (!sessionAgreement || !termsAgreement) {
+          handleError("Please accept all agreements to continue.");
+          return;
+        }
+
         if (isComplete(values) || isComplete({ firstName, lastName, email, phone })) {
           try {
             // Include organizationId in the request if available
             const customerData = organizationId 
-              ? { ...values, organizationId } as any
+              ? { ...values, organizationId } as InformationState & { organizationId?: number }
               : values
             
             await getOrCreateCustomer(customerData).unwrap();
@@ -736,6 +743,37 @@ const Appointment = () => {
                 inputClass="!w-full !rounded-lg !border !border-gray-300 dark:!border-gray-600 px-2.5 py-1.5 focus:!outline-none focus:!ring-2 dark:!bg-gray-700 !text-gray-900 dark:!text-gray-900 !text-sm phone-input-focus"
                 containerStyle={{ '--focus-ring-color': 'var(--customer-primary)' } as React.CSSProperties}
               />
+            </div>
+
+            {/* Agreement Checkboxes */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="sessionAgreement"
+                  checked={sessionAgreement}
+                  onChange={(e) => setSessionAgreement(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:checked:bg-blue-600 flex-shrink-0"
+                  style={{ accentColor: 'var(--customer-primary)' }}
+                />
+                <label htmlFor="sessionAgreement" className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer">
+                  I understand that my session will start and end on time. If I'm late or miss the session without proper notice, that time is lost and will not be refunded or rescheduled.
+                </label>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="termsAgreement"
+                  checked={termsAgreement}
+                  onChange={(e) => setTermsAgreement(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:checked:bg-blue-600 flex-shrink-0"
+                  style={{ accentColor: 'var(--customer-primary)' }}
+                />
+                <label htmlFor="termsAgreement" className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer">
+                  I agree to the <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Terms of Service</a> and consent to receive emails, texts, or calls related to my inquiry.
+                </label>
+              </div>
             </div>
 
             <div className="pt-2 flex justify-end">

@@ -44,7 +44,7 @@ const Home = ({ showFree = false }: HomeProps) => {
   // Filter out free package (id === 8) from cart items - Home page is for paid purchases only
   // Memoize to prevent infinite loops in useEffect
   const cartItems = useMemo(() => {
-    return allCartItems.filter((item) => item.id !== 8);
+    return allCartItems.filter((item) => item.price !== 0);
   }, [allCartItems]);
 
   // Get current checkout progress step
@@ -53,7 +53,7 @@ const Home = ({ showFree = false }: HomeProps) => {
   // Track selected products - initialize from cart items (excluding free package)
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(() => {
     // Initialize from cart items on component mount (excluding free package)
-    const filteredItems = allCartItems.filter((item) => item.id !== 8);
+    const filteredItems = allCartItems.filter((item) => item.price !== 0);
     return new Set(filteredItems.map((item) => item.id));
   });
 
@@ -101,7 +101,7 @@ const Home = ({ showFree = false }: HomeProps) => {
 
     const allProducts = showFree
       ? productsData.data
-      : productsData.data.filter((elem) => elem.id !== 8);
+      : productsData.data.filter((elem) => elem.price !== 0);
     const selectedProductsList = allProducts.filter((p) =>
       selectedProducts.has(p.id)
     );
@@ -176,7 +176,7 @@ const Home = ({ showFree = false }: HomeProps) => {
       : [];
   const filteredProducts = showFree
     ? sortedProducts
-    : sortedProducts.filter((elem) => elem.id !== 8);
+    : sortedProducts.filter((elem) => elem.price !== 0);
 
   // Reset carousel index when filtered products change
   useEffect(() => {
@@ -319,7 +319,11 @@ const Home = ({ showFree = false }: HomeProps) => {
 
             {/* Desktop: Grid Layout - Show all cards */}
             <div 
-              className="hidden lg:grid lg:grid-cols-3 items-stretch"
+              className={`hidden lg:grid items-stretch ${
+                filteredProducts.length === 4 
+                  ? 'lg:grid-cols-4' 
+                  : 'lg:grid-cols-3'
+              }`}
               style={{ gap: 'var(--customer-product-card-gap)' }}
             >
               {filteredProducts.map((p, index) => (

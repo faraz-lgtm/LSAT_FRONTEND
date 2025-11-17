@@ -25,9 +25,10 @@ import {
 import type { CreateProductInput, ProductOutput, UpdateProductInput } from '@/types/api/data-contracts'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { Plus, X } from 'lucide-react'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -38,6 +39,9 @@ const productSchema = z.object({
   Description: z.string().min(1, 'Description is required'),
   badgeText: z.string().optional(),
   badgeColor: z.string().optional(),
+  features: z.array(z.object({
+    value: z.string().min(1, 'Feature cannot be empty'),
+  })).optional(),
 })
 
 type ProductForm = z.infer<typeof productSchema>
@@ -70,7 +74,13 @@ export function PackagesActionDialog({
       Description: '',
       badgeText: '',
       badgeColor: '#3b82f6', // Default blue color
+      features: [],
     },
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'features',
   })
 
   // Reset form when dialog opens/closes or currentRow changes
@@ -86,6 +96,7 @@ export function PackagesActionDialog({
           Description: currentRow.Description,
           badgeText: currentRow.badge?.text || '',
           badgeColor: currentRow.badge?.color || '#3b82f6',
+          features: currentRow.features?.map(feature => ({ value: feature })) || [],
         })
       } else {
         form.reset({
@@ -97,6 +108,7 @@ export function PackagesActionDialog({
           Description: '',
           badgeText: '',
           badgeColor: '#3b82f6',
+          features: [],
         })
       }
     }
@@ -115,6 +127,7 @@ export function PackagesActionDialog({
           text: values.badgeText,
           color: values.badgeColor, // Store hex color directly
         } : undefined,
+        features: values.features?.map(f => f.value).filter(f => f.trim() !== '') || [],
       }
 
       if (isEdit && currentRow) {
@@ -141,7 +154,7 @@ export function PackagesActionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? 'Edit Package' : 'Create New Package'}
@@ -279,6 +292,62 @@ export function PackagesActionDialog({
               )}
             />
 
+            {/* Features Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <FormLabel>Features (Optional)</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ value: '' })}
+                  className="h-8"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Feature
+                </Button>
+              </div>
+              
+              {fields.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No features added. Click "Add Feature" to add bullet points that will be displayed on the product card.
+                </p>
+              )}
+
+              <div className="space-y-2">
+                {fields.map((field, index) => (
+                  <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={`features.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              placeholder={`Feature ${index + 1} (e.g., One personalized tutoring session)`}
+                              {...field}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => remove(index)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive flex-shrink-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <FormLabel>Badge (Optional)</FormLabel>
               <div className="grid grid-cols-2 gap-4">
@@ -349,7 +418,10 @@ export function PackagesActionDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+              >
                 {isLoading ? 'Saving...' : (isEdit ? 'Update Package' : 'Create Package')}
               </Button>
             </DialogFooter>

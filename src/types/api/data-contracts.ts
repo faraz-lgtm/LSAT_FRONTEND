@@ -888,6 +888,11 @@ export interface ProductOutput {
    */
   badge?: Badge;
   /**
+   * List of product features
+   * @example ["Feature 1","Feature 2","Feature 3"]
+   */
+  features?: string[];
+  /**
    * Product creation timestamp
    * @example "2025-01-15T10:30:00Z"
    */
@@ -954,6 +959,11 @@ export interface CreateProductInput {
     /** @example "bg-blue-600" */
     color?: string;
   };
+  /**
+   * List of product features
+   * @example ["Feature 1","Feature 2","Feature 3"]
+   */
+  features?: string[];
 }
 
 export interface UpdateProductInput {
@@ -1001,6 +1011,11 @@ export interface UpdateProductInput {
     /** @example "bg-blue-600" */
     color?: string;
   };
+  /**
+   * List of product features
+   * @example ["Feature 1","Feature 2","Feature 3"]
+   */
+  features?: string[];
 }
 
 export interface CreateRefundDto {

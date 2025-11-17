@@ -13,7 +13,6 @@ type ProductCardProps = {
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const formatCurrency = useCurrencyFormatter();
   const isFree = product.price === 0;
-  const isPopular = product.id === 6; // 5X Prep Session Bundle
   
   // Check if product is in cart
   const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -44,13 +43,27 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   };
 
   return (
-    <div
-      onClick={handleCardClick}
-      style={isPopular ? { backgroundColor: 'var(--customer-primary)' } : undefined}
-      className={`customer-product-card relative flex flex-col ${isPopular ? '' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group cursor-pointer ${
-        isPopular ? "border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800" : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
-      }`}
-    >
+    <>
+      <style>{`
+        .customer-product-card.group:hover h5,
+        .customer-product-card.group:hover .price-text,
+        .customer-product-card.group:hover .save-text,
+        .customer-product-card.group:hover p,
+        .customer-product-card.group:hover ul,
+        .customer-product-card.group:hover li,
+        .customer-product-card.group:hover li span {
+          color: var(--customer-text-white) !important;
+        }
+        .customer-product-card.group:hover .check-icon,
+        .customer-product-card.group:hover svg.check-icon {
+          color: var(--customer-text-white) !important;
+          stroke: var(--customer-text-white) !important;
+        }
+      `}</style>
+      <div
+        onClick={handleCardClick}
+        className="customer-product-card relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl group cursor-pointer border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-[var(--customer-primary)]"
+      >
       {/* Badge */}
       {product.badge && (
         <div className="absolute top-2 right-0 badge transform z-10">
@@ -66,28 +79,20 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </div>
       )}
 
-      {/* Popular Badge - Only show if not already showing in product.badge */}
-      {isPopular && !product.badge && (
-        <div className="absolute top-2 right-0 z-10">
-          <span className="bg-white/90 text-blue-600 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold shadow-lg">
-            Most Popular
-          </span>
-        </div>
-      )}
 
-      <div className={`p-2 sm:p-4 lg:p-6 xl:p-8 flex flex-col h-full overflow-hidden ${(product.badge || (isPopular && !product.badge)) ? 'pt-8 sm:pt-10 lg:pt-12' : ''}`}>
+      <div className={`p-2 sm:p-4 lg:p-6 xl:p-8 flex flex-col h-full overflow-hidden ${product.badge ? 'pt-8 sm:pt-10 lg:pt-12' : ''}`}>
         {/* Header */}
         <div className="text-center mb-2 sm:mb-4 lg:mb-6">
           <h5 
-            className={`font-bold mb-1 sm:mb-2 leading-tight px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 transition-all duration-300`}
+            className="font-bold mb-1 sm:mb-2 leading-tight px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 transition-all duration-300"
             style={{
               fontSize: 'var(--customer-text-base-size)',
-              color: isPopular ? 'var(--customer-text-white)' : 'var(--customer-text-blue)'
+              color: 'var(--customer-text-blue)'
             }}
           >
             {product.name}
           </h5>
-          <div className={`w-8 sm:w-12 lg:w-16 h-0.5 sm:h-1 ${isPopular ? 'bg-white' : 'bg-blue-600'} mx-auto rounded-full transition-all duration-300`}></div>
+          <div className="w-8 sm:w-12 lg:w-16 h-0.5 sm:h-1 bg-blue-600 group-hover:bg-white mx-auto rounded-full transition-all duration-300"></div>
         </div>
 
         {/* Price */}
@@ -95,16 +100,16 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           <div className="flex items-center justify-center space-x-2">
             {isFree ? (
               <span 
-                className={`text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold`}
-                style={isPopular ? { color: 'var(--customer-text-white)' } : { color: 'var(--customer-text-blue)' }}
+                className="price-text text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold transition-all duration-300"
+                style={{ color: 'var(--customer-text-blue)' }}
               >
                 Free
               </span>
             ) : (
               <>
                 <span 
-                  className={`text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold`}
-                  style={isPopular ? { color: 'var(--customer-text-white)' } : { color: 'var(--customer-text-blue)' }}
+                  className="price-text text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold transition-all duration-300"
+                  style={{ color: 'var(--customer-text-blue)' }}
                 >
                   {formatCurrency(product.price * 100)}
                 </span>
@@ -114,8 +119,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
           {product.save ? (
             <div 
-              className={`text-[10px] sm:text-xs lg:text-sm font-medium mt-0.5 sm:mt-1`}
-              style={isPopular ? { color: 'var(--customer-text-white)' } : { color: 'var(--customer-text-blue)' }}
+              className="save-text text-[10px] sm:text-xs lg:text-sm font-medium mt-0.5 sm:mt-1 transition-all duration-300"
+              style={{ color: 'var(--customer-text-blue)' }}
             >
               Save {formatCurrency((product.save || 0) * 100)}!
             </div>
@@ -125,173 +130,40 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         {/* Description */}
         <div className="mb-2 sm:mb-4 lg:mb-6">
           <p 
-            className={`text-center leading-relaxed text-[10px] sm:text-xs lg:text-sm xl:text-base ${isPopular ? '' : 'text-gray-600 dark:text-gray-300'}`}
-            style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
+            className="text-center leading-relaxed text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 dark:text-gray-300 transition-all duration-300"
           >
             {product.Description}
           </p>
         </div>
 
         {/* Features for paid plans */}
-        {!isFree && (
+        {!isFree && product.features && product.features.length > 0 && (
           <div className="flex-1 flex flex-col justify-start">
             {/* Horizontal divider line */}
-            <div className={`border-t mb-2 sm:mb-4 lg:mb-6 ${isPopular ? 'border-white/30' : 'border-gray-300 dark:border-gray-600'}`}></div>
+            <div className="border-t mb-2 sm:mb-4 lg:mb-6 border-gray-300 dark:border-gray-600 group-hover:border-white/30 transition-all duration-300"></div>
             
             <ul 
-              className={`space-y-0.5 sm:space-y-1 lg:space-y-2 text-[10px] sm:text-xs lg:text-sm ${isPopular ? '' : 'text-gray-600 dark:text-gray-300'}`}
-              style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
+              className="space-y-0.5 sm:space-y-1 lg:space-y-2 text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gray-300 transition-all duration-300 overflow-y-auto"
+              style={{ maxHeight: '130px' }}
             >
-              {product.id === 5 && (
-                <>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      One personalized tutoring session
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Flexible scheduling
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Targeted practice on weak areas
-                    </span>
-                  </li>
-                </>
-              )}
-              {product.id === 6 && (
-                <>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      5 one-on-one tutoring sessions
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Custom weekly study plan
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Progress tracking & feedback
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Practice materials included
-                    </span>
-                  </li>
-                </>
-              )}
-              {product.id === 7 && (
-                <>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      10 one-on-one tutoring sessions
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Complete MCAT prep roadmap
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      Progress tracking & mock exams
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isPopular ? '' : 'text-blue-600 dark:text-blue-400'} mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0`}
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    />
-                    <span 
-                      className="truncate"
-                      style={isPopular ? { color: 'var(--customer-text-white)' } : undefined}
-                    >
-                      All study materials included
-                    </span>
-                  </li>
-                </>
-              )}
+              {product.features.map((feature, index) => (
+                <li key={index} className="flex items-start">
+                  <Check 
+                    className="check-icon w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0 transition-all duration-300 mt-0.5"
+                  />
+                  <span 
+                    className="flex-1 break-words"
+                  >
+                    {feature}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         )}
 
         {/* Add to Cart / Remove from Cart Button */}
-        <div className={`mt-auto pt-2 sm:pt-3 lg:pt-4 border-t flex justify-center flex-shrink-0 ${isPopular ? 'border-white/30' : 'border-gray-200 dark:border-gray-700'}`}>
+        <div className="mt-auto pt-2 sm:pt-3 lg:pt-4 border-t flex justify-center flex-shrink-0 border-gray-200 dark:border-gray-700 group-hover:border-white/30 transition-all duration-300">
           <button
             onClick={handleButtonClick}
             disabled={isLoading}
@@ -320,6 +192,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
       </div>
     </div>
+    </>
   );
 };
 

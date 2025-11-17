@@ -21,7 +21,7 @@ const Cart = () => {
   const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
   
   // Filter out free package (id === 8) from cart - cart is for paid purchases only
-  const items = allItems.filter(item => item.id !== 8);
+  const items = allItems.filter(item => item.price !== 0);
   
   // Get current checkout progress step
   const currentStep: 1 | 2 | 3 | 4 = useCheckoutProgress();
