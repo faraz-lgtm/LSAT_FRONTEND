@@ -56,6 +56,7 @@ const settingsSchema = z.object({
       conversationsServiceSid: z.string().optional(),
       sendgridApiKey: z.string().optional(),
       webhookUrl: z.string().url().optional().or(z.literal('')),
+      emailHostName: z.string().optional().or(z.literal('')),
     }).optional(),
     email: z.object({
       smtpHost: z.string().optional(),
@@ -66,7 +67,6 @@ const settingsSchema = z.object({
       smtpFromName: z.string().optional(),
       sendgridFromEmail: z.string().email().optional().or(z.literal('')),
       sendgridFromName: z.string().optional(),
-      sendgridFromChatEmail: z.string().email().optional().or(z.literal('')),
     }).optional(),
   }).optional(),
 }).optional()
@@ -607,6 +607,23 @@ export function OrganizationsEditDialog({
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name='settings.integrations.twilio.emailHostName'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Host Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder='mail.betterlsat.com' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      <FormDescription>
+                        Full email hostname for SendGrid inbound email routing (e.g., "mail.betterlsat.com", "chat.betterlsat.com")
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
               </TabsContent>
 
               {/* Email Integration Tab */}
@@ -730,20 +747,6 @@ export function OrganizationsEditDialog({
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name='settings.integrations.email.sendgridFromChatEmail'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SendGrid From Chat Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder='chat@betterlsat.com' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </TabsContent>
             </Tabs>
 

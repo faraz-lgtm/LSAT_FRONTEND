@@ -66,6 +66,33 @@ function replaceVariables(text: string): string {
   return result
 }
 
+// Function to convert HTML to plain text
+function htmlToPlainText(html: string): string {
+  // Create a temporary DOM element to parse HTML
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = html
+  
+  // Replace block-level elements with newlines before getting text
+  const blockElements = tempDiv.querySelectorAll('p, div, br, li, h1, h2, h3, h4, h5, h6')
+  blockElements.forEach((el) => {
+    if (el.tagName === 'BR') {
+      el.replaceWith(document.createTextNode('\n'))
+    } else {
+      el.insertAdjacentText('beforebegin', '\n')
+    }
+  })
+  
+  // Get text content (strips all HTML tags)
+  let text = tempDiv.textContent || tempDiv.innerText || ''
+  
+  // Clean up multiple spaces but preserve line breaks
+  text = text.replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+  text = text.replace(/\n\s*\n\s*/g, '\n\n') // Replace multiple newlines with double newline
+  text = text.trim()
+  
+  return text
+}
+
 export function AutomationsEditDialog({
   open,
   onOpenChange,
@@ -230,18 +257,6 @@ export function AutomationsEditDialog({
                       <FormDescription>
                         Message text with variables. Use &#123;&#123;orderId&#125;&#125;, &#123;&#123;customerName&#125;&#125;, etc.
                       </FormDescription>
-                      {dynamicFields.customMessage && (
-                        <Card className="mt-2">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 whitespace-pre-wrap">
-                              {replaceVariables(dynamicFields.customMessage)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
                     </FormItem>
                   )}
                 />
@@ -262,18 +277,6 @@ export function AutomationsEditDialog({
                       <FormDescription>
                         Short message for Slack blocks. Use variables like &#123;&#123;orderId&#125;&#125;, &#123;&#123;customerName&#125;&#125;, etc.
                       </FormDescription>
-                      {dynamicFields.customBlockMessage && (
-                        <Card className="mt-2">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-24 whitespace-pre-wrap">
-                              {replaceVariables(dynamicFields.customBlockMessage)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
                     </FormItem>
                   )}
                 />
@@ -330,7 +333,7 @@ export function AutomationsEditDialog({
                         />
                       </FormControl>
                       <FormDescription>
-                        Email body content. Use variables like &#123;&#123;orderNumber&#125;&#125;, &#123;&#123;total&#125;&#125;, etc.
+                        Email body content (HTML). Use variables like &#123;&#123;orderNumber&#125;&#125;, &#123;&#123;total&#125;&#125;, etc.
                       </FormDescription>
                       {dynamicFields.message && (
                         <Card className="mt-2">
@@ -339,7 +342,7 @@ export function AutomationsEditDialog({
                           </CardHeader>
                           <CardContent>
                             <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 whitespace-pre-wrap">
-                              {replaceVariables(dynamicFields.message)}
+                              {htmlToPlainText(replaceVariables(dynamicFields.message))}
                             </div>
                           </CardContent>
                         </Card>
@@ -371,18 +374,6 @@ export function AutomationsEditDialog({
                         SMS/WhatsApp message text. Use variables like &#123;&#123;customerName&#125;&#125;, &#123;&#123;meetingLink&#125;&#125; (or &#123;&#123;googleMeetLink&#125;&#125;). Do NOT include dateTime. 
                         <strong className="text-orange-600 dark:text-orange-400">Note: Backend must populate meetingLink from order.googleMeetLink or appointment.meetingLink</strong>
                       </FormDescription>
-                      {dynamicFields.message && (
-                        <Card className="mt-2">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-xs">Preview with Example Values</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-xs bg-muted p-2 rounded overflow-auto max-h-32 whitespace-pre-wrap">
-                              {replaceVariables(dynamicFields.message)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
                     </FormItem>
                   )}
                 />

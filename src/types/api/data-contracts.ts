@@ -59,7 +59,10 @@ export interface OrganizationOutput {
    * @example ["betterlsat.com","www.betterlsat.com"]
    */
   domains?: string[];
-  /** Organization settings */
+  /**
+   * Organization settings including integrations. Twilio integration includes emailHostname in settings.integrations.twilio.emailHostname for SendGrid inbound email routing (e.g., "mail.betterlsat.com").
+   * @example {"integrations":{"twilio":{"emailHostname":"mail.betterlsat.com"}}}
+   */
   settings?: object;
   /**
    * Organization creation date
@@ -120,8 +123,8 @@ export interface CreateOrganizationDto {
    */
   domains?: string[];
   /**
-   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email)
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT","sendgridFromChatEmail":"chat@betterlsat.com"}}}
+   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
    */
   settings?: object;
 }
@@ -148,8 +151,8 @@ export interface UpdateOrganizationDto {
    */
   domains?: string[];
   /**
-   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email)
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT","sendgridFromChatEmail":"chat@betterlsat.com"}}}
+   * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
    */
   settings?: object;
 }
@@ -2169,6 +2172,14 @@ export interface MessageOutputDto {
    * @format date-time
    */
   dateUpdated: string;
+  /** Email sender address (for EMAIL channel messages) */
+  emailFrom?: string;
+  /** Email recipient address (for EMAIL channel messages) */
+  emailTo?: string;
+  /** Email subject (for EMAIL channel messages) */
+  emailSubject?: string;
+  /** Email body content (for EMAIL channel messages) */
+  emailBody?: string;
 }
 
 export interface ConversationOutputDto {

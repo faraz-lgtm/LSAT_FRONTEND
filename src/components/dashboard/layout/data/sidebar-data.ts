@@ -21,6 +21,7 @@ import {
   Zap,
   Activity,
   Building2,
+  MessagesSquare,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
