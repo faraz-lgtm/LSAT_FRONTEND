@@ -41,7 +41,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['solid-js', 'solid-js/web'],
       output: {
         manualChunks: (id) => {
           // Vendor chunks - core React ecosystem
