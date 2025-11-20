@@ -37,65 +37,32 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    exclude: ['@tanstack/router-devtools']
+    exclude: ['@tanstack/router-devtools'],
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   build: {
     rollupOptions: {
       output: {
+        // Smart chunking: Keep React ecosystem together, split only independent large libs
+        // Route-level code splitting (React.lazy) will handle the rest
         manualChunks: (id) => {
-          // Vendor chunks - core React ecosystem
           if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react/') || id.includes('react-dom/') || id.includes('scheduler/')) {
-              return 'vendor-react';
-            }
-            
-            // Clerk authentication
-            if (id.includes('@clerk/')) {
-              return 'vendor-clerk';
-            }
-            
-            // Redux ecosystem
-            if (id.includes('@reduxjs/') || id.includes('redux-persist') || id.includes('react-redux')) {
-              return 'vendor-redux';
-            }
-            
-            // TanStack Router
-            if (id.includes('@tanstack/react-router')) {
-              return 'vendor-router';
-            }
-            
-            // FullCalendar - large library, split separately
+            // Split only large independent libraries that don't depend on React
             if (id.includes('@fullcalendar/') || id.includes('fullcalendar')) {
               return 'vendor-calendar';
             }
             
-            // Recharts - charting library
             if (id.includes('recharts')) {
               return 'vendor-charts';
             }
             
-            // Socket.io - only needed for chat
             if (id.includes('socket.io')) {
               return 'vendor-socket';
             }
             
-            // Radix UI components - group together
-            if (id.includes('@radix-ui/')) {
-              return 'vendor-radix';
-            }
-            
-            // Other large libraries
-            if (id.includes('react-hook-form') || id.includes('@hookform/')) {
-              return 'vendor-forms';
-            }
-            
-            if (id.includes('date-fns')) {
-              return 'vendor-dates';
-            }
-            
-            // All other node_modules
-            return 'vendor-misc';
+            // Everything else (including React and all React-dependent libs) stays together
+            // This prevents React initialization errors while route-level splitting reduces bundle size
+            // The route-level lazy loading we added will create separate chunks for each route
           }
         },
       },
@@ -107,5 +74,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
 })
+
 
 

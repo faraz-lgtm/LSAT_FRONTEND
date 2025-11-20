@@ -1,15 +1,24 @@
 import "react-phone-input-2/lib/style.css";
 import { Route, Routes, Navigate } from "react-router-dom";
-import Cart from "./Pages/Cart/Cart";
+import { lazy, Suspense } from "react";
 import Layout from "./Layouts/DefaultLayout";
-// import About from "./Pages/About";
-import Appointment from "./Pages/Appointment";
-import Home from "./Pages/Home";
-import PaymentSuccess from "./Pages/PaymentSuccess";
-import PaymentCancel from "./Pages/PaymentCancel";
 import DashboardApp from "./DashboardApp";
 import { ReschedulePage } from "./routes/reschedule";
 import { isOnOrganizationDomain } from "./utils/organization";
+
+// Code splitting: Lazy load pages to reduce initial bundle size
+const Cart = lazy(() => import("./Pages/Cart/Cart"));
+const Appointment = lazy(() => import("./Pages/Appointment"));
+const Home = lazy(() => import("./Pages/Home"));
+const PaymentSuccess = lazy(() => import("./Pages/PaymentSuccess"));
+const PaymentCancel = lazy(() => import("./Pages/PaymentCancel"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>
+);
 
 // Component to handle domain/slug-based routing
 function DomainOrSlugHome() {
@@ -49,32 +58,30 @@ function FreePurchaseRedirect() {
 function App() {
   return (
     <div>
-      {/* <nav>
-        <Link to="/">Home</Link> | <Link to="/about">About</Link>
-      </nav> */}
-
-      <Routes>
-        {/* Specific routes first to avoid matching domain pattern */}
-        <Route path="/payment/success" element={<PaymentSuccess />} />
-        <Route path="/payment/cancel" element={<PaymentCancel />} />
-        <Route path="/reschedule" element={<ReschedulePage />} />
-        <Route path="/success" element={<PaymentSuccess />} />
-        <Route path="/cancel" element={<PaymentCancel />} />
-        <Route path="/dashboard/*" element={<DashboardApp />} />
-        
-        {/* Organization routes - slug-based for generic envs, domain-based for actual domains */}
-        <Route element={<Layout />}>
-          {/* Slug-based routes - matches paths like /betterlsat/cart, /betterlsat/Appointment */}
-          <Route path="/:slug/cart" element={<Cart />} />
-          <Route path="/:slug/Appointment" element={<Appointment />} />
-          <Route path="/:slug/free_purchase" element={<Appointment />} />
-          <Route path="/free_purchase" element={<FreePurchaseRedirect />} />
-          {/* Slug route - matches paths like /betterlsat (for generic local/prod envs) */}
-          <Route path="/:slug" element={<DomainOrSlugHome />} />
-          {/* Root - shows home if on actual domain, redirects to slug if on generic env */}
-          <Route path="/" element={<RootRedirect />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Specific routes first to avoid matching domain pattern */}
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancel" element={<PaymentCancel />} />
+          <Route path="/reschedule" element={<ReschedulePage />} />
+          <Route path="/success" element={<PaymentSuccess />} />
+          <Route path="/cancel" element={<PaymentCancel />} />
+          <Route path="/dashboard/*" element={<DashboardApp />} />
+          
+          {/* Organization routes - slug-based for generic envs, domain-based for actual domains */}
+          <Route element={<Layout />}>
+            {/* Slug-based routes - matches paths like /betterlsat/cart, /betterlsat/Appointment */}
+            <Route path="/:slug/cart" element={<Cart />} />
+            <Route path="/:slug/Appointment" element={<Appointment />} />
+            <Route path="/:slug/free_purchase" element={<Appointment />} />
+            <Route path="/free_purchase" element={<FreePurchaseRedirect />} />
+            {/* Slug route - matches paths like /betterlsat (for generic local/prod envs) */}
+            <Route path="/:slug" element={<DomainOrSlugHome />} />
+            {/* Root - shows home if on actual domain, redirects to slug if on generic env */}
+            <Route path="/" element={<RootRedirect />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </div>
   );
 }

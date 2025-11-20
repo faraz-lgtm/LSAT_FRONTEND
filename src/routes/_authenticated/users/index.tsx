@@ -1,6 +1,6 @@
 import z from "zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { Users } from "@/features/dashboardRelated/users";
+import { lazy } from "react";
 import { roles } from "@/features/dashboardRelated/users/data/data";
 
 const usersSearchSchema = z.object({
@@ -25,6 +25,9 @@ const usersSearchSchema = z.object({
   // Per-column text filter (example for username)
   username: z.string().optional().catch(""),
 });
+
+// Lazy load Users to enable code splitting
+const Users = lazy(() => import("@/features/dashboardRelated/users").then(m => ({ default: m.Users })));
 
 export const Route = createFileRoute("/_authenticated/users/")({
   validateSearch: usersSearchSchema,

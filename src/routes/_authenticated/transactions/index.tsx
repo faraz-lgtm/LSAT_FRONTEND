@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { Transactions } from '@/features/dashboardRelated/transactions'
+import { lazy } from 'react'
 
 const transactionSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -19,6 +19,9 @@ const transactionSearchSchema = z.object({
   endDate: z.string().optional().catch(''),
   filter: z.string().optional().catch(''),
 })
+
+// Lazy load Transactions to enable code splitting
+const Transactions = lazy(() => import('@/features/dashboardRelated/transactions').then(m => ({ default: m.Transactions })))
 
 // Transactions route
 export const Route = createFileRoute('/_authenticated/transactions/')({

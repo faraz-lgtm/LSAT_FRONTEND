@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { Apps } from '@/features/dashboardRelated/apps'
+import { lazy } from 'react'
 
 const appsSearchSchema = z.object({
   type: z
@@ -11,15 +11,10 @@ const appsSearchSchema = z.object({
   sort: z.enum(['asc', 'desc']).optional().catch(undefined),
 })
 
+// Lazy load Apps to enable code splitting
+const Apps = lazy(() => import('@/features/dashboardRelated/apps').then(m => ({ default: m.Apps })))
+
 export const Route = createFileRoute('/_authenticated/apps/')({
   validateSearch:  appsSearchSchema,
-  // validateSearch: (s: Record<string, unknown>) => ({
-  //   filter: typeof s.filter === 'string' ? s.filter : '',
-  //   type:
-  //     s.type === 'connected' || s.type === 'notConnected' || s.type === 'all'
-  //       ? (s.type as 'all' | 'connected' | 'notConnected')
-  //       : 'all',
-  //   sort: s.sort === 'desc' ? 'desc' : 'asc',
-  // }),
   component: Apps,
 })

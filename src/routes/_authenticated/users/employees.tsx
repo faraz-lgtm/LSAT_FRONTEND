@@ -1,6 +1,6 @@
 import z from "zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { EmployeesPage } from "@/features/dashboardRelated/users/pages/employees";
+import { lazy } from "react";
 
 const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -10,6 +10,9 @@ const usersSearchSchema = z.object({
   roles: z.array(z.string()).optional().catch([]),
   status: z.array(z.string()).optional().catch([]),
 });
+
+// Lazy load EmployeesPage to enable code splitting
+const EmployeesPage = lazy(() => import("@/features/dashboardRelated/users/pages/employees").then(m => ({ default: m.EmployeesPage })));
 
 export const Route = createFileRoute("/_authenticated/users/employees")({
   validateSearch: usersSearchSchema,

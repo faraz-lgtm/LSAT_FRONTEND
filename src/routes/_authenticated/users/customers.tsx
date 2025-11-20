@@ -1,6 +1,6 @@
 import z from "zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { CustomersPage } from "@/features/dashboardRelated/users/pages/customers";
+import { lazy } from "react";
 
 const customersSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -11,6 +11,9 @@ const customersSearchSchema = z.object({
   status: z.array(z.string()).optional().catch([]),
   leads: z.array(z.string()).optional().catch([]),
 });
+
+// Lazy load CustomersPage to enable code splitting
+const CustomersPage = lazy(() => import("@/features/dashboardRelated/users/pages/customers").then(m => ({ default: m.CustomersPage })));
 
 export const Route = createFileRoute("/_authenticated/users/customers")({
   validateSearch: customersSearchSchema,
