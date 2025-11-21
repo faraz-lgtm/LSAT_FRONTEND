@@ -7,6 +7,22 @@ import { Logo } from "../assets/logo";
 import { useCurrencyFormatter } from "../utils/currency";
 import { getOrganizationSlugFromUrl } from "../utils/organization";
 
+/**
+ * Formats organization name from slug
+ * Handles special case: "betterlsat" -> "betterLSAT"
+ */
+const formatOrganizationName = (slug: string | null): string => {
+  if (!slug) return "betterLSAT";
+  
+  // Handle specific known organizations
+  if (slug.toLowerCase() === "betterlsat") {
+    return "betterLSAT";
+  }
+  
+  // Default: capitalize first letter
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+};
+
 const Layout = () => {
   const location = useLocation();
   const isFreePurchase = location.pathname.includes('/free_purchase');
@@ -33,7 +49,7 @@ const Layout = () => {
           <Link to={homePath} className="flex items-center space-x-2 sm:space-x-3 font-bold min-w-0 flex-shrink-0">
             <Logo className="text-white h-6 w-auto sm:h-8 sm:w-auto flex-shrink-0" />
             <span className="text-sm sm:text-lg truncate" style={{ color: 'var(--customer-primary)' }}>
-              {currentSlug ? currentSlug.charAt(0).toUpperCase() + currentSlug.slice(1) : "betterLSAT"}
+              {formatOrganizationName(currentSlug)}
             </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 min-w-0">
