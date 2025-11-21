@@ -21,7 +21,7 @@ import {
   Zap,
   Activity,
   Building2,
-  // MessagesSquare, // Chat feature temporarily disabled
+  MessagesSquare,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
@@ -60,12 +60,11 @@ const sidebarData: SidebarData = {
           url: "/apps",
           icon: Package,
         },
-        // Chat feature temporarily disabled
-        // {
-        //   title: "Chats",
-        //   url: "/chats",
-        //   icon: MessagesSquare,
-        // },
+        {
+          title: "Chats",
+          url: "/chats",
+          icon: MessagesSquare,
+        },
         
         {
           title: "Orders",
@@ -250,7 +249,7 @@ if (ENV !== "DEVELOPMENT") {
           "/packages",
           "/help-center",
           "/tasks",
-          // "/chats", // Chat feature temporarily disabled
+          "/chats",
           "/invoices",
           "/refunds",
           "/transactions",
