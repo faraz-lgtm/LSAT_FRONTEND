@@ -1,6 +1,7 @@
 import type {
   ConversationOutputDto,
   MessageOutputDto,
+  ThreadConversationOutputDto,
 } from '@/types/api/data-contracts'
 import type { ChatUser, Convo, MessageChannel, ContactDetail } from '@/features/dashboardRelated/chats/data/chat-types'
 import { toFrontendChannel } from '@/utils/chat-channel'
@@ -113,12 +114,71 @@ export function convertMessageToConvo(
 }
 
 /**
+ * Convert ThreadConversationOutputDto to ChatUser
+ * The new thread-based structure has channels array with conversation SIDs
+ */
+export function convertThreadToChatUser(
+  thread: ThreadConversationOutputDto,
+  currentUserId?: number | string,
+): ChatUser {
+  // Find the counterpart participant (the other user in the conversation)
+  const counterpart = thread.participants.find(
+    (p) => p.userId !== thread.initiatorUserId && 
+           (!currentUserId || p.userId !== Number(currentUserId))
+  ) || thread.participants.find((p) => p.userId === thread.counterpartUserId)
+  
+  // Get the first available channel (prefer SMS, then EMAIL)
+  const smsChannel = thread.channels.find((c) => c.channel === 'SMS')
+  const emailChannel = thread.channels.find((c) => c.channel === 'EMAIL')
+  const primaryChannel = smsChannel || emailChannel || thread.channels[0]
+  
+  // Build contact details from participant info
+  const contactDetails: ContactDetail = {
+    email: counterpart?.email,
+    phone: counterpart?.phone,
+    owner: counterpart ? {
+      id: String(counterpart.userId),
+      name: counterpart.fullName || 'Unknown',
+    } : undefined,
+  }
+
+  return {
+    id: primaryChannel?.conversationSid || thread.threadId, // Use SMS conversation SID as primary ID
+    fullName: thread.friendlyName,
+    username: '', // Threads don't have unique names
+    profile: undefined,
+    title: counterpart?.fullName,
+    messages: [], // Messages are loaded separately
+    unreadCount: 0,
+    isStarred: false,
+    channel: primaryChannel ? toFrontendChannel(primaryChannel.channel) : 'SMS',
+    contactDetails,
+    lastMessageTimestamp: undefined,
+    // Store thread metadata for channel switching
+    threadId: thread.threadId,
+    channels: thread.channels.map((c) => ({
+      channel: toFrontendChannel(c.channel),
+      conversationSid: c.conversationSid,
+    })),
+  }
+}
+
+/**
  * Convert array of backend Conversations to frontend ChatUsers
+ * Supports both old ConversationOutputDto[] and new ThreadConversationOutputDto[]
  */
 export function convertConversationsToChatUsers(
-  conversations: ConversationOutputDto[],
+  conversations: ConversationOutputDto[] | ThreadConversationOutputDto[],
+  currentUserId?: number | string,
 ): ChatUser[] {
-  return conversations.map(convertConversationToChatUser)
+  // Check if it's the new thread-based format
+  if (conversations.length > 0 && conversations[0] && 'threadId' in conversations[0]) {
+    return (conversations as ThreadConversationOutputDto[]).map((thread) =>
+      convertThreadToChatUser(thread, currentUserId)
+    )
+  }
+  // Fallback to old format
+  return (conversations as ConversationOutputDto[]).map(convertConversationToChatUser)
 }
 
 /**

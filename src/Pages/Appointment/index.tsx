@@ -826,18 +826,20 @@ const Appointment = () => {
           {/* Top Section - Fixed Height */}
           <div className="flex-shrink-0 space-y-2 mb-4">
           {/* Back Button */}
-          <div>
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md text-xs"
-            >
-              <ArrowLeft size={16} />
-              <span className="font-medium">
-                {selected === "information" ? "Back to Cart" : 
-                 "Back to Information"}
-              </span>
-            </button>
-          </div>
+          {!isFreePurchase && (
+            <div>
+              <button
+                onClick={handleBack}
+                className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md text-xs"
+              >
+                <ArrowLeft size={16} />
+                <span className="font-medium">
+                  {selected === "information" ? "Back to Cart" : 
+                   "Back to Information"}
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Global Progress Bar - Hidden for free purchase */}
           {!isFreePurchase && <GlobalProgressBar currentStep={currentStep} />}

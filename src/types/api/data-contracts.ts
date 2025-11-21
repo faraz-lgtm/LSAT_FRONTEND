@@ -2236,12 +2236,7 @@ export interface SuccessResponseDto {
 
 export interface ParticipantDto {
   /**
-   * Communication channel type
-   * @example "SMS"
-   */
-  channel: "SMS" | "WHATSAPP" | "EMAIL";
-  /**
-   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
+   * User ID of the participant
    * @example "156"
    */
   userId: string;
@@ -2253,8 +2248,8 @@ export interface CreateConversationDto {
    * @example "Chat with John Doe"
    */
   friendlyName: string;
-  /** Participants to add to the conversation */
-  participants?: ParticipantDto[];
+  /** Participants to add to the conversation. Provide at least one other user (the current user is automatically added as a participant). */
+  participants: ParticipantDto[];
   /** Custom attributes (key-value pairs) */
   attributes?: object;
 }
@@ -2316,9 +2311,54 @@ export interface SendEmailDto {
   attachments?: EmailAttachmentDto[];
 }
 
-export interface SwaggerBaseApiResponseForClassConversationOutputDto {
+export interface ThreadParticipantDto {
+  /** User ID of the participant */
+  userId: number;
+  /** Full name of the participant */
+  fullName?: string;
+  /** Email address of the participant */
+  email?: string;
+  /** Phone number of the participant */
+  phone?: string;
+}
+
+export interface ConversationChannelSummaryDto {
+  /**
+   * Channel associated with the Twilio conversation
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * Twilio conversation SID for the given channel
+   * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   */
+  conversationSid: string;
+}
+
+export interface ThreadConversationOutputDto {
+  /** Thread identifier composed of participant IDs */
+  threadId: string;
+  /** Friendly name for the thread */
+  friendlyName: string;
+  /**
+   * User ID that initiated this thread
+   * @example 7
+   */
+  initiatorUserId: number;
+  /** Participant metadata associated with this thread */
+  participants: ThreadParticipantDto[];
+  /**
+   * User ID of the person the current user is chatting with
+   * @example 42
+   */
+  counterpartUserId: number;
+  /** Conversation SIDs grouped by communication channel */
+  channels: ConversationChannelSummaryDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
   meta: MetaResponse;
-  data: ConversationOutputDto[];
+  data: ThreadConversationOutputDto[];
 }
 
 export interface SwaggerBaseApiResponseForClassConversationOutputDto {
@@ -2329,6 +2369,11 @@ export interface SwaggerBaseApiResponseForClassConversationOutputDto {
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
   meta: MetaResponse;
   data: MessageOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
+  meta: MetaResponse;
+  data: ThreadConversationOutputDto;
 }
 
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {

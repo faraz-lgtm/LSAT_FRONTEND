@@ -55,6 +55,7 @@ import {
   SwaggerBaseApiResponseForClassStripePaymentIntent,
   SwaggerBaseApiResponseForClassSuccessResponseDto,
   SwaggerBaseApiResponseForClassTaskOutputDto,
+  SwaggerBaseApiResponseForClassThreadConversationOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
@@ -2139,7 +2140,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassConversationOutputDto;
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
   }
 
   /**
@@ -2156,7 +2157,7 @@ export namespace Api {
     export type RequestBody = CreateConversationDto;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassConversationOutputDto;
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
   }
 
   /**

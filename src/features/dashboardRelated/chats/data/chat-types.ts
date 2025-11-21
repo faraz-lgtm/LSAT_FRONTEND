@@ -34,6 +34,9 @@ export type ChatUser = {
   channel?: MessageChannel
   contactDetails?: ContactDetail
   lastMessageTimestamp?: string
+  // Thread-based conversation metadata (new structure)
+  threadId?: string
+  channels?: Array<{ channel: MessageChannel; conversationSid: string }>
 }
 
 export type Convo = {

@@ -46,7 +46,7 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
       title: undefined,
       unreadCount: 0,
       isStarred: false,
-      channel: 'SMS' as const,
+      channel: 'SMS' as const, // Default channel for display
       contactDetails: {
         email: user.email,
         phone: user.phone,
@@ -85,9 +85,8 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
 
     try {
       // Prepare participants for internal user-to-user chats
-      // Use SMS channel with userId - backend will use user's registered phone/email
+      // Backend now handles channels automatically - only userId is required
       const participants: ParticipantDto[] = selectedUsers.map((user) => ({
-        channel: 'SMS' as const,
         userId: user.id,
       }))
 

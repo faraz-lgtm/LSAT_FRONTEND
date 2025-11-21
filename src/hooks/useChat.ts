@@ -13,6 +13,7 @@ import type {
   ConversationOutputDto,
   MessageOutputDto,
   CreateConversationDto,
+  ThreadConversationOutputDto,
 } from '@/types/api/data-contracts'
 import {
   convertConversationsToChatUsers,
@@ -48,13 +49,6 @@ export function useChat(): UseChatReturn {
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const [selectedConversationSid, setSelectedConversationSid] = useState<string | null>(null)
   const [activeChannelState, setActiveChannelState] = useState<BackendChannel>('SMS')
-  
-  // Wrap setActiveChannel to also refetch messages when channel changes
-  const setActiveChannel = useCallback((channel: BackendChannel) => {
-    setActiveChannelState(channel)
-    // RTK Query will automatically refetch when query arguments change,
-    // but we ensure it happens by changing the state which triggers the query update
-  }, [])
   const [conversations, setConversations] = useState<ChatUser[]>([])
   const [currentBackendConversation, setCurrentBackendConversation] =
     useState<ConversationOutputDto | null>(null)
@@ -62,6 +56,29 @@ export function useChat(): UseChatReturn {
     useState<ChatUser | null>(null)
   const [messages, setMessages] = useState<Convo[]>([])
   const [isTyping, setIsTyping] = useState(false)
+  
+  // Wrap setActiveChannel to also refetch messages when channel changes
+  // When switching channels, we need to use the conversation SID for that channel from the thread
+  const setActiveChannel = useCallback((channel: BackendChannel) => {
+    setActiveChannelState(channel)
+    
+    // If we have a thread-based conversation, switch to the conversation SID for the new channel
+    if (currentConversation?.channels && currentConversation.channels.length > 0) {
+      // Convert backend channel to frontend format for comparison
+      const frontendChannel = toFrontendChannel(channel)
+      const channelInfo = currentConversation.channels.find(
+        (c) => c.channel === frontendChannel
+      )
+      
+      if (channelInfo && channelInfo.conversationSid !== selectedConversationSid) {
+        // Update to use the conversation SID for this channel
+        setSelectedConversationSid(channelInfo.conversationSid)
+        // Messages will refetch automatically via RTK Query when selectedConversationSid changes
+      }
+    }
+    // RTK Query will automatically refetch when query arguments change,
+    // but we ensure it happens by changing the state which triggers the query update
+  }, [currentConversation, selectedConversationSid])
 
   // RTK Query hooks
   const {
@@ -149,18 +166,25 @@ export function useChat(): UseChatReturn {
     }
 
     // Listen for conversation updates
-    const handleConversationUpdated = ({ conversationSid, conversation }: { conversationSid: string; conversation: ConversationOutputDto }) => {
-      const chatUsers = convertConversationsToChatUsers([conversation])
+    const handleConversationUpdated = ({ conversationSid, conversation }: { conversationSid: string; conversation: ConversationOutputDto | ThreadConversationOutputDto }) => {
+      const currentUserIdForAdapter = currentUser?.id
+      // Type guard: check if it's a thread conversation
+      const chatUsers = 'threadId' in conversation
+        ? convertConversationsToChatUsers([conversation as ThreadConversationOutputDto], currentUserIdForAdapter)
+        : convertConversationsToChatUsers([conversation as ConversationOutputDto], currentUserIdForAdapter)
       const chatUser = chatUsers[0]
       if (chatUser) {
+        // Update by conversation SID or thread ID
         setConversations((prev) =>
           prev.map((conv) =>
-            conv.id === conversationSid ? chatUser : conv,
+            (conv.id === conversationSid || conv.threadId === (conversation as ThreadConversationOutputDto).threadId) 
+              ? chatUser 
+              : conv,
           ),
         )
-        if (currentConversation?.id === conversationSid) {
+        if (currentConversation?.id === conversationSid || currentConversation?.threadId === (conversation as ThreadConversationOutputDto).threadId) {
           setCurrentConversation(chatUser)
-          setCurrentBackendConversation(conversation)
+          setCurrentBackendConversation(conversation as ConversationOutputDto)
         }
       }
     }
@@ -208,7 +232,7 @@ export function useChat(): UseChatReturn {
       socket.off('typing:start', handleTypingStart)
       socket.off('typing:stop', handleTypingStop)
     }
-  }, [accessToken, currentConversation?.id, currentUser, activeChannelState])
+  }, [accessToken, currentConversation?.id, currentConversation?.threadId, currentUser, activeChannelState])
 
   // Update conversations when data changes
   useEffect(() => {
@@ -218,7 +242,9 @@ export function useChat(): UseChatReturn {
         ? conversationsData
         : []
       
-      const chatUsers = convertConversationsToChatUsers(conversationsArray)
+      // Pass currentUserId to help identify counterpart in thread structure
+      const currentUserIdForAdapter = currentUser?.id
+      const chatUsers = convertConversationsToChatUsers(conversationsArray, currentUserIdForAdapter)
       setConversations(chatUsers)
       
       // Debug log to see what we're getting
@@ -232,20 +258,21 @@ export function useChat(): UseChatReturn {
       // If no data, clear conversations
       setConversations([])
     }
-  }, [conversationsData])
+  }, [conversationsData, currentUser])
 
   // Update current conversation when data changes
   useEffect(() => {
     if (conversationData) {
       // transformResponse should have normalized this to a Conversation object
       if (conversationData && typeof conversationData === 'object' && 'sid' in conversationData) {
-        const chatUsers = convertConversationsToChatUsers([conversationData])
+        const currentUserIdForAdapter = currentUser?.id
+        const chatUsers = convertConversationsToChatUsers([conversationData], currentUserIdForAdapter)
         const chatUser = chatUsers[0]
         setCurrentBackendConversation(conversationData)
         setCurrentConversation(chatUser ?? null)
       }
     }
-  }, [conversationData])
+  }, [conversationData, currentUser])
 
   // Update messages when data changes - messages are already filtered by channel from API
   useEffect(() => {
@@ -318,7 +345,7 @@ export function useChat(): UseChatReturn {
   // Send message
   const sendMessage = useCallback(
     async (body: string, channel?: BackendChannel) => {
-      if (!currentBackendConversation) {
+      if (!selectedConversationSid) {
         throw new Error('No conversation selected')
       }
 
@@ -328,10 +355,22 @@ export function useChat(): UseChatReturn {
 
       // Use provided channel or fallback to activeChannelState
       const messageChannel = channel || activeChannelState
+      
+      // For thread-based conversations, get the conversation SID for the active channel
+      let conversationSid = selectedConversationSid
+      if (currentConversation?.channels && currentConversation.channels.length > 0) {
+        const frontendChannel = toFrontendChannel(messageChannel)
+        const channelInfo = currentConversation.channels.find(
+          (c) => c.channel === frontendChannel
+        )
+        if (channelInfo) {
+          conversationSid = channelInfo.conversationSid
+        }
+      }
 
       try {
         await sendMessageMutation({
-          conversationSid: currentBackendConversation.sid,
+          conversationSid,
           data: { 
             body,
             author: String(currentUser.id), // Set current user as the author
@@ -345,7 +384,7 @@ export function useChat(): UseChatReturn {
         throw err
       }
     },
-    [currentBackendConversation, sendMessageMutation, currentUser, activeChannelState],
+    [selectedConversationSid, currentConversation, sendMessageMutation, currentUser, activeChannelState],
   )
 
   // Create conversation
@@ -354,27 +393,51 @@ export function useChat(): UseChatReturn {
       try {
         const result = await createConversationMutation(data).unwrap()
         // Handle both direct object or wrapped in BaseApiResponse
-        const conversation = (result as any).data || result
-        const chatUsers = convertConversationsToChatUsers([conversation])
+        // Backend now returns ThreadConversationOutputDto
+        const thread = (result as any).data || result
+        const currentUserIdForAdapter = currentUser?.id
+        const chatUsers = convertConversationsToChatUsers([thread], currentUserIdForAdapter)
         const chatUser = chatUsers[0]
         if (!chatUser) {
-          throw new Error('Failed to convert conversation to chat user')
+          throw new Error('Failed to convert thread to chat user')
         }
         return chatUser
       } catch (err: any) {
         throw err
       }
     },
-    [createConversationMutation],
+    [createConversationMutation, currentUser],
   )
 
   // Select conversation
+  // sid can be either a conversation SID or a thread ID
+  // If it's a thread ID, we need to find the conversation SID for the active channel
   const selectConversation = useCallback(
     (sid: string) => {
-      loadConversation(sid)
-      loadMessages(sid)
+      // Check if this is a thread-based conversation (has channels array)
+      const conversation = conversations.find((conv) => conv.id === sid || conv.threadId === sid)
+      
+      if (conversation?.channels && conversation.channels.length > 0) {
+        // Find the conversation SID for the active channel
+        const channelInfo = conversation.channels.find(
+          (c) => c.channel === activeChannelState
+        ) || conversation.channels[0] // Fallback to first channel
+        
+        if (channelInfo) {
+          loadConversation(channelInfo.conversationSid)
+          loadMessages(channelInfo.conversationSid)
+        } else {
+          // Fallback to using sid directly
+          loadConversation(sid)
+          loadMessages(sid)
+        }
+      } else {
+        // Old format or direct conversation SID
+        loadConversation(sid)
+        loadMessages(sid)
+      }
     },
-    [loadConversation, loadMessages],
+    [conversations, activeChannelState, loadConversation, loadMessages],
   )
 
   // Clear selection

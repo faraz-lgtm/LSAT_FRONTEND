@@ -8,10 +8,12 @@ import type {
   ParticipantOutputDto,
   AddParticipantDto,
   SendEmailDto as BackendSendEmailDto,
+  ThreadConversationOutputDto,
 } from '@/types/api/data-contracts'
 
 // Re-export types from data-contracts for convenience and backward compatibility
 export type Conversation = ConversationOutputDto
+export type ThreadConversation = ThreadConversationOutputDto
 export type Message = MessageOutputDto
 export type Participant = ParticipantOutputDto
 
@@ -22,22 +24,22 @@ export type SendEmailDto = BackendSendEmailDto
 export const chatApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // List all conversations
-    // Note: Backend returns Conversation[] directly (not wrapped in BaseApiResponse)
-    listConversations: builder.query<Conversation[], { limit?: number } | void>({
+    // Note: Backend now returns ThreadConversationOutputDto[] (thread-based structure)
+    listConversations: builder.query<ThreadConversation[], { limit?: number } | void>({
       query: (params) => ({
         url: 'chat/conversations',
         params: params ? { limit: params.limit || 50 } : { limit: 50 },
       }),
       providesTags: ['Chat'],
-      // Transform response - backend returns array directly, but handle BaseApiResponse too
-      transformResponse: (response: any): Conversation[] => {
+      // Transform response - backend returns ThreadConversationOutputDto[] directly, but handle BaseApiResponse too
+      transformResponse: (response: any): ThreadConversation[] => {
         // If response is already an array, return it directly
         if (Array.isArray(response)) {
           return response
         }
         // If response is wrapped in BaseApiResponse, extract the data
         if (response && typeof response === 'object' && 'data' in response) {
-          const data = (response as BaseApiResponse<Conversation[]>).data
+          const data = (response as BaseApiResponse<ThreadConversation[]>).data
           return Array.isArray(data) ? data : []
         }
         // Fallback: return empty array if we can't parse
@@ -98,7 +100,8 @@ export const chatApi = api.injectEndpoints({
     }),
 
     // Create new conversation
-    createConversation: builder.mutation<BaseApiResponse<Conversation>, CreateConversationDto>({
+    // Note: Backend now returns ThreadConversationOutputDto (thread-based structure)
+    createConversation: builder.mutation<BaseApiResponse<ThreadConversation>, CreateConversationDto>({
       query: (data) => ({
         url: 'chat/conversations',
         method: 'POST',
@@ -235,6 +238,7 @@ export const {
 // Re-export DTOs from data-contracts (preferred - use these directly)
 export type {
   ConversationOutputDto,
+  ThreadConversationOutputDto,
   MessageOutputDto,
   ParticipantOutputDto,
   CreateConversationDto,

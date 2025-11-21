@@ -175,14 +175,25 @@ export function Chats() {
     subject: string
     body: string
   }) => {
-    if (!currentBackendConversation) {
+    if (!currentConversation) {
       console.error('No conversation selected')
       return
     }
 
+    // Get the EMAIL channel's conversation SID from thread structure
+    let conversationSid = currentConversation.id
+    if (currentConversation.channels && currentConversation.channels.length > 0) {
+      const emailChannel = currentConversation.channels.find(
+        (c) => c.channel === 'Email'
+      )
+      if (emailChannel) {
+        conversationSid = emailChannel.conversationSid
+      }
+    }
+
     try {
       await sendEmailMutation({
-        conversationSid: currentBackendConversation.sid,
+        conversationSid,
         data: {
           to: email.to,
           subject: email.subject,
@@ -212,9 +223,19 @@ export function Chats() {
       
       // Stop typing indicator
       const socket = chatSocketService.getSocket()
-      if (socket && currentBackendConversation) {
+      if (socket && currentConversation) {
+        // Get the conversation SID for the active channel from thread structure
+        let conversationSid = currentConversation.id
+        if (currentConversation.channels && currentConversation.channels.length > 0) {
+          const channelInfo = currentConversation.channels.find(
+            (c) => c.channel === activeChannel
+          )
+          if (channelInfo) {
+            conversationSid = channelInfo.conversationSid
+          }
+        }
         socket.emit('typing:stop', {
-          conversationSid: currentBackendConversation.sid,
+          conversationSid,
         })
       }
     } catch (err) {
@@ -224,9 +245,19 @@ export function Chats() {
 
   const handleTypingStart = () => {
     const socket = chatSocketService.getSocket()
-    if (socket && currentBackendConversation) {
+    if (socket && currentConversation) {
+      // Get the conversation SID for the active channel from thread structure
+      let conversationSid = currentConversation.id
+      if (currentConversation.channels && currentConversation.channels.length > 0) {
+        const channelInfo = currentConversation.channels.find(
+          (c) => c.channel === activeChannel
+        )
+        if (channelInfo) {
+          conversationSid = channelInfo.conversationSid
+        }
+      }
       socket.emit('typing:start', {
-        conversationSid: currentBackendConversation.sid,
+        conversationSid,
       })
       // Don't set isTyping(true) here - the typing indicator should only show when the OTHER person is typing
       // The socket event will be received by other participants, and we'll receive their typing events
@@ -607,10 +638,9 @@ export function Chats() {
           open={createConversationDialogOpened}
           onCreateConversation={async (participants, friendlyName) => {
             try {
-              // Filter out any invalid entries - userId is required for all channels
-              // Backend will use the user's registered phone/email based on the channel
+              // Filter out any invalid entries - userId is required
+              // Backend now handles channels automatically (no channel field needed in ParticipantDto)
               const validParticipants = participants.filter(p => {
-                // All channels require userId (backend uses user's registered contact info)
                 return !!p.userId
               })
               
