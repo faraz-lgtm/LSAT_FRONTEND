@@ -7,6 +7,7 @@ import type { RootState } from '@/redux/store'
 interface UseOrganizationReturn {
   organization: OrganizationOutput | null
   loading: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any
 }
 

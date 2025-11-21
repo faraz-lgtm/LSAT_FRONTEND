@@ -31,6 +31,7 @@ export const organizationApi = api.injectEndpoints({
     /**
      * Get current user's organization
      * GET /api/v1/organizations/my-organization
+     * Works with X-Organization-Slug header for public access
      */
     getMyOrganization: builder.query<SingleOrganizationResponse, void>({
       query: () => ({

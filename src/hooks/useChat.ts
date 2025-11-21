@@ -369,13 +369,18 @@ export function useChat(): UseChatReturn {
       }
 
       try {
+        // Send message with channel specified
+        // Backend will handle routing to correct channel (SMS via Twilio, EMAIL via SendGrid)
+        // For EMAIL conversations (SIDs like "db_42" or "email_"), backend handles appropriately
         await sendMessageMutation({
           conversationSid,
           data: { 
             body,
-            author: String(currentUser.id), // Set current user as the author
+            channel: messageChannel, // Channel is now a top-level field in SendMessageDto
+            author: `user_${currentUser.id}`, // Author format: "user_{id}"
+            // Attributes can be used for additional metadata if needed
             attributes: {
-              channel: messageChannel, // Store channel in message attributes
+              channel: messageChannel, // Also store in attributes for filtering
             },
           },
         }).unwrap()
