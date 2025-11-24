@@ -124,7 +124,7 @@ export interface CreateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -152,7 +152,7 @@ export interface UpdateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -2156,8 +2156,11 @@ export interface MessageOutputDto {
   sid: string;
   /** Index of message in conversation */
   index: number;
-  /** Message author identity */
-  author: string;
+  /**
+   * Message author user ID (numeric database ID)
+   * @example 156
+   */
+  author?: number;
   /** Message body/content */
   body: string;
   /** Message attributes */
@@ -2180,6 +2183,21 @@ export interface MessageOutputDto {
   emailSubject?: string;
   /** Email body content (for EMAIL channel messages) */
   emailBody?: string;
+  /**
+   * Email Message-ID header for threading (for EMAIL channel messages). Used to link email replies together.
+   * @example "<1234567890-abc123@example.com>"
+   */
+  emailMessageId?: string;
+  /**
+   * In-Reply-To header value indicating which message this replies to (for EMAIL channel messages). Contains the Message-ID of the message being replied to.
+   * @example "<1234567890-abc123@example.com>"
+   */
+  emailInReplyTo?: string;
+  /**
+   * References header value containing message thread history (for EMAIL channel messages). Contains space-separated Message-IDs of all messages in the thread.
+   * @example "<msg1@example.com> <msg2@example.com>"
+   */
+  emailReferences?: string;
 }
 
 export interface ConversationOutputDto {
@@ -2354,6 +2372,11 @@ export interface ThreadConversationOutputDto {
   counterpartUserId: number;
   /** Conversation SIDs grouped by communication channel */
   channels: ConversationChannelSummaryDto[];
+  /**
+   * Original email subject (without "Re:" prefix) for EMAIL conversations. Used to maintain consistent subject line across email thread.
+   * @example "Your inquiry"
+   */
+  originalSubject?: string;
 }
 
 export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {

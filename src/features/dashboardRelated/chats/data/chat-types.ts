@@ -37,6 +37,8 @@ export type ChatUser = {
   // Thread-based conversation metadata (new structure)
   threadId?: string
   channels?: Array<{ channel: MessageChannel; conversationSid: string }>
+  // Original email subject (for EMAIL conversations, used for threading)
+  originalSubject?: string
 }
 
 export type Convo = {
@@ -44,4 +46,9 @@ export type Convo = {
   message: string
   timestamp: string
   channel?: MessageChannel
+  hasHtml?: boolean
+  // Email threading fields (optional, only present for EMAIL channel messages)
+  emailMessageId?: string
+  emailInReplyTo?: string
+  emailReferences?: string
 }

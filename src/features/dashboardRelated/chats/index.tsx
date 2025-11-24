@@ -34,6 +34,7 @@ import { MessageThreadHeader } from './components/message-thread-header'
 import { ContactDetailsSidebar } from './components/contact-details-sidebar'
 import { ChannelTabs } from './components/channel-tabs'
 import { EmailComposer } from './components/email-composer'
+import { EmailMessageRenderer } from './components/email-message-renderer'
 import {
   type ChatUser,
   type Convo,
@@ -60,6 +61,7 @@ export function Chats() {
     currentBackendConversation,
     activeChannel,
     setActiveChannel,
+    loadConversation,
     clearSelection,
   } = useChat()
 
@@ -181,26 +183,40 @@ export function Chats() {
     }
 
     // Get the EMAIL channel's conversation SID from thread structure
+    // Backend uses 'EMAIL' (all caps), frontend uses 'Email' (capitalized)
     let conversationSid = currentConversation.id
     if (currentConversation.channels && currentConversation.channels.length > 0) {
+      // Find EMAIL channel - backend uses 'EMAIL', adapter converts to 'Email'
       const emailChannel = currentConversation.channels.find(
-        (c) => c.channel === 'Email'
+        (c) => c.channel === 'Email' || c.channel === 'EMAIL'
       )
       if (emailChannel) {
         conversationSid = emailChannel.conversationSid
+      } else {
+        // If no EMAIL channel exists, backend will create one when sending email
+        // Use the primary conversation SID as fallback
+        console.warn('No EMAIL channel found in thread, backend will create one')
       }
     }
 
     try {
+      // Send email - backend will:
+      // 1. Auto-populate 'to' from conversation participants if not provided
+      // 2. Auto-populate 'from' from current user if not provided
+      // 3. Default subject to "Chat-BetterLSAT" if not provided
+      // 4. Find or create EMAIL conversation if needed
       await sendEmailMutation({
         conversationSid,
         data: {
-          to: email.to,
-          subject: email.subject,
-          html: email.body,
-          from: email.fromEmail,
+          // Optional fields - backend will auto-populate from conversation if not provided
+          to: email.to || undefined, // Backend finds from conversation participants
+          subject: email.subject || undefined, // Defaults to "Chat-BetterLSAT"
+          html: email.body, // HTML content
+          text: undefined, // Plain text version (optional, backend can generate from HTML)
+          from: email.fromEmail || undefined, // Backend uses current user's email
           cc: email.cc ? [email.cc] : undefined,
           bcc: email.bcc ? [email.bcc] : undefined,
+          // attachments: undefined, // Can be added later if needed
         },
       }).unwrap()
     } catch (err) {
@@ -209,11 +225,13 @@ export function Chats() {
   }
 
   const handleSendMessage = async (e?: React.FormEvent) => {
+    console.log("Sending message to channel:", activeChannel)
     if (e) {
       e.preventDefault()
     }
     
-    if (!messageText.trim() || !currentBackendConversation) {
+    if (!messageText.trim() || !currentConversation) {
+      console.log("Message text or current conversation is empty",!messageText.trim(), !currentConversation)
       return
     }
 
@@ -413,8 +431,35 @@ export function Chats() {
                 onStar={() => {
                   // Handle star
                 }}
-                onEmail={() => {
-                  setActiveChannel('EMAIL')
+                onEmail={async () => {
+                  if (!currentConversation) {
+                    return
+                  }
+                  
+                  // Find the EMAIL channel from the channels array
+                  if (currentConversation.channels && currentConversation.channels.length > 0) {
+                    const emailChannel = currentConversation.channels.find(
+                      (c) => c.channel === 'Email' || c.channel === 'EMAIL'
+                    )
+                    
+                    if (emailChannel) {
+                      // First, set the active channel to EMAIL
+                      // This ensures the channel parameter is set correctly
+                      setActiveChannel('EMAIL')
+                      // Then load the conversation using the EMAIL channel's conversationSid
+                      // This will trigger the messages API call with the correct channel ID
+                      await loadConversation(emailChannel.conversationSid)
+                      // The RTK Query will automatically fetch messages with:
+                      // GET /api/v1/chat/conversations/{emailChannel.conversationSid}/messages?limit=50&order=desc&channel=EMAIL
+                    } else {
+                      // If no EMAIL channel exists, just switch to EMAIL channel
+                      // The backend will create one when needed
+                      setActiveChannel('EMAIL')
+                    }
+                  } else {
+                    // Fallback: just set the channel
+                    setActiveChannel('EMAIL')
+                  }
                 }}
                 onDelete={() => {
                   setDeleteConversationDialog(true)
@@ -503,7 +548,17 @@ export function Chats() {
                                         : 'bg-muted'
                                     )}
                                   >
-                                    {msg.message}
+                                    {msg.channel === 'Email' && msg.hasHtml ? (
+                                      <EmailMessageRenderer
+                                        body={msg.message}
+                                        hasHtml={msg.hasHtml}
+                                        className={msg.sender === 'You' ? 'text-white' : ''}
+                                      />
+                                    ) : (
+                                      <div className="whitespace-pre-wrap break-words">
+                                        {msg.message}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>

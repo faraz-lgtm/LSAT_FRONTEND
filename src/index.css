@@ -96,3 +96,53 @@
 .react-tel-input .form-control {
   width: 100% !important;
 }
+
+/* Email message styling */
+.email-message-container {
+  line-height: 1.6;
+}
+
+.email-content {
+  line-height: 1.6;
+}
+
+.email-content p {
+  margin-bottom: 0.75rem;
+}
+
+.email-content p:last-child {
+  margin-bottom: 0;
+}
+
+.email-content blockquote {
+  border-left: 4px solid #d1d5db;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.email-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.email-content a:hover {
+  text-decoration: none;
+}
+
+.email-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Quoted content styling */
+.email-quoted {
+  opacity: 0.8;
+}
+
+.email-quoted blockquote {
+  border-left-color: #9ca3af;
+  opacity: 0.9;
+}
