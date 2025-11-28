@@ -14,13 +14,21 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/dashboard/ui/form'
 import { Input } from '@/components/dashboard/ui/input'
 import { Textarea } from '@/components/dashboard/ui/textarea'
 import { Switch } from '@/components/dashboard/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/dashboard/ui/select'
 import { useUpdateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
-type AutomationConfigOutputDto = any
+import type { AutomationConfigOutputDto, UpdateAutomationDto } from '@/types/api/data-contracts'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -28,16 +36,60 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 const automationSchema = z.object({
+  // Organization-specific settings
   isEnabled: z.boolean(),
   parameters: z.record(z.string(), z.unknown()).optional(),
+  // Global automation properties
+  automationKey: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  triggerEvent: z.enum([
+    'order.created',
+    'order.paid',
+    'order.canceled',
+    'order.modified',
+    'order.completed',
+    'user.registered',
+    'payment.refunded',
+    'task.created',
+    'task.completed',
+    'order.appointment.no_show',
+    'order.appointment.showed'
+  ]).optional(),
+  toolType: z.enum(['email', 'sms', 'slack', 'whatsapp']).optional(),
+  defaultParameters: z.string().optional(), // JSON string
+  archived: z.boolean().optional(),
 })
 
 type AutomationForm = z.infer<typeof automationSchema>
+
+// Options for dropdowns
+const triggerEventOptions = [
+  { value: 'order.created', label: 'Order Created' },
+  { value: 'order.paid', label: 'Order Paid' },
+  { value: 'order.canceled', label: 'Order Canceled' },
+  { value: 'order.modified', label: 'Order Modified' },
+  { value: 'order.completed', label: 'Order Completed' },
+  { value: 'user.registered', label: 'User Registered' },
+  { value: 'payment.refunded', label: 'Payment Refunded' },
+  { value: 'task.created', label: 'Task Created' },
+  { value: 'task.completed', label: 'Task Completed' },
+  { value: 'order.appointment.no_show', label: 'Appointment No Show' },
+  { value: 'order.appointment.showed', label: 'Appointment Showed' },
+]
+
+const toolTypeOptions = [
+  { value: 'email', label: 'Email' },
+  { value: 'sms', label: 'SMS' },
+  { value: 'slack', label: 'Slack' },
+  { value: 'whatsapp', label: 'WhatsApp' },
+]
 
 type AutomationsEditDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow: AutomationConfigOutputDto | null
+  mode?: 'org-settings' | 'global-properties' // Allow switching between editing modes
 }
 
 // Variable mapping for preview
@@ -97,22 +149,46 @@ export function AutomationsEditDialog({
   open,
   onOpenChange,
   currentRow,
+  mode = 'org-settings',
 }: AutomationsEditDialogProps) {
   const [updateAutomation, { isLoading }] = useUpdateAutomationMutation()
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({})
+  const [currentMode, setCurrentMode] = useState<'org-settings' | 'global-properties'>(mode)
 
   const form = useForm({
     resolver: zodResolver(automationSchema),
     defaultValues: {
       isEnabled: false,
       parameters: undefined,
+      automationKey: '',
+      name: '',
+      description: '',
+      triggerEvent: undefined,
+      toolType: undefined,
+      defaultParameters: '',
+      archived: false,
     },
   })
 
   useEffect(() => {
     if (open && currentRow) {
+      // Reset mode when dialog opens
+      setCurrentMode(mode)
+      
+      // Format defaultParameters as JSON string for editing
+      const defaultParamsJson = currentRow.defaultParameters 
+        ? JSON.stringify(currentRow.defaultParameters, null, 2)
+        : ''
+
       form.reset({
         isEnabled: currentRow.isEnabled,
+        automationKey: currentRow.key,
+        name: currentRow.name,
+        description: currentRow.description || '',
+        triggerEvent: currentRow.triggerEvent,
+        toolType: currentRow.toolType,
+        defaultParameters: defaultParamsJson,
+        archived: currentRow.archived,
       })
       
       // Initialize dynamic fields from parameters
@@ -128,48 +204,87 @@ export function AutomationsEditDialog({
       
       setDynamicFields(fields)
     }
-  }, [open, currentRow, form])
+  }, [open, currentRow, form, mode])
+
+  // Update form when mode changes to ensure proper validation
+  useEffect(() => {
+    if (currentRow && open) {
+      // Ensure isEnabled is always set for proper validation
+      form.setValue('isEnabled', currentRow.isEnabled)
+    }
+  }, [currentMode, currentRow, form, open])
+
+  // Update form when mode changes to ensure proper validation
+  useEffect(() => {
+    if (currentRow && open) {
+      // Ensure isEnabled is always set for proper validation
+      form.setValue('isEnabled', currentRow.isEnabled)
+    }
+  }, [currentMode, currentRow, form, open])
 
   const updateDynamicField = (key: string, value: string) => {
     setDynamicFields(prev => ({ ...prev, [key]: value }))
   }
 
   const onSubmit = async (data: AutomationForm) => {
-    console.log('onSubmit called', { data, dynamicFields, currentRow })
+    console.log('onSubmit called', { data, dynamicFields, currentRow, mode: currentMode })
     if (!currentRow) return
 
     try {
-      const parameters: Record<string, any> = {}
-      
-      // Build parameters object from dynamic fields
-      Object.keys(dynamicFields).forEach(key => {
-        const value = dynamicFields[key]
-        if (value !== undefined && value !== '') {
-          // Try to parse as number if possible
-          if (!isNaN(Number(value)) && value !== '') {
-            parameters[key] = Number(value)
-          } else {
-            parameters[key] = value
+      // Build the update data based on the mode
+      const updateData: UpdateAutomationDto = {}
+
+      if (currentMode === 'org-settings') {
+        // Organization-specific settings
+        updateData.isEnabled = data.isEnabled ?? false
+        
+        // Build parameters object from dynamic fields
+        const parameters: Record<string, any> = {}
+        Object.keys(dynamicFields).forEach(key => {
+          const value = dynamicFields[key]
+          if (value !== undefined && value !== '') {
+            // Try to parse as number if possible
+            if (!isNaN(Number(value)) && value !== '') {
+              parameters[key] = Number(value)
+            } else {
+              parameters[key] = value
+            }
+          }
+        })
+        updateData.parameters = parameters
+      } else {
+        // Global automation properties
+        updateData.automationKey = data.automationKey
+        updateData.name = data.name
+        updateData.description = data.description
+        updateData.triggerEvent = data.triggerEvent
+        updateData.toolType = data.toolType
+        updateData.archived = data.archived
+
+        // Parse defaultParameters JSON
+        if (data.defaultParameters && data.defaultParameters.trim()) {
+          try {
+            updateData.defaultParameters = JSON.parse(data.defaultParameters)
+          } catch (error) {
+            toast.error('Invalid JSON format in default parameters')
+            return
           }
         }
-      })
+      }
 
       console.log('Updating automation with:', {
         key: currentRow.key,
-        isEnabled: data.isEnabled,
-        parameters,
+        data: updateData,
+        mode,
       })
 
       await updateAutomation({
         key: currentRow.key,
-        data: {
-          isEnabled: data.isEnabled,
-          parameters,
-        },
+        data: updateData,
       }).unwrap()
 
       console.log('Automation updated successfully')
-      toast.success('Automation updated successfully')
+      toast.success(`Automation ${currentMode === 'org-settings' ? 'settings' : 'properties'} updated successfully`)
       onOpenChange(false)
     } catch (error: any) {
       console.error('Failed to update automation:', error)
@@ -190,32 +305,61 @@ export function AutomationsEditDialog({
         <DialogHeader>
           <DialogTitle>Edit Automation</DialogTitle>
           <DialogDescription>
-            Configure the {currentRow.name} automation settings
+            {currentMode === 'org-settings' 
+              ? `Configure the ${currentRow.name} automation settings for your organization`
+              : `Edit global properties of the ${currentRow.name} automation`
+            }
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="isEnabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Enable Automation</FormLabel>
-                    <FormDescription>
-                      Turn this automation on or off
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            
+            {/* Mode Selection Tabs */}
+            <div className="flex gap-2 p-1 bg-muted rounded-lg">
+              <Button
+                type="button"
+                variant={currentMode === 'org-settings' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setCurrentMode('org-settings')}
+                className="flex-1"
+              >
+                Organization Settings
+              </Button>
+              <Button
+                type="button"
+                variant={currentMode === 'global-properties' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setCurrentMode('global-properties')}
+                className="flex-1"
+              >
+                Global Properties
+              </Button>
+            </div>
+
+            {currentMode === 'org-settings' ? (
+              <>
+                {/* Organization-specific settings */}
+                <FormField
+                  control={form.control}
+                  name="isEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Enable Automation</FormLabel>
+                        <FormDescription>
+                          Turn this automation on or off
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
             {/* Slack-specific fields */}
             {isSlack && (
@@ -418,27 +562,191 @@ export function AutomationsEditDialog({
               </div>
             )}
 
-            {/* Additional delay parameter for all types */}
-            <FormField
-              control={form.control}
-              name="parameters"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Before (minutes)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={dynamicFields.delayMinutes || '0'}
-                      onChange={(e) => updateDynamicField('delayMinutes', e.target.value)}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Delay execution by specified minutes (0 = immediate)
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
+                {/* Additional delay parameter for all types */}
+                <FormField
+                  control={form.control}
+                  name="parameters"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Before (minutes)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={dynamicFields.delayMinutes || '0'}
+                          onChange={(e) => updateDynamicField('delayMinutes', e.target.value)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Delay execution by specified minutes (0 = immediate)
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : (
+              <>
+                {/* Global automation properties */}
+                <FormField
+                  control={form.control}
+                  name="automationKey"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Automation Key *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. custom-order-email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Unique identifier (lowercase, numbers, hyphens only)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Display Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Custom Order Confirmation Email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Human-readable name for the automation
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe what this automation does..."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional detailed description of the automation's purpose
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="triggerEvent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Trigger Event *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an event" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {triggerEventOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Event that will trigger this automation
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="toolType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Communication Tool *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a tool" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {toolTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Communication method for this automation
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="defaultParameters"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Parameters (JSON)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder='{"delayMinutes": 0, "template": "order-confirmation"}'
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional JSON object with default configuration parameters
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="archived"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Archived</FormLabel>
+                        <FormDescription>
+                          Whether this automation is archived (hidden from organizations)
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <DialogFooter>
               <Button

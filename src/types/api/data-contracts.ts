@@ -2041,9 +2041,129 @@ export interface EmailAutomationParameters {
   template?: string;
 }
 
+export interface CreateAutomationDto {
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
+   * @pattern ^[a-z0-9-]+$
+   * @example "custom-order-email"
+   */
+  automationKey: string;
+  /**
+   * Display name of the automation
+   * @maxLength 200
+   * @example "Custom Order Confirmation Email"
+   */
+  name: string;
+  /**
+   * Detailed description of what the automation does
+   * @example "Sends a customized confirmation email when order is paid"
+   */
+  description?: string;
+  /**
+   * Event that triggers this automation
+   * @example "order.paid"
+   */
+  triggerEvent:
+    | "order.created"
+    | "order.paid"
+    | "order.canceled"
+    | "order.modified"
+    | "order.completed"
+    | "user.registered"
+    | "payment.refunded"
+    | "task.created"
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
+  /**
+   * Communication tool type used for this automation
+   * @example "email"
+   */
+  toolType: "email" | "sms" | "slack" | "whatsapp";
+  /**
+   * Default parameters for the automation (JSON object)
+   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
+   */
+  defaultParameters?: object;
+  /**
+   * Whether the automation is archived
+   * @default false
+   * @example false
+   */
+  archived?: boolean;
+}
+
+export interface UpdateAutomationDto {
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
+   * @pattern ^[a-z0-9-]+$
+   * @example "custom-order-email"
+   */
+  automationKey?: string;
+  /**
+   * Display name of the automation
+   * @maxLength 200
+   * @example "Custom Order Confirmation Email"
+   */
+  name?: string;
+  /**
+   * Detailed description of what the automation does
+   * @example "Sends a customized confirmation email when order is paid"
+   */
+  description?: string;
+  /**
+   * Event that triggers this automation
+   * @example "order.paid"
+   */
+  triggerEvent?:
+    | "order.created"
+    | "order.paid"
+    | "order.canceled"
+    | "order.modified"
+    | "order.completed"
+    | "user.registered"
+    | "payment.refunded"
+    | "task.created"
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
+  /**
+   * Communication tool type used for this automation
+   * @example "email"
+   */
+  toolType?: "email" | "sms" | "slack" | "whatsapp";
+  /**
+   * Default parameters for the automation (JSON object)
+   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
+   */
+  defaultParameters?: object;
+  /**
+   * Whether the automation is archived
+   * @example false
+   */
+  archived?: boolean;
+  /**
+   * Enable or disable the automation (organization-specific)
+   * @example true
+   */
+  isEnabled?: boolean;
+  /**
+   * Organization-specific configuration parameters for the automation (merges with defaultParameters)
+   * @example {"delayMinutes":30,"channel":"#custom-orders"}
+   */
+  parameters?: object;
+}
+
+export type AutomationConfig = object;
+
 export interface AutomationConfigOutputDto {
   /**
-   * Unique identifier for the automation
+   * Database ID of the automation config (if persisted)
+   * @example 1
+   */
+  id?: number;
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
    * @example "slack-new-order"
    */
   key: string;
@@ -2079,15 +2199,30 @@ export interface AutomationConfigOutputDto {
    */
   toolType: "email" | "sms" | "slack" | "whatsapp";
   /**
-   * Whether the automation is enabled
+   * Whether the automation is enabled for this organization
    * @example true
    */
   isEnabled: boolean;
   /**
-   * Configuration parameters for the automation
+   * Whether the automation is archived
+   * @example false
+   */
+  archived: boolean;
+  /**
+   * Configuration parameters for the automation (merged from default and org-specific)
    * @example {"delayMinutes":0,"channel":"#orders"}
    */
   parameters?: object;
+  /**
+   * Default parameters defined for the automation
+   * @example {"delayMinutes":0,"template":"order-confirmation"}
+   */
+  defaultParameters?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
+  meta: MetaResponse;
+  data: AutomationConfig;
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
@@ -2110,26 +2245,6 @@ export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   meta: MetaResponse;
   data: AutomationConfigOutputDto;
-}
-
-export interface UpdateAutomationConfigDto {
-  /**
-   * Enable or disable the automation
-   * @example true
-   */
-  isEnabled?: boolean;
-  /**
-   * Configuration parameters for the automation. For Slack automations, available placeholders: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}. For Email automations, available placeholders: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}, {{orderDate}}
-   * @example {"delayMinutes":0,"channel":"#orders","customMessage":"🎉 New order #{{orderId}} from {{customerName}} - ${{total}}","customBlockMessage":"New Order #{{orderId}}"}
-   */
-  parameters?: object;
-}
-
-export type AutomationConfig = object;
-
-export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
-  meta: MetaResponse;
-  data: AutomationConfig;
 }
 
 export interface ParticipantOutputDto {
@@ -2236,7 +2351,12 @@ export interface SuccessResponseDto {
 
 export interface ParticipantDto {
   /**
-   * User ID of the participant
+   * Communication channel type
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
    * @example "156"
    */
   userId: string;
@@ -2248,8 +2368,8 @@ export interface CreateConversationDto {
    * @example "Chat with John Doe"
    */
   friendlyName: string;
-  /** Participants to add to the conversation. Provide at least one other user (the current user is automatically added as a participant). */
-  participants: ParticipantDto[];
+  /** Participants to add to the conversation */
+  participants?: ParticipantDto[];
   /** Custom attributes (key-value pairs) */
   attributes?: object;
 }
@@ -2311,54 +2431,9 @@ export interface SendEmailDto {
   attachments?: EmailAttachmentDto[];
 }
 
-export interface ThreadParticipantDto {
-  /** User ID of the participant */
-  userId: number;
-  /** Full name of the participant */
-  fullName?: string;
-  /** Email address of the participant */
-  email?: string;
-  /** Phone number of the participant */
-  phone?: string;
-}
-
-export interface ConversationChannelSummaryDto {
-  /**
-   * Channel associated with the Twilio conversation
-   * @example "SMS"
-   */
-  channel: "SMS" | "WHATSAPP" | "EMAIL";
-  /**
-   * Twilio conversation SID for the given channel
-   * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-   */
-  conversationSid: string;
-}
-
-export interface ThreadConversationOutputDto {
-  /** Thread identifier composed of participant IDs */
-  threadId: string;
-  /** Friendly name for the thread */
-  friendlyName: string;
-  /**
-   * User ID that initiated this thread
-   * @example 7
-   */
-  initiatorUserId: number;
-  /** Participant metadata associated with this thread */
-  participants: ThreadParticipantDto[];
-  /**
-   * User ID of the person the current user is chatting with
-   * @example 42
-   */
-  counterpartUserId: number;
-  /** Conversation SIDs grouped by communication channel */
-  channels: ConversationChannelSummaryDto[];
-}
-
-export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
+export interface SwaggerBaseApiResponseForClassConversationOutputDto {
   meta: MetaResponse;
-  data: ThreadConversationOutputDto[];
+  data: ConversationOutputDto[];
 }
 
 export interface SwaggerBaseApiResponseForClassConversationOutputDto {
@@ -2369,11 +2444,6 @@ export interface SwaggerBaseApiResponseForClassConversationOutputDto {
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
   meta: MetaResponse;
   data: MessageOutputDto[];
-}
-
-export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
-  meta: MetaResponse;
-  data: ThreadConversationOutputDto;
 }
 
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {

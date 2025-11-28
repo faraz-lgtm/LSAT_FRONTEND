@@ -1,4 +1,5 @@
 import { AutomationsEditDialog } from './automations-edit-dialog'
+import { AutomationsCreateDialog } from './automations-create-dialog'
 import { useAutomations } from './automations-provider'
 
 export function AutomationsDialogs() {
@@ -6,6 +7,14 @@ export function AutomationsDialogs() {
   
   return (
     <>
+      <AutomationsCreateDialog
+        open={open === 'create'}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setOpen(null)
+          }
+        }}
+      />
       {currentRow && (
         <>
           <AutomationsEditDialog

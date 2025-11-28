@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 type AutomationConfigOutputDto = any
 
-type AutomationsDialogType = 'edit' | 'view'
+type AutomationsDialogType = 'create' | 'edit' | 'view'
 
 type AutomationsContextType = {
   open: AutomationsDialogType | null

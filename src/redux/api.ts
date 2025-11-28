@@ -5,7 +5,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 import { setTokens, setUser, setOrganization, reset } from "./authSlice";
 import { ROLE } from "@/constants/roles";
 
-const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? '' : 'https://api.betterlsat.com');
+const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://api.betterlsat.com');
 
 // JWT decode utility
 function decodeJWT(token: string): any {

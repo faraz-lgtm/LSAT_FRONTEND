@@ -1,6 +1,7 @@
 import { api } from "../../api";
 import type { 
-  UpdateAutomationConfigDto,
+  CreateAutomationDto,
+  UpdateAutomationDto,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
   SwaggerBaseApiResponseForClassAutomationLog
@@ -48,8 +49,18 @@ export const automationApi = api.injectEndpoints({
       providesTags: ['Automation'],
     }),
 
+    // POST /api/v1/automation - Create new automation
+    createAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, CreateAutomationDto>({
+      query: (data) => ({
+        url: "automation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Automation'],
+    }),
+
     // PATCH /api/v1/automation/:key - Update automation configuration
-    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationConfigDto }>({
+    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationDto }>({
       query: ({ key, data }) => ({
         url: `automation/${key}`,
         method: "PATCH",
@@ -91,6 +102,7 @@ export const automationApi = api.injectEndpoints({
 // Export hooks for use in components
 export const {
   useGetAutomationsQuery,
+  useCreateAutomationMutation,
   useUpdateAutomationMutation,
   useGetAutomationLogsQuery,
   useGetAllAutomationLogsQuery,

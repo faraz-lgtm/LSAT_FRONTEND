@@ -109,11 +109,13 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
       cell: ({ row }) => {
         const name = row.getValue('name') as string
         const description = row.original.description
+        const key = row.original.key
         return (
           <div>
             <div className="font-medium">{name}</div>
+            <div className="text-xs font-mono text-muted-foreground">{key}</div>
             {description && (
-              <div className="text-sm text-muted-foreground">{description}</div>
+              <div className="text-sm text-muted-foreground mt-1">{description}</div>
             )}
           </div>
         )
@@ -158,6 +160,18 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
             disabled={isUpdating}
             aria-label={`Toggle ${automation.name}`}
           />
+        )
+      },
+    },
+    {
+      accessorKey: 'archived',
+      header: 'Archived',
+      cell: ({ row }) => {
+        const archived = row.getValue('archived') as boolean
+        return (
+          <Badge variant={archived ? 'secondary' : 'outline'} className="text-xs">
+            {archived ? 'Archived' : 'Active'}
+          </Badge>
         )
       },
     },

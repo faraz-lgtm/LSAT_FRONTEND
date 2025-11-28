@@ -14,6 +14,7 @@ import {
   AddParticipantDto,
   CancelOrderDto,
   CancelRefundDto,
+  CreateAutomationDto,
   CreateConversationDto,
   CreateInvoiceDto,
   CreateOrganizationDto,
@@ -55,12 +56,11 @@ import {
   SwaggerBaseApiResponseForClassStripePaymentIntent,
   SwaggerBaseApiResponseForClassSuccessResponseDto,
   SwaggerBaseApiResponseForClassTaskOutputDto,
-  SwaggerBaseApiResponseForClassThreadConversationOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
   UpdateAppointmentNotesDto,
-  UpdateAutomationConfigDto,
+  UpdateAutomationDto,
   UpdateInvoiceStatusDto,
   UpdateOrderNotesDto,
   UpdateOrderStatusDto,
@@ -1883,10 +1883,27 @@ export namespace Api {
   }
 
   /**
-   * @description Returns all available automations with their current configuration. Includes enabled/disabled status and parameters.
-   * @tags automation
+   * @description Create a new global automation configuration. This defines a new automation that can be enabled/configured per organization. The automation will be available to all organizations once created.
+   * @tags Automations
+   * @name AutomationConfigControllerCreate
+   * @summary Create a new automation
+   * @request POST:/api/v1/automation
+   * @secure
+   */
+  export namespace AutomationConfigControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateAutomationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity;
+  }
+
+  /**
+   * @description Returns all available automations with their current configuration for the organization. Includes: id, key, name, description, triggerEvent, toolType, isEnabled, archived, parameters, and defaultParameters. The isEnabled field shows whether the automation is active for your organization.
+   * @tags Automations
    * @name AutomationConfigControllerListAll
-   * @summary List all automations with their configurations
+   * @summary List all automations
    * @request GET:/api/v1/automation
    * @secure
    */
@@ -1900,8 +1917,8 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve execution history for all automations. Returns last 100 logs. USER role: only logs for their assigned orders. ADMIN role: all logs.
-   * @tags automation
+   * @description Retrieve execution history for all automations. Returns last 100 logs sorted by execution time (newest first). **Access Control:** - USER role: Only logs for orders assigned to the user - ADMIN role: Only logs for orders assigned to the admin - COMPANY_ADMIN/SUPER_ADMIN role: All logs for the organization
+   * @tags Automations
    * @name AutomationConfigControllerGetAllLogs
    * @summary Get all automation execution logs
    * @request GET:/api/v1/automation/logs
@@ -1916,8 +1933,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in customMessage and customBlockMessage parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in Slack automation customMessage and customBlockMessage parameters. Use {{placeholder}} format in your message templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetSlackPlaceholders
    * @summary Get available placeholders for Slack automations
    * @request GET:/api/v1/automation/placeholders/slack
@@ -1933,8 +1950,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in subject and message parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in Email automation subject and message parameters. Use {{placeholder}} format in your templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetEmailPlaceholders
    * @summary Get available placeholders for Email automations
    * @request GET:/api/v1/automation/placeholders/email
@@ -1950,8 +1967,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in message parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in SMS automation message parameters. Use {{placeholder}} format in your message templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetSmsPlaceholders
    * @summary Get available placeholders for SMS automations
    * @request GET:/api/v1/automation/placeholders/sms
@@ -1967,8 +1984,8 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve configuration for a specific automation by its key
-   * @tags automation
+   * @description Retrieve detailed configuration for a specific automation by its key. Returns: id, key, name, description, triggerEvent, toolType, isEnabled, archived, parameters (merged org+default), and defaultParameters.
+   * @tags Automations
    * @name AutomationConfigControllerGetOne
    * @summary Get specific automation configuration
    * @request GET:/api/v1/automation/{key}
@@ -1977,7 +1994,7 @@ export namespace Api {
   export namespace AutomationConfigControllerGetOne {
     export type RequestParams = {
       /**
-       * Automation key (e.g., slack-new-order, order-confirmation-email)
+       * Automation key identifier (e.g., slack-new-order, order-confirmation-email)
        * @example "slack-new-order"
        */
       key: string;
@@ -1990,8 +2007,8 @@ export namespace Api {
   }
 
   /**
-   * @description Enable/disable automation or modify its parameters. Use ToolType and TriggerEvent enums for reference.
-   * @tags automation
+   * @description Update automation configuration. Supports two types of updates: 1. **Organization-specific settings** (isEnabled, parameters): Updates your organization's configuration for this automation. Use `isEnabled` to enable/disable and `parameters` to customize behavior. 2. **Global automation properties** (name, description, triggerEvent, toolType, defaultParameters, archived, automationKey): Updates the global automation definition. Changes affect all organizations. Available trigger events: order.created, order.paid, order.completed Available tool types: email, sms, slack, whatsapp
+   * @tags Automations
    * @name AutomationConfigControllerUpdate
    * @summary Update automation configuration
    * @request PATCH:/api/v1/automation/{key}
@@ -2000,30 +2017,29 @@ export namespace Api {
   export namespace AutomationConfigControllerUpdate {
     export type RequestParams = {
       /**
-       * Automation key
+       * Automation key identifier
        * @example "slack-new-order"
        */
       key: string;
     };
     export type RequestQuery = {};
-    export type RequestBody = UpdateAutomationConfigDto;
+    export type RequestBody = UpdateAutomationDto;
     export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity;
+    export type ResponseBody = any;
   }
 
   /**
-   * @description Retrieve execution history for a specific automation. Returns last 100 logs.
-   * @tags automation
+   * @description Retrieve execution history for a specific automation. Returns last 100 logs sorted by execution time (newest first). **Access Control:** - USER role: Only logs for orders assigned to the user - ADMIN role: Only logs for orders assigned to the admin - COMPANY_ADMIN/SUPER_ADMIN role: All logs for the organization
+   * @tags Automations
    * @name AutomationConfigControllerGetLogs
-   * @summary Get automation execution logs
+   * @summary Get execution logs for specific automation
    * @request GET:/api/v1/automation/{key}/logs
    * @secure
    */
   export namespace AutomationConfigControllerGetLogs {
     export type RequestParams = {
       /**
-       * Automation key
+       * Automation key identifier
        * @example "slack-new-order"
        */
       key: string;
@@ -2140,7 +2156,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
+      SwaggerBaseApiResponseForClassConversationOutputDto;
   }
 
   /**
@@ -2157,7 +2173,7 @@ export namespace Api {
     export type RequestBody = CreateConversationDto;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
+      SwaggerBaseApiResponseForClassConversationOutputDto;
   }
 
   /**
