@@ -2,8 +2,15 @@ import type {
   ConversationOutputDto,
   MessageOutputDto,
   ThreadConversationOutputDto,
+  EmailAttachmentDto,
 } from '@/types/api/data-contracts'
-import type { ChatUser, Convo, MessageChannel, ContactDetail } from '@/features/dashboardRelated/chats/data/chat-types'
+import type {
+  ChatUser,
+  Convo,
+  MessageChannel,
+  ContactDetail,
+  EmailAttachment,
+} from '@/features/dashboardRelated/chats/data/chat-types'
 import { toFrontendChannel } from '@/utils/chat-channel'
 
 interface ConversationAttributes {
@@ -11,6 +18,13 @@ interface ConversationAttributes {
   unreadCount?: number
   isStarred?: boolean
   contactDetails?: ContactDetail
+}
+
+type MessageAttributes = {
+  channel?: string
+  hasHtml?: boolean
+  attachments?: EmailAttachmentDto[]
+  emailAttachments?: EmailAttachmentDto[]
 }
 
 /**
@@ -67,14 +81,59 @@ export function convertConversationToChatUser(
 }
 
 /**
- * Parse message attributes to extract channel and HTML flag
+ * Parse message attributes to extract channel, HTML flag, and attachments
  */
-function parseMessageAttributes(attributes: string): { channel?: string; hasHtml?: boolean } {
+function parseMessageAttributes(attributes: string): MessageAttributes {
   try {
     return attributes ? JSON.parse(attributes) : {}
   } catch {
     return {}
   }
+}
+
+function normalizeAttachments(
+  attachments?: EmailAttachmentDto[] | EmailAttachment[],
+): EmailAttachment[] | undefined {
+  if (!attachments || attachments.length === 0) {
+    return undefined
+  }
+
+  return attachments
+    .filter((attachment): attachment is EmailAttachmentDto | EmailAttachment =>
+      Boolean(attachment),
+    )
+    .map((attachment) => {
+      const normalized: EmailAttachment = {
+        filename: attachment.filename || 'attachment',
+        content: attachment.content || '',
+        type: attachment.type || 'application/octet-stream',
+      }
+
+      if ('size' in attachment && typeof attachment.size === 'number') {
+        normalized.size = attachment.size
+      }
+
+      if ('contentId' in attachment && typeof attachment.contentId === 'string') {
+        normalized.contentId = attachment.contentId
+      }
+
+      if (!normalized.filename && 'name' in attachment) {
+        const fallbackName = (attachment as { name?: string }).name
+        if (fallbackName) {
+          normalized.filename = fallbackName
+        }
+      }
+
+      if (!normalized.type && 'contentType' in attachment) {
+        const fallbackType = (attachment as { contentType?: string }).contentType
+        if (fallbackType) {
+          normalized.type = fallbackType
+        }
+      }
+
+      return normalized
+    })
+    .filter((attachment) => Boolean(attachment.content))
 }
 
 /**
@@ -107,12 +166,20 @@ export function convertMessageToConvo(
   
   // Use emailBody if available for EMAIL channel, otherwise use body
   const messageBody = 
-    (messageChannel === 'Email' && message.emailBody) 
-      ? message.emailBody 
+    messageChannel === 'Email'
+      ? message.emailBody || message.body
       : message.body
   
   // Extract hasHtml from attributes
-  const hasHtml = attributes.hasHtml === true
+  const hasHtml = attributes.hasHtml === true || Boolean(message.emailHtml)
+
+  const messageLevelAttachments = (message as unknown as { emailAttachments?: EmailAttachmentDto[] }).emailAttachments
+  const normalizedAttachments =
+    normalizeAttachments(
+      messageLevelAttachments ||
+        attributes.emailAttachments ||
+        attributes.attachments,
+    )
   
   return {
     sender,
@@ -120,12 +187,14 @@ export function convertMessageToConvo(
     timestamp: dateCreated,
     channel: messageChannel,
     hasHtml,
+    ...(message.emailHtml ? { emailHtml: message.emailHtml } : {}),
     // Pass through email threading fields if present (only for EMAIL channel messages)
     ...(messageChannel === 'Email' && {
       emailMessageId: message.emailMessageId,
       emailInReplyTo: message.emailInReplyTo,
       emailReferences: message.emailReferences,
     }),
+    ...(normalizedAttachments ? { attachments: normalizedAttachments } : {}),
   }
 }
 
@@ -184,6 +253,7 @@ export function convertThreadToChatUser(
 
   const result = {
     id: primaryChannel?.conversationSid || thread.threadId, // Use SMS conversation SID as primary ID
+    databaseId: (thread as any).id, // Store the database ID from backend (thread.id)
     fullName: thread.friendlyName,
     username: '', // Threads don't have unique names
     profile: undefined,

@@ -58,6 +58,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@tanstack/react-router": "^1.131.16",
     "@tanstack/react-table": "^8.21.3",
+    "@twilio/voice-sdk": "^2.16.0",
     "@types/dompurify": "^3.0.5",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",

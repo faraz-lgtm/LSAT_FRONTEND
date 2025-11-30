@@ -4,15 +4,18 @@ import { Mail, Phone, User } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/dashboard/ui/avatar'
 import { ScrollArea } from '@/components/dashboard/ui/scroll-area'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
+import { useGetCallsByConversationIdQuery } from '@/redux/apiSlices/Voice/voiceSlice'
 import type { RootState } from '@/redux/store'
 import type { ParticipantOutputDto } from '@/types/api/data-contracts'
 import { type ContactDetail } from '../data/chat-types'
+import { CallLogsSection } from './call-logs-section'
 
 type ContactDetailsSidebarProps = {
   fullName: string
   profile?: string
   contactDetails: ContactDetail
   participants?: ParticipantOutputDto[]
+  conversationId?: number
 }
 
 function getInitials(name: string) {
@@ -29,9 +32,19 @@ export function ContactDetailsSidebar({
   profile,
   contactDetails,
   participants,
+  conversationId,
 }: ContactDetailsSidebarProps) {
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const { data: usersData } = useGetUsersQuery({})
+  
+  // Fetch call logs if conversationId is available
+  const {
+    data: callsData,
+    isLoading: isLoadingCalls,
+    error: callsError,
+  } = useGetCallsByConversationIdQuery(conversationId!, {
+    skip: !conversationId,
+  })
 
   // Debug logging
   console.log('ContactDetailsSidebar Debug:', {
@@ -139,47 +152,58 @@ export function ContactDetailsSidebar({
   return (
     <div className='flex h-full w-full flex-col border-l bg-background'>
       <ScrollArea className='flex-1 px-4 py-6'>
-        {/* Customer Information */}
-        <div className='flex flex-col items-center gap-4'>
-          <Avatar className='h-20 w-20'>
-            <AvatarImage src={profile} alt={fullName} />
-            <AvatarFallback className='text-lg'>
-              {getInitials(fullName)}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className='text-center w-full'>
-            <h3 className='text-lg font-semibold'>{fullName}</h3>
+        <div className='flex flex-col min-h-0'>
+          {/* Customer Information */}
+          <div className='flex flex-col items-center gap-4 shrink-0'>
+            <Avatar className='h-20 w-20'>
+              <AvatarImage src={profile} alt={fullName} />
+              <AvatarFallback className='text-lg'>
+                {getInitials(fullName)}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className='text-center w-full'>
+              <h3 className='text-lg font-semibold'>{fullName}</h3>
+            </div>
           </div>
-        </div>
 
-        {/* Contact Information */}
-        <div className='mt-6 space-y-3'>
-          {email && email.trim() ? (
-            <div className='flex items-start gap-3 rounded-md px-3 py-3 bg-muted/50'>
-              <Mail className='h-5 w-5 text-muted-foreground shrink-0 mt-0.5' />
-              <div className='flex-1 min-w-0'>
-                <p className='text-xs text-muted-foreground mb-1'>Email</p>
-                <p className='text-sm break-words'>{email}</p>
+          {/* Contact Information */}
+          <div className='mt-6 space-y-3 shrink-0'>
+            {email && email.trim() ? (
+              <div className='flex items-start gap-3 rounded-md px-3 py-3 bg-muted/50'>
+                <Mail className='h-5 w-5 text-muted-foreground shrink-0 mt-0.5' />
+                <div className='flex-1 min-w-0'>
+                  <p className='text-xs text-muted-foreground mb-1'>Email</p>
+                  <p className='text-sm break-words'>{email}</p>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {phone && phone.trim() ? (
-            <div className='flex items-start gap-3 rounded-md px-3 py-3 bg-muted/50'>
-              <Phone className='h-5 w-5 text-muted-foreground shrink-0 mt-0.5' />
-              <div className='flex-1 min-w-0'>
-                <p className='text-xs text-muted-foreground mb-1'>Phone Number</p>
-                <p className='text-sm break-words font-medium'>{phone}</p>
+            {phone && phone.trim() ? (
+              <div className='flex items-start gap-3 rounded-md px-3 py-3 bg-muted/50'>
+                <Phone className='h-5 w-5 text-muted-foreground shrink-0 mt-0.5' />
+                <div className='flex-1 min-w-0'>
+                  <p className='text-xs text-muted-foreground mb-1'>Phone Number</p>
+                  <p className='text-sm break-words font-medium'>{phone}</p>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {!email && !phone && (
-            <div className='text-center py-8 text-sm text-muted-foreground'>
-              <User className='h-12 w-12 mx-auto mb-3 opacity-50' />
-              <p>No contact information available</p>
-            </div>
+            {!email && !phone && (
+              <div className='text-center py-8 text-sm text-muted-foreground'>
+                <User className='h-12 w-12 mx-auto mb-3 opacity-50' />
+                <p>No contact information available</p>
+              </div>
+            )}
+          </div>
+
+          {/* Call Logs Section */}
+          {conversationId && (
+            <CallLogsSection
+              calls={callsData?.calls || []}
+              isLoading={isLoadingCalls}
+              error={callsError}
+            />
           )}
         </div>
       </ScrollArea>

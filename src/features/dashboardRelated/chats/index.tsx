@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Fragment } from 'react/jsx-runtime'
 import { format } from 'date-fns'
+import { useSelector } from 'react-redux'
 import {
   Edit,
   Search as SearchIcon,
@@ -40,6 +41,7 @@ import {
   type Convo,
 } from './data/chat-types'
 import { useChat } from '@/hooks/useChat'
+import type { RootState } from '@/redux/store'
 import { chatSocketService } from '@/services/chat/chat-socket.service'
 import { useSendEmailMutation, useDeleteConversationMutation } from '@/redux/apiSlices/Chat/chatSlice'
 
@@ -47,6 +49,7 @@ type FilterType = 'unread' | 'recents' | 'starred' | 'all'
 type MainTabType = 'conversations' | 'manual-actions'
 
 export function Chats() {
+  const authUser = useSelector((state: RootState) => state.auth.user)
   const {
     conversations,
     currentConversation,
@@ -176,6 +179,12 @@ export function Chats() {
     bcc?: string
     subject: string
     body: string
+    attachments?: Array<{
+      filename: string
+      content: string
+      type: string
+      size?: number
+    }>
   }) => {
     if (!currentConversation) {
       console.error('No conversation selected')
@@ -187,9 +196,10 @@ export function Chats() {
     let conversationSid = currentConversation.id
     if (currentConversation.channels && currentConversation.channels.length > 0) {
       // Find EMAIL channel - backend uses 'EMAIL', adapter converts to 'Email'
-      const emailChannel = currentConversation.channels.find(
-        (c) => c.channel === 'Email' || c.channel === 'EMAIL'
-      )
+      const emailChannel = currentConversation.channels.find((c) => {
+        const normalizedChannel = c.channel.toUpperCase()
+        return normalizedChannel === 'EMAIL'
+      })
       if (emailChannel) {
         conversationSid = emailChannel.conversationSid
       } else {
@@ -216,7 +226,11 @@ export function Chats() {
           from: email.fromEmail || undefined, // Backend uses current user's email
           cc: email.cc ? [email.cc] : undefined,
           bcc: email.bcc ? [email.bcc] : undefined,
-          // attachments: undefined, // Can be added later if needed
+          attachments: email.attachments?.map((attachment) => ({
+            filename: attachment.filename,
+            content: attachment.content,
+            type: attachment.type,
+          })),
         },
       }).unwrap()
     } catch (err) {
@@ -428,6 +442,11 @@ export function Chats() {
               {/* Message Thread Header */}
               <MessageThreadHeader
                 conversation={selectedUser}
+                contactPhone={selectedUser.contactDetails?.phone}
+                agentIdentity={
+                  (authUser?.username && String(authUser.username)) ||
+                  (authUser?.id ? String(authUser.id) : undefined)
+                }
                 onStar={() => {
                   // Handle star
                 }}
@@ -438,9 +457,10 @@ export function Chats() {
                   
                   // Find the EMAIL channel from the channels array
                   if (currentConversation.channels && currentConversation.channels.length > 0) {
-                    const emailChannel = currentConversation.channels.find(
-                      (c) => c.channel === 'Email' || c.channel === 'EMAIL'
-                    )
+                    const emailChannel = currentConversation.channels.find((c) => {
+                      const normalizedChannel = c.channel.toUpperCase()
+                      return normalizedChannel === 'EMAIL'
+                    })
                     
                     if (emailChannel) {
                       // First, set the active channel to EMAIL
@@ -548,10 +568,12 @@ export function Chats() {
                                         : 'bg-muted'
                                     )}
                                   >
-                                    {msg.channel === 'Email' && msg.hasHtml ? (
+                                    {msg.channel === 'Email' ? (
                                       <EmailMessageRenderer
                                         body={msg.message}
                                         hasHtml={msg.hasHtml}
+                                        emailHtml={msg.emailHtml}
+                                        attachments={msg.attachments}
                                         className={msg.sender === 'You' ? 'text-white' : ''}
                                       />
                                     ) : (
@@ -683,6 +705,7 @@ export function Chats() {
                 profile={selectedUser.profile}
                 contactDetails={selectedUser.contactDetails || {}}
                 participants={currentBackendConversation?.participants}
+                conversationId={selectedUser.databaseId}
               />
             </div>
           )}
@@ -731,10 +754,36 @@ export function Chats() {
           desc={`Are you sure you want to delete the conversation with ${selectedUser?.fullName || 'this contact'}? This action cannot be undone.`}
           confirmText="Delete"
           handleConfirm={async () => {
-            if (!currentBackendConversation?.sid) return
+            // Use the conversation database ID (id from API response) for deletion
+            // This is stored in databaseId field for thread-based conversations
+            let conversationId: string | null = null
+            
+            // For thread-based conversations, use databaseId (the id from API: e.g., 14)
+            if (currentConversation?.databaseId !== undefined && currentConversation.databaseId !== null) {
+              conversationId = String(currentConversation.databaseId)
+            }
+            // Fallback: try to use currentBackendConversation.sid (for non-thread conversations)
+            else if (currentBackendConversation?.sid) {
+              conversationId = currentBackendConversation.sid
+            }
+            // Last fallback: try currentConversation.id if it's a number (convert to string)
+            else if (currentConversation?.id) {
+              // If id is a number string, use it directly
+              const idAsNumber = Number(currentConversation.id)
+              if (!isNaN(idAsNumber) && isFinite(idAsNumber)) {
+                conversationId = String(idAsNumber)
+              } else {
+                conversationId = currentConversation.id
+              }
+            }
+            
+            if (!conversationId) {
+              console.error('No conversation ID available for deletion')
+              return
+            }
             
             try {
-              await deleteConversationMutation(currentBackendConversation.sid).unwrap()
+              await deleteConversationMutation(conversationId).unwrap()
               setDeleteConversationDialog(false)
               // Clear selection in hook (this will also clear currentConversation, messages, etc.)
               clearSelection()

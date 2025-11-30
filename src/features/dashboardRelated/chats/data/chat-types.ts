@@ -24,6 +24,7 @@ export type ContactDetail = {
 
 export type ChatUser = {
   id: string
+  databaseId?: number // Database ID from the API (thread.id)
   profile?: string
   username: string
   fullName: string
@@ -41,14 +42,24 @@ export type ChatUser = {
   originalSubject?: string
 }
 
+export type EmailAttachment = {
+  filename: string
+  content: string
+  type: string
+  size?: number
+  contentId?: string
+}
+
 export type Convo = {
   sender: string
   message: string
   timestamp: string
   channel?: MessageChannel
   hasHtml?: boolean
+  emailHtml?: string
   // Email threading fields (optional, only present for EMAIL channel messages)
   emailMessageId?: string
   emailInReplyTo?: string
   emailReferences?: string
+  attachments?: EmailAttachment[]
 }
