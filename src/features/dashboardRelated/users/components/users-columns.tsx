@@ -8,6 +8,7 @@ import { roles } from '../data/data'
 import { type UserOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 import { ClickableOrderBadge } from './clickable-order-badge'
+import { CheckCircle, AlertTriangle } from 'lucide-react'
 
 export const usersColumns: ColumnDef<UserOutput>[] = [
   {
@@ -181,6 +182,31 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
     },
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    accessorKey: 'googleCalendarIntegration',
+    header: ({ column }) => (
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Calendar Integration' />
+      </div>
+    ),
+    cell: ({ row }) => {
+      const calendarIntegration = row.getValue('googleCalendarIntegration') as boolean
+      console.log('calendarIntegration', calendarIntegration)
+      console.log('row', row)
+      
+      return (
+        <div className='flex items-center justify-center'>
+          {calendarIntegration ? (
+            <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-500' />
+          ) : (
+            <AlertTriangle className='h-5 w-5 text-red-600 dark:text-red-500' />
+          )}
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: true,
   },
   {
     id: 'actions',

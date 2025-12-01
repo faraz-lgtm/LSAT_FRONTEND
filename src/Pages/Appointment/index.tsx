@@ -771,7 +771,7 @@ const Appointment = () => {
                   style={{ accentColor: 'var(--customer-primary)' }}
                 />
                 <label htmlFor="termsAgreement" className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer">
-                  I agree to the <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Terms of Service</a> and consent to receive emails, texts, or calls related to my inquiry.
+                  I agree to the Terms of Service and consent to receive emails, texts, or calls related to my inquiry.
                 </label>
               </div>
             </div>

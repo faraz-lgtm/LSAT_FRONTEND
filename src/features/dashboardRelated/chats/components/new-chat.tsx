@@ -28,7 +28,7 @@ type NewChatProps = {
   onCreateConversation: (participants: ParticipantDto[], friendlyName: string) => Promise<void>
 }
 export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatProps) {
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([])
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   // Fetch all users from the backend
@@ -69,36 +69,35 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
   }, [users, searchQuery])
 
   const handleSelectUser = (user: User) => {
-    if (!selectedUsers.find((u) => u.id === user.id)) {
-      setSelectedUsers([...selectedUsers, user])
+    // Toggle selection: if same user is clicked, deselect; otherwise select the new user
+    if (selectedUser?.id === user.id) {
+      setSelectedUser(null)
     } else {
-      handleRemoveUser(user.id)
+      setSelectedUser(user)
     }
   }
 
-  const handleRemoveUser = (userId: string) => {
-    setSelectedUsers(selectedUsers.filter((user) => user.id !== userId))
+  const handleRemoveUser = () => {
+    setSelectedUser(null)
   }
 
   const handleCreateChat = async () => {
-    if (selectedUsers.length === 0) return
+    if (!selectedUser) return
 
     try {
       // Prepare participants for internal user-to-user chats
       // Backend now handles channels automatically - only userId is required
-      const participants: ParticipantDto[] = selectedUsers.map((user) => ({
-        userId: user.id,
-      }))
+      const participants: ParticipantDto[] = [{
+        userId: selectedUser.id,
+      }]
 
-      // For 1-on-1 chats, use the person's name. For group chats, use "Chat with X people"
-      const friendlyName = selectedUsers.length === 1 && selectedUsers[0]
-        ? selectedUsers[0].fullName 
-        : `Chat with ${selectedUsers.length} people`
+      // Use the person's name for the chat
+      const friendlyName = selectedUser.fullName
 
       await onCreateConversation(participants, friendlyName)
       
       // Reset state
-      setSelectedUsers([])
+      setSelectedUser(null)
       setSearchQuery('')
       
       // Dialog will be closed by parent component after successful creation
@@ -110,7 +109,7 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
 
   useEffect(() => {
     if (!open) {
-      setSelectedUsers([])
+      setSelectedUser(null)
       setSearchQuery('')
     }
   }, [open])
@@ -124,22 +123,22 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
         <div className='flex flex-col gap-4'>
           <div className='flex flex-wrap items-baseline-last gap-2'>
             <span className='text-muted-foreground min-h-6 text-sm'>To:</span>
-            {selectedUsers.map((user) => (
-              <Badge key={user.id} variant='default'>
-                {user.fullName}
+            {selectedUser && (
+              <Badge key={selectedUser.id} variant='default'>
+                {selectedUser.fullName}
                 <button
                   className='ring-offset-background focus:ring-ring ms-1 rounded-full outline-hidden focus:ring-2 focus:ring-offset-2'
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      handleRemoveUser(user.id)
+                      handleRemoveUser()
                     }
                   }}
-                  onClick={() => handleRemoveUser(user.id)}
+                  onClick={() => handleRemoveUser()}
                 >
                   <X className='text-muted-foreground hover:text-foreground h-3 w-3' />
                 </button>
               </Badge>
-            ))}
+            )}
           </div>
           <Command className='rounded-lg border'>
             <CommandInput
@@ -193,7 +192,7 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
                           </div>
                         </div>
 
-                        {selectedUsers.find((u) => u.id === user.id) && (
+                        {selectedUser?.id === user.id && (
                           <Check className='h-4 w-4' />
                         )}
                       </CommandItem>
@@ -206,7 +205,7 @@ export function NewChat({ onOpenChange, open, onCreateConversation }: NewChatPro
           <Button
             variant={'default'}
             onClick={handleCreateChat}
-            disabled={selectedUsers.length === 0}
+            disabled={!selectedUser}
           >
             Chat
           </Button>

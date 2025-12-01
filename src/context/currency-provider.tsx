@@ -437,7 +437,8 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   // Only fetch exchange rates on user-facing pages (not dashboard)
   // Dashboard should always display in CAD
   // Fetch exchange rates from backend only for customer pages
-  const shouldSkip = isDashboard
+  // Skip currency exchange rates for free_purchase route since prices are 0
+  const shouldSkip = isDashboard || location.pathname.includes('/free_purchase')
   
   const { data: ratesData, isLoading: isLoadingRates, error: ratesError } = useGetCurrencyRatesQuery('CAD', {
     skip: shouldSkip // Skip on dashboard routes

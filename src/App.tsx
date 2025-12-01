@@ -12,6 +12,7 @@ const Appointment = lazy(() => import("./Pages/Appointment"));
 const Home = lazy(() => import("./Pages/Home"));
 const PaymentSuccess = lazy(() => import("./Pages/PaymentSuccess"));
 const PaymentCancel = lazy(() => import("./Pages/PaymentCancel"));
+const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -70,6 +71,8 @@ function App() {
           
           {/* Organization routes - slug-based for generic envs, domain-based for actual domains */}
           <Route element={<Layout />}>
+            {/* Non-slug customer routes */}
+            <Route path="/privacy_policy" element={<PrivacyPolicy />} />
             {/* Slug-based routes - matches paths like /betterlsat/cart, /betterlsat/Appointment */}
             <Route path="/:slug/cart" element={<Cart />} />
             <Route path="/:slug/Appointment" element={<Appointment />} />

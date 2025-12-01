@@ -1,6 +1,9 @@
 import { api } from "../../api";
 import type { 
+<<<<<<< HEAD
   CreateAutomationDto,
+=======
+>>>>>>> b478c6f68fdaf3dc6eb9140917baf009f7c43018
   UpdateAutomationDto,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,

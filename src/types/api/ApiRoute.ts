@@ -12,6 +12,8 @@
 
 import {
   AddParticipantDto,
+  CallStatusCallbackDto,
+  CallsByConversationResponseDto,
   CancelOrderDto,
   CancelRefundDto,
   CreateAutomationDto,
@@ -21,14 +23,17 @@ import {
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
+  GoogleCalendarConfigInputDto,
   InvoiceOutputDto,
   LoginInput,
   MarkAppointmentAttendanceDto,
   OrderInput,
   ProcessRefundDto,
+  RecordingCallbackDto,
   RefreshTokenInput,
   Refund,
   RegisterInput,
+  RequestVoiceTokenDto,
   ResetPasswordInput,
   SendEmailDto,
   SendMessageDto,
@@ -38,6 +43,9 @@ import {
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationLog,
   SwaggerBaseApiResponseForClassBaseUserOutput,
+  SwaggerBaseApiResponseForClassCalendarEventOutputDto,
+  SwaggerBaseApiResponseForClassCalendarListOutputDto,
+  SwaggerBaseApiResponseForClassCalendarVerificationOutputDto,
   SwaggerBaseApiResponseForClassCancelOrderResultDto,
   SwaggerBaseApiResponseForClassConversationOutputDto,
   SwaggerBaseApiResponseForClassDashboardOutputDto,
@@ -304,6 +312,139 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * @description Checks if user has valid Google Calendar configuration and OAuth credentials
+   * @tags user-calendar
+   * @name UserCalendarControllerVerify
+   * @summary Verify user calendar configuration
+   * @request GET:/api/v1/users/me/calendar/verify
+   * @secure
+   */
+  export namespace UserCalendarControllerVerify {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarVerificationOutputDto;
+  }
+
+  /**
+   * @description Saves OAuth credentials from frontend after Google OAuth flow completion
+   * @tags user-calendar
+   * @name UserCalendarControllerSaveCredentials
+   * @summary Save Google Calendar OAuth credentials
+   * @request POST:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerSaveCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = GoogleCalendarConfigInputDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Updates OAuth credentials from frontend after Google OAuth flow completion
+   * @tags user-calendar
+   * @name UserCalendarControllerUpdateCredentials
+   * @summary Update Google Calendar OAuth credentials
+   * @request PATCH:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerUpdateCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = GoogleCalendarConfigInputDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Fetches all calendars available to the user from Google Calendar API
+   * @tags user-calendar
+   * @name UserCalendarControllerListCalendars
+   * @summary List all user calendars
+   * @request GET:/api/v1/users/me/calendar/calendars
+   * @secure
+   */
+  export namespace UserCalendarControllerListCalendars {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarListOutputDto;
+  }
+
+  /**
+   * @description Fetches all events from specified calendar within date range
+   * @tags user-calendar
+   * @name UserCalendarControllerGetCalendarEvents
+   * @summary Get events from a specific calendar
+   * @request GET:/api/v1/users/me/calendar/calendars/{calendarId}/events
+   * @secure
+   */
+  export namespace UserCalendarControllerGetCalendarEvents {
+    export type RequestParams = {
+      /**
+       * Calendar ID (e.g., "primary")
+       * @example "primary"
+       */
+      calendarId: string;
+    };
+    export type RequestQuery = {
+      /**
+       * Start date for events query (ISO string)
+       * @example "2025-11-23T19:00:00.000Z"
+       */
+      startDate: string;
+      /**
+       * End date for events query (ISO string)
+       * @example "2025-11-30T19:00:00.000Z"
+       */
+      endDate: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarEventOutputDto;
+  }
+
+  /**
+   * @description Fetches all events from all user calendars (or specific calendar if calendarId provided) within date range
+   * @tags user-calendar
+   * @name UserCalendarControllerGetAllCalendarEvents
+   * @summary Get events from all calendars
+   * @request GET:/api/v1/users/me/calendar/calendars/events
+   * @secure
+   */
+  export namespace UserCalendarControllerGetAllCalendarEvents {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Start date for events query (ISO string)
+       * @example "2025-11-23T19:00:00.000Z"
+       */
+      startDate: string;
+      /**
+       * End date for events query (ISO string)
+       * @example "2025-11-30T19:00:00.000Z"
+       */
+      endDate: string;
+      /**
+       * Optional: Specific calendar ID to fetch from (if not provided, fetches from all calendars)
+       * @example "primary"
+       */
+      calendarId?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarEventOutputDto;
   }
 
   /**
@@ -2200,18 +2341,18 @@ export namespace Api {
   }
 
   /**
-   * No description
+   * @description Deletes all channels (SMS, EMAIL, WhatsApp) in the thread. Accepts: numeric ID (e.g., "14"), DB ID format (e.g., "db_14"), or Twilio SID (e.g., "CHxxx"). For channels with Twilio SID, also deletes from Twilio.
    * @tags SMS Conversations
    * @name ChatControllerDeleteConversation
-   * @summary Delete a conversation
+   * @summary Delete a conversation and all its channels
    * @request DELETE:/api/v1/chat/conversations/{sid}
    * @secure
    */
   export namespace ChatControllerDeleteConversation {
     export type RequestParams = {
       /**
-       * Conversation SID
-       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       * Conversation identifier. Can be: numeric ID (e.g., "14"), DB ID format for EMAIL (e.g., "db_14"), or Twilio SID (e.g., "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+       * @example "14"
        */
       sid: string;
     };
@@ -2222,7 +2363,7 @@ export namespace Api {
   }
 
   /**
-   * No description
+   * @description Returns messages for SMS, EMAIL, or WHATSAPP channels. When channel=CALL is specified, returns calls instead of messages. Calls and messages are loaded separately and not merged.
    * @tags SMS Conversations
    * @name ChatControllerGetConversationHistory
    * @summary Get conversation message history, optionally filtered by channel
@@ -2232,20 +2373,20 @@ export namespace Api {
   export namespace ChatControllerGetConversationHistory {
     export type RequestParams = {
       /**
-       * Conversation SID
+       * Conversation SID or DB conversation ID (e.g., db_8 for EMAIL conversations)
        * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
        */
       sid: string;
     };
     export type RequestQuery = {
       /**
-       * Maximum number of messages to return
+       * Maximum number of items to return
        * @example 50
        */
       limit?: number;
-      /** Sort order for messages */
+      /** Sort order */
       order?: "asc" | "desc";
-      /** Filter messages by channel (SMS, EMAIL, WHATSAPP). If not specified, returns all messages. */
+      /** Filter by channel. SMS, EMAIL, WHATSAPP return messages. CALL returns calls (separate from messages). If not specified, returns all messages (no calls). */
       channel?: "SMS" | "WHATSAPP" | "EMAIL";
     };
     export type RequestBody = never;
@@ -2422,5 +2563,82 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerGetToken
+   * @request POST:/api/v1/voice/token
+   */
+  export namespace VoiceControllerGetToken {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RequestVoiceTokenDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerMakeCall
+   * @request POST:/api/v1/voice/make-call
+   */
+  export namespace VoiceControllerMakeCall {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerRecordingCallback
+   * @request POST:/api/v1/voice/recording-callback
+   */
+  export namespace VoiceControllerRecordingCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RecordingCallbackDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerCallStatusCallback
+   * @request POST:/api/v1/voice/call-status-callback
+   */
+  export namespace VoiceControllerCallStatusCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CallStatusCallbackDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieves all calls associated with a specific conversation ID, including their respective call logs (recordings). Each call object contains complete call metadata and an array of associated call recordings.
+   * @tags voice
+   * @name VoiceControllerGetCallsByConversationId
+   * @summary Get all calls for a conversation
+   * @request GET:/api/v1/voice/conversations/{id}/calls
+   */
+  export namespace VoiceControllerGetCallsByConversationId {
+    export type RequestParams = {
+      /**
+       * Conversation ID to retrieve calls for
+       * @example 11
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = CallsByConversationResponseDto;
   }
 }

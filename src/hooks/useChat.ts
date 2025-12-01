@@ -60,6 +60,12 @@ export function useChat(): UseChatReturn {
   // Wrap setActiveChannel to also refetch messages when channel changes
   // When switching channels, we need to use the conversation SID for that channel from the thread
   const setActiveChannel = useCallback((channel: BackendChannel) => {
+    console.log('[useChat] setActiveChannel called:', {
+      channel,
+      currentActiveChannel: activeChannelState,
+      currentSelectedSid: selectedConversationSid,
+    });
+    
     setActiveChannelState(channel)
     
     // If we have a thread-based conversation, switch to the conversation SID for the new channel
@@ -71,14 +77,50 @@ export function useChat(): UseChatReturn {
       )
       
       if (channelInfo && channelInfo.conversationSid !== selectedConversationSid) {
+        const oldSid = selectedConversationSid
+        const newSid = channelInfo.conversationSid
+        
+        console.log('[useChat] Switching conversation SID:', {
+          from: oldSid,
+          to: newSid,
+          channel: frontendChannel,
+        });
+        
         // Update to use the conversation SID for this channel
-        setSelectedConversationSid(channelInfo.conversationSid)
+        setSelectedConversationSid(newSid)
+        
+        // Subscribe to the new conversation SID
+        const socket = chatSocketService.getSocket()
+        if (socket) {
+          console.log('[useChat] Subscribing to new conversation:', newSid);
+          socket.emit('subscribe:conversation', { conversationSid: newSid })
+          
+          // Unsubscribe from old SID to avoid duplicate messages
+          if (oldSid && oldSid !== newSid) {
+            console.log('[useChat] Unsubscribing from old conversation:', oldSid);
+            socket.emit('unsubscribe:conversation', { conversationSid: oldSid })
+          }
+        } else {
+          console.warn('[useChat] Socket not available for subscription');
+        }
+        
         // Messages will refetch automatically via RTK Query when selectedConversationSid changes
+      } else if (!channelInfo) {
+        console.warn('[useChat] Channel info not found for channel:', frontendChannel);
+      } else {
+        console.log('[useChat] No SID change needed - already using correct SID');
       }
+    } else {
+      console.warn('[useChat] No channels array found in currentConversation');
     }
+    
+    console.log('[useChat] setActiveChannel complete:', {
+      newChannel: channel,
+      selectedSid: selectedConversationSid, // Note: This will show old value due to async state
+    });
     // RTK Query will automatically refetch when query arguments change,
     // but we ensure it happens by changing the state which triggers the query update
-  }, [currentConversation, selectedConversationSid])
+  }, [currentConversation, selectedConversationSid, activeChannelState])
 
   // RTK Query hooks
   const {
@@ -93,7 +135,11 @@ export function useChat(): UseChatReturn {
     isLoading: isLoadingConversation,
     error: conversationError,
   } = useGetConversationQuery(selectedConversationSid!, {
-    skip: !selectedConversationSid || !accessToken,
+    // Skip if we already have a thread-based conversation with this SID
+    skip: !selectedConversationSid || !accessToken || 
+      conversations.some(conv => 
+        conv.channels && conv.channels.some(c => c.conversationSid === selectedConversationSid)
+      )
   })
 
   const {
@@ -126,20 +172,92 @@ export function useChat(): UseChatReturn {
 
     // Listen for new messages
     const handleMessageReceived = ({ conversationSid, message }: { conversationSid: string; message: MessageOutputDto }) => {
+      console.log('[WebSocket] message:received event:', {
+        conversationSid,
+        messageSid: message.sid,
+        author: message.author,
+        body: message.body,
+        attributes: message.attributes,
+        dateCreated: message.dateCreated,
+      });
+      
       const currentUserId = currentUser ? String(currentUser.id) : undefined
+      
+      // Parse message attributes to get channel
+      const messageAttributes = message.attributes ? JSON.parse(message.attributes) : {}
+      const messageChannel = messageAttributes.channel
+      
+      // Check if this message belongs to the current conversation
+      // For thread-based conversations, check if conversationSid matches any channel's conversationSid
+      const conversationMatches = currentConversation?.id === conversationSid || 
+        (currentConversation?.channels && 
+         currentConversation.channels.some(c => c.conversationSid === conversationSid))
+      
+      console.log('[WebSocket] Message details:', {
+        currentUserId,
+        messageChannel,
+        activeChannelState,
+        currentConversationId: currentConversation?.id,
+        currentConversationThreadId: currentConversation?.threadId,
+        conversationSid,
+        conversationMatches,
+        channelMatches: !messageChannel || messageChannel === activeChannelState,
+      });
+      
       // Channel will be extracted from message attributes in convertMessageToConvo
       const displayChannel = toFrontendChannel(activeChannelState)
       const newMessage = convertMessageToConvo(message, displayChannel, currentUserId)
-      // Only add message if it matches the current active channel or if no channel filter is active
-      const messageAttributes = message.attributes ? JSON.parse(message.attributes) : {}
-      const messageChannel = messageAttributes.channel
-      if (currentConversation?.id === conversationSid && (!messageChannel || messageChannel === activeChannelState)) {
+      
+      console.log('[WebSocket] Converted message:', {
+        sender: newMessage.sender,
+        message: newMessage.message,
+        timestamp: newMessage.timestamp,
+        channel: newMessage.channel,
+      });
+      
+      // Only add message if it matches the current conversation and active channel
+      const shouldAddToMessages = conversationMatches && (!messageChannel || messageChannel === activeChannelState)
+      
+      console.log('[WebSocket] Message handling decision:', {
+        shouldAddToMessages,
+        reason: !shouldAddToMessages 
+          ? (!conversationMatches
+              ? 'Conversation SID mismatch' 
+              : 'Channel mismatch')
+          : 'Message will be added',
+      });
+      
+      if (shouldAddToMessages) {
+        console.log('[WebSocket] Adding message to messages state');
         setMessages((prev) => [newMessage, ...prev])
+      } else {
+        console.log('[WebSocket] Message not added - does not match current conversation/channel');
       }
+      
       // Update conversation list to show latest message
-      setConversations((prev) =>
-        prev.map((conv) => {
-          if (conv.id === conversationSid) {
+      // For thread-based conversations, check if conversationSid matches any channel's conversationSid
+      setConversations((prev) => {
+        const conversationFound = prev.some(conv => 
+          conv.id === conversationSid || 
+          (conv.channels && conv.channels.some(c => c.conversationSid === conversationSid))
+        )
+        console.log('[WebSocket] Updating conversation list:', {
+          conversationFound,
+          conversationSid,
+        });
+        
+        return prev.map((conv) => {
+          // Check if this conversation matches (by ID or by any channel's conversationSid)
+          const matches = conv.id === conversationSid || 
+            (conv.channels && conv.channels.some(c => c.conversationSid === conversationSid))
+          
+          if (matches) {
+            console.log('[WebSocket] Updating conversation in list:', {
+              conversationId: conv.id,
+              threadId: conv.threadId,
+              newLastMessage: newMessage.message,
+              newTimestamp: new Date(message.dateCreated).toISOString(),
+            });
             return {
               ...conv,
               messages: [newMessage, ...(conv.messages || [])],
@@ -147,45 +265,131 @@ export function useChat(): UseChatReturn {
             }
           }
           return conv
-        }),
-      )
+        })
+      })
     }
 
     // Listen for sent message confirmation
     const handleMessageSent = ({ conversationSid, message }: { conversationSid: string; message: MessageOutputDto }) => {
+      console.log('[WebSocket] message:sent event:', {
+        conversationSid,
+        messageSid: message.sid,
+        author: message.author,
+        body: message.body,
+        attributes: message.attributes,
+        dateCreated: message.dateCreated,
+      });
+      
       const currentUserId = currentUser ? String(currentUser.id) : undefined
+      
+      // Parse message attributes to get channel
+      const messageAttributes = message.attributes ? JSON.parse(message.attributes) : {}
+      const messageChannel = messageAttributes.channel
+      
+      // Check if this message belongs to the current conversation
+      // For thread-based conversations, check if conversationSid matches any channel's conversationSid
+      const conversationMatches = currentConversation?.id === conversationSid || 
+        (currentConversation?.channels && 
+         currentConversation.channels.some(c => c.conversationSid === conversationSid))
+      
+      console.log('[WebSocket] Sent message details:', {
+        currentUserId,
+        messageChannel,
+        activeChannelState,
+        currentConversationId: currentConversation?.id,
+        conversationSid,
+        conversationMatches,
+        channelMatches: !messageChannel || messageChannel === activeChannelState,
+      });
+      
       // Channel will be extracted from message attributes
       const displayChannel = toFrontendChannel(activeChannelState)
       const conv = convertMessageToConvo(message, displayChannel, currentUserId)
-      // Only add if it matches current active channel
-      const messageAttributes = message.attributes ? JSON.parse(message.attributes) : {}
-      const messageChannel = messageAttributes.channel
-      if (currentConversation?.id === conversationSid && (!messageChannel || messageChannel === activeChannelState)) {
+      
+      console.log('[WebSocket] Converted sent message:', {
+        sender: conv.sender,
+        message: conv.message,
+        timestamp: conv.timestamp,
+        channel: conv.channel,
+      });
+      
+      // Only add if it matches current conversation and active channel
+      const shouldAddToMessages = conversationMatches && (!messageChannel || messageChannel === activeChannelState)
+      
+      console.log('[WebSocket] Sent message handling decision:', {
+        shouldAddToMessages,
+        reason: !shouldAddToMessages 
+          ? (!conversationMatches
+              ? 'Conversation SID mismatch' 
+              : 'Channel mismatch')
+          : 'Message will be added',
+      });
+      
+      if (shouldAddToMessages) {
+        console.log('[WebSocket] Adding sent message to messages state');
         setMessages((prev) => [conv, ...prev])
+      } else {
+        console.log('[WebSocket] Sent message not added - does not match current conversation/channel');
       }
     }
 
     // Listen for conversation updates
     const handleConversationUpdated = ({ conversationSid, conversation }: { conversationSid: string; conversation: ConversationOutputDto | ThreadConversationOutputDto }) => {
+      console.log('[WebSocket] conversation:updated event:', {
+        conversationSid,
+        isThreadFormat: 'threadId' in conversation,
+        threadId: 'threadId' in conversation ? (conversation as ThreadConversationOutputDto).threadId : undefined,
+        friendlyName: 'friendlyName' in conversation ? conversation.friendlyName : (conversation as ConversationOutputDto).friendlyName,
+      });
+      
       const currentUserIdForAdapter = currentUser?.id
       // Type guard: check if it's a thread conversation
       const chatUsers = 'threadId' in conversation
         ? convertConversationsToChatUsers([conversation as ThreadConversationOutputDto], currentUserIdForAdapter)
         : convertConversationsToChatUsers([conversation as ConversationOutputDto], currentUserIdForAdapter)
       const chatUser = chatUsers[0]
+      
+      console.log('[WebSocket] Converted conversation update:', {
+        chatUserId: chatUser?.id,
+        threadId: chatUser?.threadId,
+        channels: chatUser?.channels,
+      });
+      
       if (chatUser) {
         // Update by conversation SID or thread ID
-        setConversations((prev) =>
-          prev.map((conv) =>
+        setConversations((prev) => {
+          const conversationMatched = prev.some(conv => 
+            conv.id === conversationSid || conv.threadId === (conversation as ThreadConversationOutputDto).threadId
+          )
+          
+          console.log('[WebSocket] Updating conversation in list:', {
+            conversationMatched,
+            conversationSid,
+            threadId: (conversation as ThreadConversationOutputDto).threadId,
+          });
+          
+          return prev.map((conv) =>
             (conv.id === conversationSid || conv.threadId === (conversation as ThreadConversationOutputDto).threadId) 
               ? chatUser 
               : conv,
-          ),
-        )
-        if (currentConversation?.id === conversationSid || currentConversation?.threadId === (conversation as ThreadConversationOutputDto).threadId) {
+          )
+        })
+        
+        const currentConversationMatches = currentConversation?.id === conversationSid || currentConversation?.threadId === (conversation as ThreadConversationOutputDto).threadId
+        
+        console.log('[WebSocket] Updating current conversation:', {
+          currentConversationMatches,
+          currentConversationId: currentConversation?.id,
+          currentConversationThreadId: currentConversation?.threadId,
+        });
+        
+        if (currentConversationMatches) {
+          console.log('[WebSocket] Setting current conversation to updated conversation');
           setCurrentConversation(chatUser)
           setCurrentBackendConversation(conversation as ConversationOutputDto)
         }
+      } else {
+        console.warn('[WebSocket] No chatUser found after conversion');
       }
     }
 
@@ -232,7 +436,7 @@ export function useChat(): UseChatReturn {
       socket.off('typing:start', handleTypingStart)
       socket.off('typing:stop', handleTypingStop)
     }
-  }, [accessToken, currentConversation?.id, currentConversation?.threadId, currentUser, activeChannelState])
+  }, [accessToken, currentConversation, currentUser, activeChannelState])
 
   // Update conversations when data changes
   useEffect(() => {
@@ -271,8 +475,21 @@ export function useChat(): UseChatReturn {
         setCurrentBackendConversation(conversationData)
         setCurrentConversation(chatUser ?? null)
       }
+    } else if (selectedConversationSid) {
+      // If we don't have conversationData but have selectedConversationSid,
+      // try to find it in our conversations list (for thread-based conversations)
+      const foundConversation = conversations.find(
+        (conv) => conv.id === selectedConversationSid || 
+        (conv.channels && conv.channels.some(c => c.conversationSid === selectedConversationSid))
+      )
+      
+      if (foundConversation && foundConversation.channels && foundConversation.channels.length > 0) {
+        console.log('[useChat] Using conversation from list (thread-based):', foundConversation);
+        setCurrentConversation(foundConversation)
+        // Don't need to set currentBackendConversation for thread-based conversations
+      }
     }
-  }, [conversationData, currentUser])
+  }, [conversationData, currentUser, conversations, selectedConversationSid])
 
   // Update messages when data changes - messages are already filtered by channel from API
   useEffect(() => {
@@ -321,14 +538,23 @@ export function useChat(): UseChatReturn {
 
   // Load single conversation
   const loadConversation = useCallback(async (sid: string) => {
+    console.log('[useChat] loadConversation called:', {
+      sid,
+      previousSid: selectedConversationSid,
+      activeChannel: activeChannelState,
+    });
+    
     setSelectedConversationSid(sid)
     
     // Subscribe to WebSocket updates
     const socket = chatSocketService.getSocket()
     if (socket) {
+      console.log('[useChat] Subscribing to WebSocket for conversation:', sid);
       socket.emit('subscribe:conversation', { conversationSid: sid })
+    } else {
+      console.warn('[useChat] Socket not available for subscription');
     }
-  }, [])
+  }, [selectedConversationSid, activeChannelState])
 
   // Load messages for conversation - refetch with current channel
   const loadMessages = useCallback(async (sid: string, _limit = 50, channel?: BackendChannel) => {
@@ -369,18 +595,13 @@ export function useChat(): UseChatReturn {
       }
 
       try {
-        // Send message with channel specified
-        // Backend will handle routing to correct channel (SMS via Twilio, EMAIL via SendGrid)
-        // For EMAIL conversations (SIDs like "db_42" or "email_"), backend handles appropriately
         await sendMessageMutation({
           conversationSid,
           data: { 
             body,
-            channel: messageChannel, // Channel is now a top-level field in SendMessageDto
-            author: `user_${currentUser.id}`, // Author format: "user_{id}"
-            // Attributes can be used for additional metadata if needed
+            author: String(currentUser.id), // Set current user as the author
             attributes: {
-              channel: messageChannel, // Also store in attributes for filtering
+              channel: messageChannel, // Store channel in message attributes
             },
           },
         }).unwrap()

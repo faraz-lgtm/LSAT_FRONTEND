@@ -4,14 +4,16 @@ import {
   Trash2,
   Filter,
   Maximize2,
-  Phone,
   ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import { type ChatUser } from '../data/chat-types'
+import { CallButton } from './call-button'
 
 type MessageThreadHeaderProps = {
   conversation: ChatUser
+  contactPhone?: string
+  agentIdentity?: string
   onStar?: () => void
   onEmail?: () => void
   onDelete?: () => void
@@ -21,6 +23,8 @@ type MessageThreadHeaderProps = {
 
 export function MessageThreadHeader({
   conversation,
+  contactPhone,
+  agentIdentity,
   onStar,
   onEmail,
   onDelete,
@@ -98,14 +102,7 @@ export function MessageThreadHeader({
         </div>
       </div>
       <div className='flex items-center gap-2'>
-        <Button
-          size='icon'
-          variant='ghost'
-          className='h-9 w-9 rounded-full'
-          title='Call'
-        >
-          <Phone className='h-4 w-4 text-muted-foreground' />
-        </Button>
+        <CallButton defaultNumber={contactPhone} agentIdentity={agentIdentity} conversationSid={conversation.databaseId?.toString() || ''} />
         <Button
           size='icon'
           variant='ghost'

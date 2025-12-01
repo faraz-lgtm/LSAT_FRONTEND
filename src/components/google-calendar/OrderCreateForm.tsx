@@ -95,16 +95,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
 
   // Determine how many slots each package needs
   const getSlotsPerPackage = (packageId: number): number => {
-    switch (packageId) {
-      case 5: // 60-Minute Single Prep
-        return 1;
-      case 6: // 5X Prep Session Bundle
-        return 5;
-      case 7: // 10X Prep Session Bundle
-        return 10;
-      default:
-        return 1;
-    }
+    const product = products.find(p => p.id === packageId);
+    return product?.sessions || 1;
   };
 
   // API hooks
