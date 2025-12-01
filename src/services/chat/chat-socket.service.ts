@@ -42,8 +42,8 @@ class ChatSocketService {
     this.socket.on('connect_error', (error) => {
       console.error('[chat-socket] WebSocket connection error:', {
         message: error.message,
-        type: error.type,
-        description: error.description,
+        type: (error as any).type,
+        description: (error as any).description,
       })
     })
 

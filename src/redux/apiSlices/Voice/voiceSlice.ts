@@ -41,7 +41,7 @@ export const voiceApi = api.injectEndpoints({
         url: `voice/conversations/${conversationId}/calls`,
       }),
       providesTags: (_result, _error, conversationId) => [
-        { type: 'Voice', id: `calls-${conversationId}` },
+        { type: 'Chat', id: `calls-${conversationId}` },
       ],
     }),
   }),

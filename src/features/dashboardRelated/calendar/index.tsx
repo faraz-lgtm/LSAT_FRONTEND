@@ -159,7 +159,10 @@ export default function Calendar() {
 
     if (!hasSelected) {
       const primaryCalendar = calendarList.find((calendar) => calendar.primary);
-      setSelectedCalendarId(primaryCalendar?.id ?? calendarList[0].id);
+      const calendarId = primaryCalendar?.id ?? calendarList[0]?.id;
+      if (calendarId) {
+        setSelectedCalendarId(calendarId);
+      }
     }
   }, [calendarsData, selectedCalendarId]);
 
@@ -194,7 +197,7 @@ export default function Calendar() {
           title: event.summary ?? "(no title)",
           start: startDate,
           end: endDate,
-          backgroundColor: getEventColor(event.colorId),
+          backgroundColor: getEventColor((event as any).colorId),
           description: event.description ?? "",
           extendedProps: {
             googleEvent: event,

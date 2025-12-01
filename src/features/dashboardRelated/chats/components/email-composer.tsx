@@ -4,7 +4,6 @@ import { Label } from '@/components/dashboard/ui/label'
 import { Textarea } from '@/components/dashboard/ui/textarea'
 import { Clock, Paperclip, X, File } from 'lucide-react'
 import { type ContactDetail } from '../data/chat-types'
-import { cn } from '@/lib/dashboardRelated/utils'
 
 type Attachment = {
   filename: string
@@ -57,6 +56,7 @@ export function EmailComposer({ contactDetails, isLoading = false, onSend }: Ema
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      if (!file) continue
       try {
         const base64Content = await convertFileToBase64(file)
         newAttachments.push({

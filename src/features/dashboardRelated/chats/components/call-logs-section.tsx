@@ -48,13 +48,14 @@ function getCallStatusVariant(status?: string): 'default' | 'secondary' | 'destr
 }
 
 function getCallStatusLabel(status?: string): string {
+  if (!status) return 'Unknown'
   switch (status) {
     case 'in-progress':
       return 'In Progress'
     case 'no-answer':
       return 'No Answer'
     default:
-      return status?.charAt(0).toUpperCase() + status?.slice(1) || 'Unknown'
+      return status.charAt(0).toUpperCase() + status.slice(1)
   }
 }
 
@@ -88,7 +89,10 @@ export function CallLogsSection({ calls, isLoading, error }: CallLogsSectionProp
 
     const result: Record<string, CallWithLogsDto[]> = {}
     sortedKeys.forEach((key) => {
-      result[key] = grouped[key]
+      const calls = grouped[key]
+      if (calls) {
+        result[key] = calls
+      }
     })
 
     return result
@@ -135,6 +139,7 @@ export function CallLogsSection({ calls, isLoading, error }: CallLogsSectionProp
         <div className='space-y-2 pr-3'>
           {Object.entries(groupedCalls).map(([dateKey, dateCalls]) => {
             const firstCall = dateCalls[0]
+            if (!firstCall) return null
             const displayDate = formatCallDate(firstCall.createdAt)
 
             return (

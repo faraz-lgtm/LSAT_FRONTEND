@@ -213,11 +213,6 @@ export interface UserOutput {
    * @example true
    */
   googleCalendarIntegration: boolean;
-  /**
-   * Whether calendar integration is enabled for this user
-   * @example true
-   */
-  calendarIntegration: boolean;
 }
 
 export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
@@ -2211,9 +2206,129 @@ export interface EmailAutomationParameters {
   template?: string;
 }
 
+export interface CreateAutomationDto {
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
+   * @pattern ^[a-z0-9-]+$
+   * @example "custom-order-email"
+   */
+  automationKey: string;
+  /**
+   * Display name of the automation
+   * @maxLength 200
+   * @example "Custom Order Confirmation Email"
+   */
+  name: string;
+  /**
+   * Detailed description of what the automation does
+   * @example "Sends a customized confirmation email when order is paid"
+   */
+  description?: string;
+  /**
+   * Event that triggers this automation
+   * @example "order.paid"
+   */
+  triggerEvent:
+    | "order.created"
+    | "order.paid"
+    | "order.canceled"
+    | "order.modified"
+    | "order.completed"
+    | "user.registered"
+    | "payment.refunded"
+    | "task.created"
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
+  /**
+   * Communication tool type used for this automation
+   * @example "email"
+   */
+  toolType: "email" | "sms" | "slack" | "whatsapp";
+  /**
+   * Default parameters for the automation (JSON object)
+   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
+   */
+  defaultParameters?: object;
+  /**
+   * Whether the automation is archived
+   * @default false
+   * @example false
+   */
+  archived?: boolean;
+}
+
+export interface UpdateAutomationDto {
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
+   * @pattern ^[a-z0-9-]+$
+   * @example "custom-order-email"
+   */
+  automationKey?: string;
+  /**
+   * Display name of the automation
+   * @maxLength 200
+   * @example "Custom Order Confirmation Email"
+   */
+  name?: string;
+  /**
+   * Detailed description of what the automation does
+   * @example "Sends a customized confirmation email when order is paid"
+   */
+  description?: string;
+  /**
+   * Event that triggers this automation
+   * @example "order.paid"
+   */
+  triggerEvent?:
+    | "order.created"
+    | "order.paid"
+    | "order.canceled"
+    | "order.modified"
+    | "order.completed"
+    | "user.registered"
+    | "payment.refunded"
+    | "task.created"
+    | "task.completed"
+    | "order.appointment.no_show"
+    | "order.appointment.showed";
+  /**
+   * Communication tool type used for this automation
+   * @example "email"
+   */
+  toolType?: "email" | "sms" | "slack" | "whatsapp";
+  /**
+   * Default parameters for the automation (JSON object)
+   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
+   */
+  defaultParameters?: object;
+  /**
+   * Whether the automation is archived
+   * @example false
+   */
+  archived?: boolean;
+  /**
+   * Enable or disable the automation (organization-specific)
+   * @example true
+   */
+  isEnabled?: boolean;
+  /**
+   * Organization-specific configuration parameters for the automation (merges with defaultParameters)
+   * @example {"delayMinutes":30,"channel":"#custom-orders"}
+   */
+  parameters?: object;
+}
+
+export type AutomationConfig = object;
+
 export interface AutomationConfigOutputDto {
   /**
-   * Unique identifier for the automation
+   * Database ID of the automation config (if persisted)
+   * @example 1
+   */
+  id?: number;
+  /**
+   * Unique automation key identifier (lowercase, hyphen-separated)
    * @example "slack-new-order"
    */
   key: string;
@@ -2249,15 +2364,30 @@ export interface AutomationConfigOutputDto {
    */
   toolType: "email" | "sms" | "slack" | "whatsapp";
   /**
-   * Whether the automation is enabled
+   * Whether the automation is enabled for this organization
    * @example true
    */
   isEnabled: boolean;
   /**
-   * Configuration parameters for the automation
+   * Whether the automation is archived
+   * @example false
+   */
+  archived: boolean;
+  /**
+   * Configuration parameters for the automation (merged from default and org-specific)
    * @example {"delayMinutes":0,"channel":"#orders"}
    */
   parameters?: object;
+  /**
+   * Default parameters defined for the automation
+   * @example {"delayMinutes":0,"template":"order-confirmation"}
+   */
+  defaultParameters?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
+  meta: MetaResponse;
+  data: AutomationConfig;
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
@@ -2280,26 +2410,6 @@ export interface SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto {
 export interface SwaggerBaseApiResponseForClassAutomationConfigOutputDto {
   meta: MetaResponse;
   data: AutomationConfigOutputDto;
-}
-
-export interface UpdateAutomationConfigDto {
-  /**
-   * Enable or disable the automation
-   * @example true
-   */
-  isEnabled?: boolean;
-  /**
-   * Configuration parameters for the automation. For Slack automations, available placeholders: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}. For Email automations, available placeholders: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}, {{orderDate}}
-   * @example {"delayMinutes":0,"channel":"#orders","customMessage":"🎉 New order #{{orderId}} from {{customerName}} - ${{total}}","customBlockMessage":"New Order #{{orderId}}"}
-   */
-  parameters?: object;
-}
-
-export type AutomationConfig = object;
-
-export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
-  meta: MetaResponse;
-  data: AutomationConfig;
 }
 
 export interface ParticipantOutputDto {
@@ -2700,7 +2810,7 @@ export interface CallWithLogsDto {
   direction?: "inbound" | "outbound";
   /**
    * Twilio Account SID
-   * @example "AC1234567890abcdef1234567890abcdef"
+   * @example "TWILIO SID"
    */
   accountSid?: string;
   /**

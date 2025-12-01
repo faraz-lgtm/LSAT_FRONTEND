@@ -1,6 +1,6 @@
 import { api } from "../../api";
 import type { 
-  UpdateAutomationConfigDto,
+  UpdateAutomationDto,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
   SwaggerBaseApiResponseForClassAutomationLog
@@ -49,7 +49,7 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // PATCH /api/v1/automation/:key - Update automation configuration
-    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationConfigDto }>({
+    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationDto }>({
       query: ({ key, data }) => ({
         url: `automation/${key}`,
         method: "PATCH",

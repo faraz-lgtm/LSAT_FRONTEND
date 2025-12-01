@@ -203,18 +203,19 @@ export function CallButton({
         }
 
         const finalStatus = call.status()
+        const finalStatusString = String(finalStatus)
         console.log('[CallButton] Final call status:', finalStatus)
 
         // Determine what happened based on whether call was answered
         if (!hasBeenAnswered) {
           // Call ended without being answered
-          if (finalStatus === 'busy') {
+          if (finalStatusString === 'busy' || finalStatusString.includes('busy')) {
             setStatus('Busy')
-          } else if (finalStatus === 'no-answer') {
+          } else if (finalStatusString === 'no-answer' || finalStatusString.includes('no-answer')) {
             setStatus('No answer')
-          } else if (finalStatus === 'canceled') {
+          } else if (finalStatusString === 'canceled' || finalStatusString.includes('canceled')) {
             setStatus('Declined')
-          } else if (finalStatus === 'failed') {
+          } else if (finalStatusString === 'failed' || finalStatusString.includes('failed')) {
             setStatus('Failed')
           } else {
             setStatus('Not answered')
@@ -253,9 +254,10 @@ export function CallButton({
       // This handles edge cases where the event might not fire reliably
       statusCheckInterval = setInterval(() => {
         const currentStatus = call.status()
+        const currentStatusString = String(currentStatus)
         
         // If we detect 'open' or 'in-progress' without having received accept event
-        if (!hasBeenAnswered && (currentStatus === 'open' || currentStatus === 'in-progress')) {
+        if (!hasBeenAnswered && (currentStatusString === 'open' || currentStatusString === 'in-progress' || currentStatusString.includes('open') || currentStatusString.includes('in-progress'))) {
           // Double-check by looking at call duration
           // If duration > 0, call was definitely answered
           const callParams = (call as any).parameters
@@ -270,7 +272,7 @@ export function CallButton({
         }
         
         // Stop polling if call ended
-        if (currentStatus === 'closed' || currentStatus === 'completed') {
+        if (currentStatusString === 'closed' || currentStatusString === 'completed' || currentStatusString.includes('closed') || currentStatusString.includes('completed')) {
           if (statusCheckInterval) {
             clearInterval(statusCheckInterval)
             statusCheckInterval = null

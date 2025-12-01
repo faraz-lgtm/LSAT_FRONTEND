@@ -52,7 +52,6 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
-import { Route as AuthenticatedChatsFlexIndexRouteImport } from './routes/_authenticated/chats/flex/index'
 import { Route as AuthenticatedAuthGoogleCallbackRouteImport } from './routes/_authenticated/auth/google/callback'
 
 const RescheduleRoute = RescheduleRouteImport.update({
@@ -287,12 +286,6 @@ const AuthenticatedErrorsErrorRoute =
     path: '/errors/$error',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedChatsFlexIndexRoute =
-  AuthenticatedChatsFlexIndexRouteImport.update({
-    id: '/chats/flex/',
-    path: '/chats/flex/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAuthGoogleCallbackRoute =
   AuthenticatedAuthGoogleCallbackRouteImport.update({
     id: '/auth/google/callback',
@@ -342,7 +335,6 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/auth/google/callback': typeof AuthenticatedAuthGoogleCallbackRoute
-  '/chats/flex': typeof AuthenticatedChatsFlexIndexRoute
 }
 export interface FileRoutesByTo {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -385,7 +377,6 @@ export interface FileRoutesByTo {
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/auth/google/callback': typeof AuthenticatedAuthGoogleCallbackRoute
-  '/chats/flex': typeof AuthenticatedChatsFlexIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -433,7 +424,6 @@ export interface FileRoutesById {
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/auth/google/callback': typeof AuthenticatedAuthGoogleCallbackRoute
-  '/_authenticated/chats/flex/': typeof AuthenticatedChatsFlexIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -479,7 +469,6 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/users'
     | '/auth/google/callback'
-    | '/chats/flex'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
@@ -522,7 +511,6 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/users'
     | '/auth/google/callback'
-    | '/chats/flex'
   id:
     | '__root__'
     | '/_authenticated'
@@ -569,7 +557,6 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/'
     | '/_authenticated/users/'
     | '/_authenticated/auth/google/callback'
-    | '/_authenticated/chats/flex/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -892,13 +879,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/chats/flex/': {
-      id: '/_authenticated/chats/flex/'
-      path: '/chats/flex'
-      fullPath: '/chats/flex'
-      preLoaderRoute: typeof AuthenticatedChatsFlexIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/auth/google/callback': {
       id: '/_authenticated/auth/google/callback'
       path: '/auth/google/callback'
@@ -953,7 +933,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAuthGoogleCallbackRoute: typeof AuthenticatedAuthGoogleCallbackRoute
-  AuthenticatedChatsFlexIndexRoute: typeof AuthenticatedChatsFlexIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -977,7 +956,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAuthGoogleCallbackRoute: AuthenticatedAuthGoogleCallbackRoute,
-  AuthenticatedChatsFlexIndexRoute: AuthenticatedChatsFlexIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
