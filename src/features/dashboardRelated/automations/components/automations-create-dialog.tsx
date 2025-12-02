@@ -29,7 +29,6 @@ import {
 } from '@/components/dashboard/ui/select'
 import { useCreateAutomationMutation } from '@/redux/apiSlices/Automation/automationSlice'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Resolver } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -146,15 +145,15 @@ export function AutomationsCreateDialog({
   const [createAutomation, { isLoading }] = useCreateAutomationMutation()
   const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({})
 
-  const form = useForm({
+  const form = useForm<CreateAutomationForm>({
     resolver: zodResolver(createAutomationSchema) as any,
     defaultValues: {
       automationKey: '',
       name: '',
       description: '',
-      triggerEvent: 'order.created',
-      toolType: 'email',
-      schedulingType: 'fixed-delay',
+      triggerEvent: 'order.created' as const,
+      toolType: 'email' as const,
+      schedulingType: 'fixed-delay' as const,
       isEnabled: false,
     },
   })

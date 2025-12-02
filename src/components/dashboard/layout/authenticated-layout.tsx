@@ -18,7 +18,7 @@ type AuthenticatedLayoutProps = {
 export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, user, refreshToken } = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated, refreshToken } = useSelector((state: RootState) => state.auth)
   const defaultOpen = getCookie('sidebar_state') !== 'false'
 
   useEffect(() => {
