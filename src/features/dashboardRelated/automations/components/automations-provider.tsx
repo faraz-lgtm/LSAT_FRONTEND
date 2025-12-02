@@ -8,6 +8,8 @@ type AutomationsContextType = {
   setOpen: (open: AutomationsDialogType | null) => void
   currentRow: AutomationConfigOutputDto | null
   setCurrentRow: (row: AutomationConfigOutputDto | null) => void
+  deleteRow: AutomationConfigOutputDto | null
+  setDeleteRow: (row: AutomationConfigOutputDto | null) => void
 }
 
 const AutomationsContext = createContext<AutomationsContextType | undefined>(undefined)
@@ -15,9 +17,10 @@ const AutomationsContext = createContext<AutomationsContextType | undefined>(und
 export function AutomationsProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState<AutomationsDialogType | null>(null)
   const [currentRow, setCurrentRow] = useState<AutomationConfigOutputDto | null>(null)
+  const [deleteRow, setDeleteRow] = useState<AutomationConfigOutputDto | null>(null)
 
   return (
-    <AutomationsContext.Provider value={{ open, setOpen, currentRow, setCurrentRow }}>
+    <AutomationsContext.Provider value={{ open, setOpen, currentRow, setCurrentRow, deleteRow, setDeleteRow }}>
       {children}
     </AutomationsContext.Provider>
   )

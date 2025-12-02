@@ -64,6 +64,7 @@ import {
   SwaggerBaseApiResponseForClassStripePaymentIntent,
   SwaggerBaseApiResponseForClassSuccessResponseDto,
   SwaggerBaseApiResponseForClassTaskOutputDto,
+  SwaggerBaseApiResponseForClassThreadConversationOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
   SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
@@ -2024,7 +2025,7 @@ export namespace Api {
   }
 
   /**
-   * @description Create a new global automation configuration. This defines a new automation that can be enabled/configured per organization. The automation will be available to all organizations once created.
+   * @description Create a new automation configuration for the current organization. Super Admin must provide x-organization-id header. Admin creates for their own organization.
    * @tags Automations
    * @name AutomationConfigControllerCreate
    * @summary Create a new automation
@@ -2148,7 +2149,7 @@ export namespace Api {
   }
 
   /**
-   * @description Update automation configuration. Supports two types of updates: 1. **Organization-specific settings** (isEnabled, parameters): Updates your organization's configuration for this automation. Use `isEnabled` to enable/disable and `parameters` to customize behavior. 2. **Global automation properties** (name, description, triggerEvent, toolType, defaultParameters, archived, automationKey): Updates the global automation definition. Changes affect all organizations. Available trigger events: order.created, order.paid, order.completed Available tool types: email, sms, slack, whatsapp
+   * @description Update automation configuration for the current organization. Super Admin must provide x-organization-id header. Admin can only update automations for their own organization. Available trigger events: order.created, order.paid, order.completed Available tool types: email, sms, slack
    * @tags Automations
    * @name AutomationConfigControllerUpdate
    * @summary Update automation configuration
@@ -2167,6 +2168,28 @@ export namespace Api {
     export type RequestBody = UpdateAutomationDto;
     export type RequestHeaders = {};
     export type ResponseBody = any;
+  }
+
+  /**
+   * @description Soft delete (archive) an automation for the current organization. Super Admin must provide x-organization-id header. Admin can only delete automations for their own organization.
+   * @tags Automations
+   * @name AutomationConfigControllerDelete
+   * @summary Delete automation
+   * @request DELETE:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerDelete {
+    export type RequestParams = {
+      /**
+       * Automation key identifier
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 
   /**
@@ -2297,7 +2320,7 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassConversationOutputDto;
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
   }
 
   /**
@@ -2314,7 +2337,7 @@ export namespace Api {
     export type RequestBody = CreateConversationDto;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassConversationOutputDto;
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
   }
 
   /**

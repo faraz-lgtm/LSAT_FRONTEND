@@ -39,6 +39,17 @@ export const calendarApi = api.injectEndpoints({
       invalidatesTags: ['Calendar'],
     }),
 
+    deleteCalendarCredentials: builder.mutation<
+      BaseApiResponse<SuccessResponseDto>,
+      void
+    >({
+      query: () => ({
+        url: '/users/me/calendar/credentials',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Calendar'],
+    }),
+
     getUserCalendars: builder.query<
       BaseApiResponse<CalendarListOutputDto[]>,
       void
@@ -87,6 +98,7 @@ export const {
   useVerifyCalendarAuthorizationQuery,
   useLazyVerifyCalendarAuthorizationQuery,
   useSaveCalendarCredentialsMutation,
+  useDeleteCalendarCredentialsMutation,
   useGetUserCalendarsQuery,
   useLazyGetUserCalendarsQuery,
   useGetCalendarEventsQuery,

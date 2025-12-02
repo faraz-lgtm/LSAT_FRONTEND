@@ -1,9 +1,6 @@
 import { api } from "../../api";
 import type { 
-<<<<<<< HEAD
   CreateAutomationDto,
-=======
->>>>>>> b478c6f68fdaf3dc6eb9140917baf009f7c43018
   UpdateAutomationDto,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
@@ -99,6 +96,15 @@ export const automationApi = api.injectEndpoints({
       // Force refetch on mount and don't keep unused data
       keepUnusedDataFor: 0,
     }),
+
+    // DELETE /api/v1/automation/:key - Delete automation (soft delete/archive)
+    deleteAutomation: builder.mutation<void, { key: string }>({
+      query: ({ key }) => ({
+        url: `automation/${key}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Automation'],
+    }),
   }),
 });
 
@@ -109,5 +115,6 @@ export const {
   useUpdateAutomationMutation,
   useGetAutomationLogsQuery,
   useGetAllAutomationLogsQuery,
+  useDeleteAutomationMutation,
 } = automationApi;
 
