@@ -2539,12 +2539,7 @@ export interface SuccessResponseDto {
 
 export interface ParticipantDto {
   /**
-   * Communication channel type
-   * @example "SMS"
-   */
-  channel: "SMS" | "WHATSAPP" | "EMAIL";
-  /**
-   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
+   * User ID of the participant
    * @example "156"
    */
   userId: string;
@@ -2556,8 +2551,8 @@ export interface CreateConversationDto {
    * @example "Chat with John Doe"
    */
   friendlyName: string;
-  /** Participants to add to the conversation */
-  participants?: ParticipantDto[];
+  /** Participants to add to the conversation. Provide at least one other user (the current user is automatically added as a participant). */
+  participants: ParticipantDto[];
   /** Custom attributes (key-value pairs) */
   attributes?: object;
 }
@@ -2619,9 +2614,6 @@ export interface SendEmailDto {
   attachments?: EmailAttachmentDto[];
 }
 
-<<<<<<< HEAD
-export interface SwaggerBaseApiResponseForClassConversationOutputDto {
-=======
 export interface ThreadParticipantDto {
   /** User ID of the participant */
   userId: number;
@@ -2678,9 +2670,8 @@ export interface ThreadConversationOutputDto {
 }
 
 export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
->>>>>>> b478c6f68fdaf3dc6eb9140917baf009f7c43018
   meta: MetaResponse;
-  data: ConversationOutputDto[];
+  data: ThreadConversationOutputDto[];
 }
 
 export interface SwaggerBaseApiResponseForClassConversationOutputDto {
@@ -2691,6 +2682,11 @@ export interface SwaggerBaseApiResponseForClassConversationOutputDto {
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
   meta: MetaResponse;
   data: MessageOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
+  meta: MetaResponse;
+  data: ThreadConversationOutputDto;
 }
 
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
