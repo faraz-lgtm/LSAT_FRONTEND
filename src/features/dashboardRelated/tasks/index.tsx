@@ -30,7 +30,8 @@ export function Tasks() {
       limit: 50,
       startDate: startOfMonth.toISOString(),
       endDate: endOfMonth.toISOString(),
-      tutorId: isAdmin ? undefined : user?.id
+      tutorId: isAdmin ? undefined : user?.id,
+      googleCalendar:false
     }
   })
 

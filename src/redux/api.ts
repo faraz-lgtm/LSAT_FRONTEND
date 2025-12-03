@@ -4,6 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { setTokens, setUser, setOrganization, reset } from "./authSlice";
 import { ROLE } from "@/constants/roles";
+import { toast } from 'sonner'
 
 const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://api.betterlsat.com');
 
@@ -245,30 +246,48 @@ const baseQueryWithReauth: BaseQueryFn<
   // Handle different error types (after 401 handling)
   if (result.error) {
     const error = result.error as FetchBaseQueryError & { data?: any };
-    const errorMessage = error.data?.message || '';
+    
+    // Extract error message from nested structure: { error: { message: "..." } }
+    // API always returns errors in this format
+    const extractErrorMessage = (errorData: any): string => {
+      if (errorData?.error?.message) {
+        return errorData.error.message;
+      }
+      if (errorData?.message) {
+        return errorData.message;
+      }
+      return '';
+    };
+    
+    const errorMessage = extractErrorMessage(error.data);
     
     // Create enhanced error with user-friendly messages
     const enhanceError = (status: number, defaultMessage: string) => {
+      const extractedMessage = extractErrorMessage(error.data);
       return {
         ...error,
         data: {
-          message: error.data?.message || defaultMessage,
+          message: extractedMessage || defaultMessage,
           status,
-          ...(error.data || {})
-        }
+          ...(error.data || {}),
+        } as any
       } as FetchBaseQueryError;
     };
 
-    // Handle 400 Bad Request - check for organization errors
+    // Handle 400 Bad Request
     if (error.status === 400) {
       if (errorMessage.includes('Organization') && errorMessage.includes('not found')) {
         console.error("❌ Organization not found (400):", error.data);
-        // Handle invalid organization - could redirect or show error
-        // For now, just log and return enhanced error
         result.error = enhanceError(400, "Organization not found or is inactive. Please contact support.");
+        const enhancedErrorData = result.error.data as any;
+        toast.error(enhancedErrorData?.message || "Organization not found or is inactive. Please contact support.");
       } else {
         console.error("❌ Bad Request (400):", error.data);
         result.error = enhanceError(400, "Invalid request. Please check your input.");
+        // Show the actual error message if available, otherwise show default
+        if (errorMessage) {
+          toast.error(errorMessage);
+        }
       }
     }
     
@@ -276,16 +295,19 @@ const baseQueryWithReauth: BaseQueryFn<
     else if (error.status === 403) {
       console.error("❌ Forbidden (403):", error.data);
       result.error = enhanceError(403, "You don't have permission to perform this action.");
+      toast.error(errorMessage || "You don't have permission to perform this action.");
     }
     
-    // Handle 404 Not Found - check for organization context required
+    // Handle 404 Not Found
     else if (error.status === 404) {
       if (errorMessage.includes('Organization context required')) {
         console.error("❌ Organization context required (404):", error.data);
         result.error = enhanceError(404, "Organization context is required. Please ensure you're accessing the correct organization.");
+        toast.error("Organization context is required. Please ensure you're accessing the correct organization.");
       } else {
         console.error("❌ Not Found (404):", error.data);
         result.error = enhanceError(404, "The requested resource was not found.");
+        toast.error(errorMessage || "The requested resource was not found.");
       }
     }
     
@@ -293,12 +315,19 @@ const baseQueryWithReauth: BaseQueryFn<
     else if (error.status === 500) {
       console.error("❌ Server Error (500):", error.data);
       result.error = enhanceError(500, "Server error occurred. Please try again later.");
+      toast.error("Server error occurred. Please try again later.");
     }
     
     // Handle other server errors (502, 503, 504)
     else if (typeof error.status === 'number' && error.status >= 502 && error.status <= 504) {
       console.error(`❌ Server Error (${error.status}):`, error.data);
       result.error = enhanceError(error.status, "Service temporarily unavailable. Please try again later.");
+      toast.error("Service temporarily unavailable. Please try again later.");
+    }
+    
+    // Handle any other errors with messages
+    else if (errorMessage) {
+      toast.error(errorMessage);
     }
   }
 

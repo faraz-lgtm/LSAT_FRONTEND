@@ -128,8 +128,7 @@ export function TasksMutateDrawer({
       form.reset()
     } catch (error: unknown) {
       console.error('Task creation error:', error);
-      const errorMessage = (error as { data?: { message?: string } })?.data?.message || "Failed to save task"
-      toast.error(errorMessage)
+      // Error toast is handled centrally in api.ts
     }
   }
 

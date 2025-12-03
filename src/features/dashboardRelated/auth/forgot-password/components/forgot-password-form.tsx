@@ -49,22 +49,15 @@ export function ForgotPasswordForm({
     } catch (error: any) {
       console.error('Forgot password error:', error)
       
-      // Handle different types of errors
-      if (error?.data?.message) {
-        toast.error(error.data.message)
-      } else if (error?.status === 429) {
-        toast.error('Too many requests. Please try again later.')
-      } else if (error?.status >= 500) {
-        toast.error('Server error. Please try again later.')
-      } else {
-        // Always show success message to prevent user enumeration
-        localStorage.setItem('passwordResetIdentifier', data.identifier)
-        toast.success('If the provided email or phone number exists, an OTP code has been sent.')
-        navigate({ 
-          to: '/otp',
-          search: { identifier: data.identifier }
-        })
-      }
+      // Always show success message to prevent user enumeration (even on error)
+      // This prevents attackers from determining if an email/phone exists
+      localStorage.setItem('passwordResetIdentifier', data.identifier)
+      toast.success('If the provided email or phone number exists, an OTP code has been sent.')
+      navigate({ 
+        to: '/otp',
+        search: { identifier: data.identifier }
+      })
+      // Error toast is handled centrally in api.ts (but we show success to prevent enumeration)
     }
   }
 

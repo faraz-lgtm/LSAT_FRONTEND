@@ -330,7 +330,7 @@ export function UsersActionDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log("❌ Error:", error);
-      toast.error(error?.data?.error.message || `Failed to ${isEdit ? 'update' : 'create'} user`)
+      // Error toast is handled centrally in api.ts
     }
   }
 

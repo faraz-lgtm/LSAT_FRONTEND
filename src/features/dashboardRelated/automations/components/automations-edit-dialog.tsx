@@ -246,7 +246,7 @@ export function AutomationsEditDialog({
       onOpenChange(false)
     } catch (error: any) {
       console.error('Failed to update automation:', error)
-      toast.error(error?.data?.message || 'Failed to update automation')
+      // Error toast is handled centrally in api.ts
     }
   }
 

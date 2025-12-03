@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router'
 import {
   Card,
   CardContent,
@@ -9,6 +8,7 @@ import {
 } from '@/components/dashboard/ui/card'
 import { AuthLayout } from '../auth-layout'
 import { OtpForm } from './components/otp-form'
+import { ResendCodeButton } from './components/resend-code-button'
 
 export function Otp() {
   return (
@@ -20,23 +20,14 @@ export function Otp() {
           </CardTitle>
           <CardDescription>
             Please enter the authentication code. <br /> We have sent the
-            authentication code to your email.
+            authentication code to your Email and Phone Number.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <OtpForm />
         </CardContent>
         <CardFooter>
-          <p className='text-muted-foreground px-8 text-center text-sm'>
-            Haven't received it?{' '}
-            <Link
-              to='/sign-in'
-              className='hover:text-primary underline underline-offset-4'
-            >
-              Resend a new code.
-            </Link>
-            .
-          </p>
+          <ResendCodeButton />
         </CardFooter>
       </Card>
     </AuthLayout>

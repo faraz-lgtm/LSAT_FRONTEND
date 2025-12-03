@@ -6,14 +6,12 @@ import {
   Edit,
   Search as SearchIcon,
   Send,
-  Filter,
 } from 'lucide-react'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { Input } from '@/components/dashboard/ui/input'
 import { ScrollArea } from '@/components/dashboard/ui/scroll-area'
-import { Tabs, TabsList, TabsTrigger } from '@/components/dashboard/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -29,7 +27,6 @@ import { ProfileDropdown } from '@/components/dashboard/profile-dropdown'
 import { Search } from '@/components/dashboard/search'
 import { ThemeSwitch } from '@/components/dashboard/theme-switch'
 import { NewChat } from './components/new-chat'
-import { ConversationTabs } from './components/conversation-tabs'
 import { ConversationListItem } from './components/conversation-list-item'
 import { MessageThreadHeader } from './components/message-thread-header'
 import { ContactDetailsSidebar } from './components/contact-details-sidebar'
@@ -45,8 +42,6 @@ import type { RootState } from '@/redux/store'
 import { chatSocketService } from '@/services/chat/chat-socket.service'
 import { useSendEmailMutation, useDeleteConversationMutation } from '@/redux/apiSlices/Chat/chatSlice'
 
-type FilterType = 'unread' | 'recents' | 'starred' | 'all'
-type MainTabType = 'conversations' | 'manual-actions'
 
 export function Chats() {
   const authUser = useSelector((state: RootState) => state.auth.user)
@@ -78,8 +73,6 @@ export function Chats() {
     useState(false)
   const [deleteConversationDialogOpened, setDeleteConversationDialog] =
     useState(false)
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
-  const [mainTab, setMainTab] = useState<MainTabType>('conversations')
   const [messageText, setMessageText] = useState('')
 
   // Load conversations on mount
@@ -96,43 +89,16 @@ export function Chats() {
     }
   }, [currentConversation])
 
-  // Filter conversations based on active filter
+  // Filter conversations based on search
   const filteredConversations = useMemo(() => {
-    let filtered = conversations
-
-    // Apply main tab filter
-    if (mainTab === 'manual-actions') {
-      // For now, return empty for manual actions
-      filtered = []
+    if (!search.trim()) {
+      return conversations
     }
 
-    // Apply filter type
-    if (activeFilter === 'unread') {
-      filtered = filtered.filter((conv) => (conv.unreadCount || 0) > 0)
-    } else if (activeFilter === 'starred') {
-      filtered = filtered.filter((conv) => conv.isStarred)
-    } else if (activeFilter === 'recents') {
-      // Sort by last message timestamp
-      filtered = [...filtered].sort((a, b) => {
-        const aTime = a.lastMessageTimestamp
-          ? new Date(a.lastMessageTimestamp).getTime()
-          : 0
-        const bTime = b.lastMessageTimestamp
-          ? new Date(b.lastMessageTimestamp).getTime()
-          : 0
-        return bTime - aTime
-      })
-    }
-
-    // Apply search filter
-    if (search.trim()) {
-      filtered = filtered.filter(({ fullName }) =>
-        fullName.toLowerCase().includes(search.trim().toLowerCase())
-      )
-    }
-
-    return filtered
-  }, [conversations, search, activeFilter, mainTab])
+    return conversations.filter(({ fullName }) =>
+      fullName.toLowerCase().includes(search.trim().toLowerCase())
+    )
+  }, [conversations, search])
 
   // Group messages by date and sort within each group
   const currentMessage = useMemo(() => {
@@ -345,30 +311,7 @@ export function Chats() {
                 </Button>
               </div>
 
-              {/* Main Tabs */}
-              <Tabs
-                value={mainTab}
-                onValueChange={(value) => setMainTab(value as MainTabType)}
-              >
-                <TabsList className='mb-3 w-full'>
-                  <TabsTrigger value='conversations' className='flex-1'>
-                    Conversations
-                  </TabsTrigger>
-                  <TabsTrigger value='manual-actions' className='flex-1'>
-                    Manual Actions
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              {/* Filter Tabs */}
-              {mainTab === 'conversations' && (
-                <ConversationTabs
-                  activeFilter={activeFilter}
-                  onFilterChange={setActiveFilter}
-                />
-              )}
-
-              {/* Search and Filters */}
+              {/* Search */}
               <div className='mt-3 space-y-2'>
                 <div className='relative'>
                   <SearchIcon className='absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
@@ -379,28 +322,6 @@ export function Chats() {
                     onChange={(e) => setSearch(e.target.value)}
                     className='h-9 pl-8 pr-8'
                   />
-                  <div className='absolute right-2 top-1/2 flex -translate-y-1/2 gap-1'>
-                    <Button
-                      size='icon'
-                      variant='ghost'
-                      className='h-6 w-6'
-                      onClick={() => {
-                        // Handle filter
-                      }}
-                    >
-                      <Filter className='h-3 w-3' />
-                    </Button>
-                    <Button
-                      size='icon'
-                      variant='ghost'
-                      className='h-6 w-6'
-                      onClick={() => {
-                        // Handle edit
-                      }}
-                    >
-                      <Edit className='h-3 w-3' />
-                    </Button>
-                  </div>
                 </div>
                 <div className='flex items-center justify-between text-xs text-muted-foreground'>
                   <span>{filteredConversations.length} RESULTS</span>
@@ -447,9 +368,6 @@ export function Chats() {
                   (authUser?.username && String(authUser.username)) ||
                   (authUser?.id ? String(authUser.id) : undefined)
                 }
-                onStar={() => {
-                  // Handle star
-                }}
                 onEmail={async () => {
                   if (!currentConversation) {
                     return
@@ -483,12 +401,6 @@ export function Chats() {
                 }}
                 onDelete={() => {
                   setDeleteConversationDialog(true)
-                }}
-                onFilter={() => {
-                  // Handle filter
-                }}
-                onExpand={() => {
-                  // Handle expand
                 }}
               />
 

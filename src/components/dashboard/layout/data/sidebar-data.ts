@@ -150,10 +150,6 @@ const sidebarData: SidebarData = {
               url: "/clerk/sign-in",
             },
             {
-              title: "Sign Up",
-              url: "/clerk/sign-up",
-            },
-            {
               title: "User Management",
               url: "/clerk/user-management",
             },
@@ -175,10 +171,6 @@ const sidebarData: SidebarData = {
             {
               title: "Sign In (2 Col)",
               url: "/sign-in-2",
-            },
-            {
-              title: "Sign Up",
-              url: "/sign-up",
             },
             {
               title: "Forgot Password",

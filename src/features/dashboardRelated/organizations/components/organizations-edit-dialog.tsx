@@ -229,7 +229,7 @@ export function OrganizationsEditDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Error:", error)
-      toast.error(error?.data?.message || error?.data?.error?.message || `Failed to ${isEdit ? 'update' : 'create'} organization`)
+      // Error toast is handled centrally in api.ts
     }
   }
 
