@@ -27,6 +27,7 @@ export function ResendCodeButton() {
       }, 1000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [cooldown])
 
   const handleResend = async () => {

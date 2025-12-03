@@ -213,6 +213,11 @@ export interface UserOutput {
    * @example true
    */
   googleCalendarIntegration: boolean;
+  /**
+   * Whether the customer has at least one paid order (totalPrice > 0)
+   * @example true
+   */
+  hasPaidOrder: boolean;
 }
 
 export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
@@ -1999,6 +2004,11 @@ export interface TopCustomerDto {
    * @example 5
    */
   orderCount: number;
+  /**
+   * Whether the customer has at least one paid order (totalPrice > 0)
+   * @example true
+   */
+  hasPaidOrder: boolean;
 }
 
 export interface RevenuePeriodDto {

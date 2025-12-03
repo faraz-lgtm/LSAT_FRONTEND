@@ -194,7 +194,7 @@ export const createAppointmentsColumns = (
         </Badge>
       )
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, _id, value) => {
       const task = row.original as TaskOutputDto
       return value.includes(task.attendanceStatus)
     },

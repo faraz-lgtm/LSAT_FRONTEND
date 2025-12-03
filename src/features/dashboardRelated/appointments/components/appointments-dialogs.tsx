@@ -35,13 +35,17 @@ export function AppointmentsDialogs({
   if (!currentRow) return null
 
   const tutorName = currentRow.tutorId && userIdToUser[currentRow.tutorId]
-    ? userIdToUser[currentRow.tutorId].name
+    ? userIdToUser[currentRow.tutorId]?.name || 'Not assigned'
     : 'Not assigned'
 
   const customerInvitee = currentRow.invitees?.find((i) => i.name === 'Customer')
   const customerEmail = customerInvitee?.email
-  const customer = customerEmail && emailToUser[customerEmail.toLowerCase()]
-  const customerName = customer?.name || customerInvitee?.name || customerEmail || 'Unknown'
+  const customer = customerEmail ? emailToUser[customerEmail.toLowerCase()] : undefined
+  const customerName =
+    (customer && typeof customer !== 'string' && 'name' in customer && customer.name) ||
+    customerInvitee?.name ||
+    customerEmail ||
+    'Unknown'
 
   return (
     <Dialog open={open === 'view'} onOpenChange={(isOpen) => setOpen(isOpen ? 'view' : null)}>
@@ -147,7 +151,7 @@ export function AppointmentsDialogs({
               <FileText className='size-4 text-muted-foreground mt-0.5' />
               <div>
                 <p className='text-muted-foreground'>Notes</p>
-                <p>{currentRow.notes}</p>
+                <p>{typeof currentRow.notes === 'string' ? currentRow.notes : currentRow.notes ? JSON.stringify(currentRow.notes) : 'No notes'}</p>
               </div>
             </div>
           )}
@@ -159,7 +163,17 @@ export function AppointmentsDialogs({
               <div>
                 <p className='text-muted-foreground'>Attendance marked</p>
                 <p className='text-xs'>
-                  {format(new Date(currentRow.attendanceMarkedAt), 'MMM d, yyyy h:mm a')}
+                  {(() => {
+                    const dateValue = currentRow.attendanceMarkedAt
+                    if (typeof dateValue === 'string') {
+                      return format(new Date(dateValue), 'MMM d, yyyy h:mm a')
+                    } else if (dateValue instanceof Date) {
+                      return format(dateValue, 'MMM d, yyyy h:mm a')
+                    } else if (dateValue && typeof dateValue === 'object' && 'toString' in dateValue) {
+                      return format(new Date(dateValue.toString()), 'MMM d, yyyy h:mm a')
+                    }
+                    return 'Unknown date'
+                  })()}
                 </p>
               </div>
             </div>
