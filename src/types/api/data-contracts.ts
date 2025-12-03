@@ -124,7 +124,7 @@ export interface CreateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -152,7 +152,7 @@ export interface UpdateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT MCAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT MCAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -208,6 +208,11 @@ export interface UserOutput {
    * @example [5,6,7,8]
    */
   serviceIds?: number[];
+  /**
+   * Whether Google Calendar integration is valid for this user
+   * @example true
+   */
+  googleCalendarIntegration: boolean;
 }
 
 export interface SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput {
@@ -314,6 +319,161 @@ export interface UpdateUserInput {
    * @example 5
    */
   lastAssignedOrderCount?: number;
+  /**
+   * Array of service IDs this employee can work on
+   * @example [5,6,7,8]
+   */
+  serviceIds?: number[];
+}
+
+export interface CalendarVerificationOutputDto {
+  /**
+   * Whether calendar configuration is valid
+   * @example true
+   */
+  isValid: boolean;
+  /**
+   * Error message if configuration is invalid
+   * @example "OAuth2 credentials not found. Please authorize the application."
+   */
+  error?: string;
+  /**
+   * Detailed error information
+   * @example {"hasClientId":true,"hasClientSecret":true,"hasAccessToken":false,"hasRefreshToken":false}
+   */
+  details?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassCalendarVerificationOutputDto {
+  meta: MetaResponse;
+  data: CalendarVerificationOutputDto;
+}
+
+export interface GoogleCalendarConfigInputDto {
+  /**
+   * Google OAuth2 Client ID
+   * @example "123456789-abc.apps.googleusercontent.com"
+   */
+  clientId: string;
+  /**
+   * Google OAuth2 Client Secret
+   * @example "GOCSPX-abc123"
+   */
+  clientSecret: string;
+  /**
+   * OAuth2 Redirect URI
+   * @example "http://localhost:3000/auth/google/callback"
+   */
+  redirectUri: string;
+  /**
+   * OAuth2 Access Token
+   * @example "ya29.a0AfH6SMC..."
+   */
+  accessToken: string;
+  /**
+   * OAuth2 Refresh Token
+   * @example "1//0gabc123..."
+   */
+  refreshToken: string;
+  /**
+   * Default timezone for calendar events
+   * @default "America/New_York"
+   * @example "America/New_York"
+   */
+  defaultTimezone?: string;
+}
+
+export interface CalendarListOutputDto {
+  /**
+   * Calendar ID
+   * @example "primary"
+   */
+  id: string;
+  /**
+   * Calendar summary/name
+   * @example "My Calendar"
+   */
+  summary: string;
+  /**
+   * Calendar description
+   * @example "My personal calendar"
+   */
+  description?: string;
+  /**
+   * Whether this is the primary calendar
+   * @example true
+   */
+  primary: boolean;
+  /**
+   * Calendar timezone
+   * @example "America/New_York"
+   */
+  timeZone?: string;
+  /**
+   * Calendar access role
+   * @example "owner"
+   */
+  accessRole?: string;
+}
+
+export interface SwaggerBaseApiResponseForClassCalendarListOutputDto {
+  meta: MetaResponse;
+  data: CalendarListOutputDto[];
+}
+
+export interface CalendarEventOutputDto {
+  /**
+   * Event ID
+   * @example "abc123def456"
+   */
+  id: string;
+  /**
+   * Event summary/title
+   * @example "Meeting with Client"
+   */
+  summary: string;
+  /**
+   * Event description
+   * @example "Discuss project requirements"
+   */
+  description?: string;
+  /**
+   * Event start time
+   * @example {"dateTime":"2025-11-23T19:00:00.000Z","timeZone":"America/New_York"}
+   */
+  start: object;
+  /**
+   * Event end time
+   * @example {"dateTime":"2025-11-23T20:00:00.000Z","timeZone":"America/New_York"}
+   */
+  end: object;
+  /**
+   * Calendar ID this event belongs to (for all calendars endpoint)
+   * @example "primary"
+   */
+  calendarId?: string;
+  /**
+   * Event location
+   * @example "123 Main St, New York, NY"
+   */
+  location?: string;
+  /**
+   * Event attendees
+   * @example [{"email":"attendee@example.com","displayName":"John Doe","responseStatus":"accepted"}]
+   */
+  attendees?: string[];
+  /** Conference data (for Google Meet links) */
+  conferenceData?: object;
+  /**
+   * Event status
+   * @example "confirmed"
+   */
+  status?: string;
+}
+
+export interface SwaggerBaseApiResponseForClassCalendarEventOutputDto {
+  meta: MetaResponse;
+  data: CalendarEventOutputDto[];
 }
 
 export interface LoginInput {
@@ -355,6 +515,11 @@ export interface UserAccessTokenClaims {
    * @example 1
    */
   organizationId: number;
+  /**
+   * Google Calendar configuration
+   * @example {"clientId":"123456789-abc.apps.googleusercontent.com","clientSecret":"GOCSPX-abc123","redirectUri":"http://localhost:3000/auth/google/callback","accessToken":"ya29.a0AfH6SMC...","refreshToken":"1//0gabc123...","defaultTimezone":"America/New_York"}
+   */
+  googleCalendarConfig?: object;
 }
 
 export interface LoginOutput {
@@ -778,6 +943,165 @@ export interface CancelOrderResultDto {
 export interface SwaggerBaseApiResponseForClassCancelOrderResultDto {
   meta: MetaResponse;
   data: CancelOrderResultDto;
+}
+
+export interface OrderAppointmentQueryDto {
+  /**
+   * Filter by assigned employee ID
+   * @example 1
+   */
+  assignedEmployeeId?: number;
+  /** Filter by task status */
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  /** Filter by task priority */
+  priority?: "low" | "medium" | "high";
+  /** Filter by task label */
+  label?: "meeting" | "personal" | "preparation" | "grading";
+  /** Filter by attendance status */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * Filter appointments from this date
+   * @example "2024-01-15T00:00:00.000Z"
+   */
+  startDate?: string;
+  /**
+   * Filter appointments to this date
+   * @example "2024-01-31T23:59:59.000Z"
+   */
+  endDate?: string;
+  /**
+   * Number of appointments to return
+   * @min 1
+   * @max 100
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Number of appointments to skip
+   * @min 0
+   * @example 0
+   */
+  offset?: number;
+}
+
+export interface TaskOutputDto {
+  /**
+   * Task ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Source type of the task (task or order_appointment)
+   * @example "task"
+   */
+  type: "task" | "order_appointment";
+  /**
+   * Task title
+   * @example "Prepare lesson materials"
+   */
+  title: string;
+  /**
+   * Task description
+   * @example "Review chapter 5 and prepare exercises"
+   */
+  description?: string;
+  /**
+   * Task start date and time
+   * @format date-time
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  startDateTime: string;
+  /**
+   * Task end date and time
+   * @format date-time
+   * @example "2024-01-15T15:00:00.000Z"
+   */
+  endDateTime: string;
+  /**
+   * Tutor ID who created this task
+   * @example 1
+   */
+  tutorId: number;
+  /**
+   * Google Calendar event ID
+   * @example "abc123def456"
+   */
+  googleCalendarEventId?: string;
+  /**
+   * Meeting link (Zoom, Google Meet, etc.)
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  meetingLink?: string;
+  /** List of invitees/attendees */
+  invitees?: {
+    /** @example "john@example.com" */
+    email?: string;
+    /** @example "John Doe" */
+    name?: string;
+    /** @example "accepted" */
+    responseStatus?: string;
+    /** @example 5 */
+    id?: number;
+  }[];
+  /**
+   * Task label
+   * @example "meeting"
+   */
+  label: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Task priority
+   * @example "medium"
+   */
+  priority: "low" | "medium" | "high";
+  /**
+   * Task status
+   * @example "pending"
+   */
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  /**
+   * Task creation timestamp
+   * @format date-time
+   * @example "2024-01-15T10:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Task last update timestamp
+   * @format date-time
+   * @example "2024-01-15T12:00:00.000Z"
+   */
+  updatedAt: string;
+  /**
+   * Order ID (if this task is from an order appointment)
+   * @example 501
+   */
+  orderId?: number;
+  /**
+   * Order item/product ID (if this task is from an order appointment)
+   * @example 5
+   */
+  itemId?: number;
+  /** Attendance status (if this task is from an order appointment) */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * When the attendance was marked (if this task is from an order appointment)
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  attendanceMarkedAt?: object;
+  /**
+   * User ID who marked the attendance (if this task is from an order appointment)
+   * @example 1
+   */
+  attendanceMarkedBy?: object;
+  /**
+   * Notes about the appointment/task
+   * @example "Student needs extra help with logic games"
+   */
+  notes?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto[];
 }
 
 export interface SlotsQueryDto {
@@ -1602,121 +1926,6 @@ export interface TaskInputDto {
   status?: "pending" | "in_progress" | "completed" | "cancelled";
 }
 
-export interface TaskOutputDto {
-  /**
-   * Task ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Source type of the task (task or order_appointment)
-   * @example "task"
-   */
-  type: "task" | "order_appointment";
-  /**
-   * Task title
-   * @example "Prepare lesson materials"
-   */
-  title: string;
-  /**
-   * Task description
-   * @example "Review chapter 5 and prepare exercises"
-   */
-  description?: string;
-  /**
-   * Task start date and time
-   * @format date-time
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  startDateTime: string;
-  /**
-   * Task end date and time
-   * @format date-time
-   * @example "2024-01-15T15:00:00.000Z"
-   */
-  endDateTime: string;
-  /**
-   * Tutor ID who created this task
-   * @example 1
-   */
-  tutorId: number;
-  /**
-   * Google Calendar event ID
-   * @example "abc123def456"
-   */
-  googleCalendarEventId?: string;
-  /**
-   * Meeting link (Zoom, Google Meet, etc.)
-   * @example "https://meet.google.com/abc-defg-hij"
-   */
-  meetingLink?: string;
-  /** List of invitees/attendees */
-  invitees?: {
-    /** @example "john@example.com" */
-    email?: string;
-    /** @example "John Doe" */
-    name?: string;
-    /** @example "accepted" */
-    responseStatus?: string;
-    /** @example 5 */
-    id?: number;
-  }[];
-  /**
-   * Task label
-   * @example "meeting"
-   */
-  label: "meeting" | "personal" | "preparation" | "grading";
-  /**
-   * Task priority
-   * @example "medium"
-   */
-  priority: "low" | "medium" | "high";
-  /**
-   * Task status
-   * @example "pending"
-   */
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  /**
-   * Task creation timestamp
-   * @format date-time
-   * @example "2024-01-15T10:00:00.000Z"
-   */
-  createdAt: string;
-  /**
-   * Task last update timestamp
-   * @format date-time
-   * @example "2024-01-15T12:00:00.000Z"
-   */
-  updatedAt: string;
-  /**
-   * Order ID (if this task is from an order appointment)
-   * @example 501
-   */
-  orderId?: number;
-  /**
-   * Order item/product ID (if this task is from an order appointment)
-   * @example 5
-   */
-  itemId?: number;
-  /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
-  /**
-   * When the attendance was marked (if this task is from an order appointment)
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  attendanceMarkedAt?: object;
-  /**
-   * User ID who marked the attendance (if this task is from an order appointment)
-   * @example 1
-   */
-  attendanceMarkedBy?: object;
-  /**
-   * Notes about the appointment/task
-   * @example "Student needs extra help with logic games"
-   */
-  notes?: object;
-}
-
 export interface TaskQueryDto {
   /**
    * Filter by tutor ID
@@ -1762,11 +1971,6 @@ export interface TaskQueryDto {
 export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   meta: MetaResponse;
   data: TaskOutputDto;
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto[];
 }
 
 export interface TopCustomerDto {
@@ -2271,8 +2475,11 @@ export interface MessageOutputDto {
   sid: string;
   /** Index of message in conversation */
   index: number;
-  /** Message author identity */
-  author: string;
+  /**
+   * Message author user ID (numeric database ID)
+   * @example 156
+   */
+  author?: number;
   /** Message body/content */
   body: string;
   /** Message attributes */
@@ -2295,6 +2502,26 @@ export interface MessageOutputDto {
   emailSubject?: string;
   /** Email body content (for EMAIL channel messages) */
   emailBody?: string;
+  /**
+   * Email HTML content with inline images as data URIs (for EMAIL channel messages)
+   * @example "<p>Hello <img src="data:image/png;base64,..."></p>"
+   */
+  emailHtml?: string;
+  /**
+   * Email Message-ID header for threading (for EMAIL channel messages). Used to link email replies together.
+   * @example "<1234567890-abc123@example.com>"
+   */
+  emailMessageId?: string;
+  /**
+   * In-Reply-To header value indicating which message this replies to (for EMAIL channel messages). Contains the Message-ID of the message being replied to.
+   * @example "<1234567890-abc123@example.com>"
+   */
+  emailInReplyTo?: string;
+  /**
+   * References header value containing message thread history (for EMAIL channel messages). Contains space-separated Message-IDs of all messages in the thread.
+   * @example "<msg1@example.com> <msg2@example.com>"
+   */
+  emailReferences?: string;
 }
 
 export interface ConversationOutputDto {
@@ -2351,12 +2578,7 @@ export interface SuccessResponseDto {
 
 export interface ParticipantDto {
   /**
-   * Communication channel type
-   * @example "SMS"
-   */
-  channel: "SMS" | "WHATSAPP" | "EMAIL";
-  /**
-   * User ID of the recipient. For SMS/WhatsApp: uses user's registered phone. Note: Email participants are NOT supported by Twilio Conversations API - emails are sent via SendGrid separately.
+   * User ID of the participant
    * @example "156"
    */
   userId: string;
@@ -2368,8 +2590,8 @@ export interface CreateConversationDto {
    * @example "Chat with John Doe"
    */
   friendlyName: string;
-  /** Participants to add to the conversation */
-  participants?: ParticipantDto[];
+  /** Participants to add to the conversation. Provide at least one other user (the current user is automatically added as a participant). */
+  participants: ParticipantDto[];
   /** Custom attributes (key-value pairs) */
   attributes?: object;
 }
@@ -2431,9 +2653,64 @@ export interface SendEmailDto {
   attachments?: EmailAttachmentDto[];
 }
 
-export interface SwaggerBaseApiResponseForClassConversationOutputDto {
+export interface ThreadParticipantDto {
+  /** User ID of the participant */
+  userId: number;
+  /** Full name of the participant */
+  fullName?: string;
+  /** Email address of the participant */
+  email?: string;
+  /** Phone number of the participant */
+  phone?: string;
+}
+
+export interface ConversationChannelSummaryDto {
+  /**
+   * Channel associated with the Twilio conversation
+   * @example "SMS"
+   */
+  channel: "SMS" | "WHATSAPP" | "EMAIL";
+  /**
+   * Twilio conversation SID for the given channel
+   * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   */
+  conversationSid: string;
+}
+
+export interface ThreadConversationOutputDto {
+  /**
+   * Database ID of the primary conversation (typically SMS channel)
+   * @example 12
+   */
+  id: number;
+  /** Thread identifier composed of participant IDs */
+  threadId: string;
+  /** Friendly name for the thread */
+  friendlyName: string;
+  /**
+   * User ID that initiated this thread
+   * @example 7
+   */
+  initiatorUserId: number;
+  /** Participant metadata associated with this thread */
+  participants: ThreadParticipantDto[];
+  /**
+   * User ID of the person the current user is chatting with
+   * @example 42
+   */
+  counterpartUserId: number;
+  /** Conversation SIDs grouped by communication channel */
+  channels: ConversationChannelSummaryDto[];
+  /**
+   * Original email subject (without "Re:" prefix) for EMAIL conversations. Used to maintain consistent subject line across email thread.
+   * @example "Your inquiry"
+   */
+  originalSubject?: string;
+}
+
+export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
   meta: MetaResponse;
-  data: ConversationOutputDto[];
+  data: ThreadConversationOutputDto[];
 }
 
 export interface SwaggerBaseApiResponseForClassConversationOutputDto {
@@ -2444,6 +2721,11 @@ export interface SwaggerBaseApiResponseForClassConversationOutputDto {
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
   meta: MetaResponse;
   data: MessageOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassThreadConversationOutputDto {
+  meta: MetaResponse;
+  data: ThreadConversationOutputDto;
 }
 
 export interface SwaggerBaseApiResponseForClassMessageOutputDto {
@@ -2460,3 +2742,190 @@ export interface SwaggerBaseApiResponseForClassSuccessResponseDto {
   meta: MetaResponse;
   data: SuccessResponseDto;
 }
+
+export interface CallLogDto {
+  /**
+   * Unique identifier for the call recording
+   * @example 1
+   */
+  id: number;
+  /**
+   * Twilio Recording SID (unique identifier for the recording)
+   * @example "RE1234567890abcdef1234567890abcdef"
+   */
+  recordingSid: string;
+  /**
+   * Twilio Call SID associated with this recording
+   * @example "CA1234567890abcdef1234567890abcdef"
+   */
+  callSid?: string;
+  /**
+   * URL to access the recording file
+   * @example "https://api.twilio.com/2010-04-01/Accounts/AC.../Recordings/RE..."
+   */
+  recordingUrl?: string;
+  /**
+   * Status of the recording
+   * @example "completed"
+   */
+  recordingStatus?: "completed" | "processing" | "failed";
+  /**
+   * Duration of the recording in seconds
+   * @example 120
+   */
+  recordingDuration?: number;
+  /**
+   * Number of audio channels in the recording
+   * @example "1"
+   */
+  recordingChannels?: string;
+  /**
+   * Source of the recording (e.g., DialVerb, RecordVerb)
+   * @example "DialVerb"
+   */
+  recordingSource?: string;
+  /**
+   * Price of the recording
+   * @example "0.0025"
+   */
+  recordingPrice?: string;
+  /**
+   * Currency unit for the recording price
+   * @example "USD"
+   */
+  recordingPriceUnit?: string;
+  /**
+   * Timestamp when the recording was created
+   * @format date-time
+   * @example "2024-01-15T10:30:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Timestamp when the recording was last updated
+   * @format date-time
+   * @example "2024-01-15T10:35:00.000Z"
+   */
+  updatedAt: string;
+}
+
+export interface CallWithLogsDto {
+  /**
+   * Unique identifier for the call
+   * @example 1
+   */
+  id: number;
+  /**
+   * Twilio Call SID (unique identifier for the call)
+   * @example "CA1234567890abcdef1234567890abcdef"
+   */
+  callSid: string;
+  /**
+   * Twilio Application SID used for the call
+   * @example "AP1234567890abcdef1234567890abcdef"
+   */
+  applicationSid?: string;
+  /**
+   * Twilio API version used
+   * @example "2010-04-01"
+   */
+  apiVersion?: string;
+  /**
+   * Current status of the call
+   * @example "completed"
+   */
+  callStatus?:
+    | "queued"
+    | "ringing"
+    | "in-progress"
+    | "completed"
+    | "busy"
+    | "failed"
+    | "no-answer"
+    | "canceled";
+  /**
+   * Direction of the call (inbound or outbound)
+   * @example "outbound"
+   */
+  direction?: "inbound" | "outbound";
+  /**
+   * Twilio Account SID
+   * @example "AC1234567890abcdef1234567890abcdef"
+   */
+  accountSid?: string;
+  /**
+   * Caller phone number or identifier
+   * @example "+1234567890"
+   */
+  caller?: string;
+  /**
+   * Phone number or identifier that initiated the call
+   * @example "client:user123"
+   */
+  from?: string;
+  /**
+   * Phone number or identifier that received the call
+   * @example "+1234567890"
+   */
+  to?: string;
+  /**
+   * Phone number that was called
+   * @example "+1234567890"
+   */
+  called?: string;
+  /**
+   * ID of the user who initiated the call
+   * @example 42
+   */
+  initiatedByUserId?: number;
+  /**
+   * ID of the conversation associated with this call
+   * @example 11
+   */
+  conversationId?: number;
+  /**
+   * Duration of the call in seconds
+   * @example 180
+   */
+  duration?: number;
+  /**
+   * Price of the call
+   * @example "0.0125"
+   */
+  price?: string;
+  /**
+   * Currency unit for the call price
+   * @example "USD"
+   */
+  priceUnit?: string;
+  /**
+   * Timestamp when the call was created
+   * @format date-time
+   * @example "2024-01-15T10:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Timestamp when the call was last updated
+   * @format date-time
+   * @example "2024-01-15T10:05:00.000Z"
+   */
+  updatedAt: string;
+  /**
+   * Array of call logs (recordings) associated with this call
+   * @example [{"id":1,"recordingSid":"RE1234567890abcdef1234567890abcdef","callSid":"CA1234567890abcdef1234567890abcdef","recordingUrl":"https://api.twilio.com/2010-04-01/Accounts/AC.../Recordings/RE...","recordingStatus":"completed","recordingDuration":180,"recordingChannels":"1","recordingSource":"DialVerb","recordingPrice":"0.0025","recordingPriceUnit":"USD","createdAt":"2024-01-15T10:00:00.000Z","updatedAt":"2024-01-15T10:05:00.000Z"}]
+   */
+  callLogs: CallLogDto[];
+}
+
+export interface CallsByConversationResponseDto {
+  /**
+   * Array of calls with their associated call logs for the specified conversation
+   * @example {"calls":[{"id":1,"callSid":"CA1234567890abcdef1234567890abcdef","conversationId":11,"callStatus":"completed","direction":"outbound","duration":180,"from":"client:user123","to":"+1234567890","callLogs":[{"id":1,"recordingSid":"RE1234567890abcdef1234567890abcdef","recordingStatus":"completed","recordingDuration":180,"recordingUrl":"https://api.twilio.com/..."}]}]}
+   */
+  calls: CallWithLogsDto[];
+}
+
+export type RequestVoiceTokenDto = object;
+
+export type RecordingCallbackDto = object;
+
+export type CallStatusCallbackDto = object;
