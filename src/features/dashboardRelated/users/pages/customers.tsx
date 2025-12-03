@@ -50,6 +50,7 @@ export function CustomersPage() {
             search={search}
             hideUsernameColumn
             hideRolesFilter
+            showGoogleCalendarColumn={false}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigate={navigate as any}
           />

@@ -54,6 +54,7 @@ export function EmployeesPage() {
             search={search}
             hideCustomerTypeFilter
             excludeRolesFromFilter={['cust']}
+            showGoogleCalendarColumn
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigate={navigate as any}
           />

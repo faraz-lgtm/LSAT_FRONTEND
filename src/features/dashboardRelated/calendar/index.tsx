@@ -402,19 +402,19 @@ export default function Calendar() {
                   Disconnect
                 </Button>
               ) : (
-                <Button
-                  disabled={connectButtonDisabled}
-                  onClick={() => {
-                    if (authUrl && !connectButtonDisabled) {
-                      window.location.href = authUrl;
-                    }
-                  }}
+            <Button
+              disabled={connectButtonDisabled}
+              onClick={() => {
+                if (authUrl && !connectButtonDisabled) {
+                  window.location.href = authUrl;
+                }
+              }}
                   variant="default"
-                  className="w-full md:w-auto"
-                >
-                  {connectionChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {connectButtonLabel}
-                </Button>
+              className="w-full md:w-auto"
+            >
+              {connectionChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {connectButtonLabel}
+            </Button>
               )}
             </div>
           </div>

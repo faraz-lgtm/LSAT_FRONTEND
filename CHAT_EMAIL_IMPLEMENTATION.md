@@ -299,3 +299,4 @@ When an email is sent or received:
 - Channel filtering ensures messages are shown in correct channel tab
 - WebSocket events provide real-time updates for both SMS and EMAIL
 
+
