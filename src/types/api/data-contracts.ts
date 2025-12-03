@@ -2162,11 +2162,6 @@ export interface SlackAutomationParameters {
    */
   delayMinutes?: number;
   /**
-   * Slack channel to send notification to
-   * @example "#orders"
-   */
-  channel?: string;
-  /**
    * Custom message text with placeholders. Available: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}
    * @example "🎉 New order #{{orderId}} from {{customerName}} - ${{total}}"
    */
@@ -2176,6 +2171,36 @@ export interface SlackAutomationParameters {
    * @example "New Order #{{orderId}}"
    */
   customBlockMessage?: string;
+  /**
+   * Whether to include order details in the Slack message
+   * @default true
+   * @example true
+   */
+  includeOrderDetails?: boolean;
+  /**
+   * Whether to include appointment information in the Slack message
+   * @default true
+   * @example true
+   */
+  includeAppointments?: boolean;
+  /**
+   * Whether to include order items in the Slack message
+   * @default true
+   * @example true
+   */
+  includeItems?: boolean;
+  /**
+   * Whether to include customer information in the Slack message
+   * @default true
+   * @example true
+   */
+  includeCustomerInfo?: boolean;
+  /**
+   * Whether to include meeting link in the Slack message
+   * @default true
+   * @example true
+   */
+  includeMeetingLink?: boolean;
 }
 
 export interface EmailAutomationParameters {
@@ -2244,12 +2269,24 @@ export interface CreateAutomationDto {
    * Communication tool type used for this automation
    * @example "email"
    */
-  toolType: "email" | "sms" | "slack" | "whatsapp";
+  toolType: "email" | "sms" | "slack";
   /**
-   * Default parameters for the automation (JSON object)
+   * Parameters for the automation (JSON object)
    * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
    */
-  defaultParameters?: object;
+  parameters?: object;
+  /**
+   * Scheduling type for the automation
+   * @default "fixed-delay"
+   * @example "fixed-delay"
+   */
+  schedulingType?: "fixed-delay" | "session-based";
+  /**
+   * Whether the automation is enabled
+   * @default false
+   * @example false
+   */
+  isEnabled?: boolean;
   /**
    * Whether the automation is archived
    * @default false
@@ -2296,25 +2333,25 @@ export interface UpdateAutomationDto {
    * Communication tool type used for this automation
    * @example "email"
    */
-  toolType?: "email" | "sms" | "slack" | "whatsapp";
+  toolType?: "email" | "sms" | "slack";
   /**
-   * Default parameters for the automation (JSON object)
-   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
+   * Scheduling type for the automation
+   * @example "fixed-delay"
    */
-  defaultParameters?: object;
+  schedulingType?: "fixed-delay" | "session-based";
   /**
    * Whether the automation is archived
    * @example false
    */
   archived?: boolean;
   /**
-   * Enable or disable the automation (organization-specific)
+   * Enable or disable the automation
    * @example true
    */
   isEnabled?: boolean;
   /**
-   * Organization-specific configuration parameters for the automation (merges with defaultParameters)
-   * @example {"delayMinutes":30,"channel":"#custom-orders"}
+   * Configuration parameters for the automation
+   * @example {"delayMinutes":30,"customMessage":"Custom message for {{customerName}}"}
    */
   parameters?: object;
 }
@@ -2362,7 +2399,7 @@ export interface AutomationConfigOutputDto {
    * Communication tool used for this automation
    * @example "email"
    */
-  toolType: "email" | "sms" | "slack" | "whatsapp";
+  toolType: "email" | "sms" | "slack";
   /**
    * Whether the automation is enabled for this organization
    * @example true
@@ -2374,15 +2411,10 @@ export interface AutomationConfigOutputDto {
    */
   archived: boolean;
   /**
-   * Configuration parameters for the automation (merged from default and org-specific)
-   * @example {"delayMinutes":0,"channel":"#orders"}
+   * Configuration parameters for the automation
+   * @example {"delayMinutes":0,"customMessage":"New order #{{orderId}}"}
    */
   parameters?: object;
-  /**
-   * Default parameters defined for the automation
-   * @example {"delayMinutes":0,"template":"order-confirmation"}
-   */
-  defaultParameters?: object;
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {

@@ -8,7 +8,7 @@ import { roles } from '../data/data'
 import { type UserOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 import { ClickableOrderBadge } from './clickable-order-badge'
-import { CheckCircle, AlertTriangle } from 'lucide-react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 
 export const usersColumns: ColumnDef<UserOutput>[] = [
   {
@@ -187,25 +187,23 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
     accessorKey: 'googleCalendarIntegration',
     header: ({ column }) => (
       <div className="flex items-center justify-start">
-        <DataTableColumnHeader column={column} title='Calendar Integration' />
+        <DataTableColumnHeader column={column} title='Google Calendar' />
       </div>
     ),
     cell: ({ row }) => {
-      const calendarIntegration = row.getValue('googleCalendarIntegration') as boolean
-      console.log('calendarIntegration', calendarIntegration)
-      console.log('row', row)
+      const isIntegrated = row.getValue('googleCalendarIntegration') as boolean
       
       return (
         <div className='flex items-center justify-center'>
-          {calendarIntegration ? (
-            <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-500' />
+          {isIntegrated ? (
+            <CheckCircle2 size={18} className='text-green-600 dark:text-green-400' />
           ) : (
-            <AlertTriangle className='h-5 w-5 text-red-600 dark:text-red-500' />
+            <XCircle size={18} className='text-red-600 dark:text-red-400' />
           )}
         </div>
       )
     },
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: true,
   },
   {

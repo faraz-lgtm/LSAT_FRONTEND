@@ -49,9 +49,10 @@ type DataTableProps = {
   hideRolesFilter?: boolean
   hideUsernameColumn?: boolean
   excludeRolesFromFilter?: string[]
+  showGoogleCalendarColumn?: boolean
 } 
 
-export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter }: DataTableProps) {
+export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter, showGoogleCalendarColumn }: DataTableProps) {
   const { setOpen, setCurrentRow } = useUsers()
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
@@ -178,6 +179,14 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
       setColumnVisibility((prev) => ({ ...prev, username: false }))
     }
   }, [hideUsernameColumn])
+
+  useEffect(() => {
+    // Hide Google Calendar column by default, show only when explicitly requested
+    setColumnVisibility((prev) => ({ 
+      ...prev, 
+      googleCalendarIntegration: showGoogleCalendarColumn === true 
+    }))
+  }, [showGoogleCalendarColumn])
 
   return (
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>

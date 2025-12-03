@@ -18,12 +18,14 @@ type AuthenticatedLayoutProps = {
 export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated, refreshToken } = useSelector((state: RootState) => state.auth)
   const defaultOpen = getCookie('sidebar_state') !== 'false'
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated || !user) {
+    // Only redirect if we truly have no way to authenticate
+    // If we have refreshToken but no user yet, allow app to load
+    // User will be populated after first API call triggers token refresh
+    if (!isAuthenticated && !refreshToken) {
       // Preserve the current pathname for redirect after sign-in (avoid query param loops)
       const currentPath = location.pathname
       navigate({
@@ -32,10 +34,11 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
         replace: true,
       })
     }
-  }, [isAuthenticated, user, navigate, location.pathname])
+  }, [isAuthenticated, refreshToken, navigate, location.pathname])
 
-  // Show loading spinner while checking authentication
-  if (!isAuthenticated || !user) {
+  // Show loading spinner only if we have no way to authenticate
+  // If we have refreshToken, allow app to load (user will be populated after refresh)
+  if (!isAuthenticated && !refreshToken) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>

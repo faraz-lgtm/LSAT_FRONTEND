@@ -36,6 +36,7 @@ import CalendarNav from "./components/calendar-nav";
 import {
   useVerifyCalendarAuthorizationQuery,
   useSaveCalendarCredentialsMutation,
+  useDeleteCalendarCredentialsMutation,
   useLazyGetUserCalendarsQuery,
   useLazyGetCalendarEventsQuery,
 } from "@/redux/apiSlices/Calendar";
@@ -78,6 +79,9 @@ export default function Calendar() {
 
   const [saveCredentials, { isLoading: savingCredentials }] =
     useSaveCalendarCredentialsMutation();
+
+  const [deleteCredentials, { isLoading: deletingCredentials }] =
+    useDeleteCalendarCredentialsMutation();
 
   const [
     fetchCalendars,
@@ -182,6 +186,11 @@ export default function Calendar() {
   }, [loadEvents]);
 
   const events: CalendarEvent[] = useMemo(() => {
+    // Return empty array if calendar is not configured
+    if (!isCalendarConfigured) {
+      return [];
+    }
+    
     const googleEvents = eventsResponse?.data ?? [];
     return googleEvents
       .map((event) => {
@@ -205,10 +214,10 @@ export default function Calendar() {
         } as CalendarEvent;
       })
       .filter(Boolean) as CalendarEvent[];
-  }, [eventsResponse]);
+  }, [eventsResponse, isCalendarConfigured]);
 
   const calendarList = calendarsData?.data ?? [];
-  const connectionChecking = verifyLoading || verifyFetching || savingCredentials;
+  const connectionChecking = verifyLoading || verifyFetching || savingCredentials || deletingCredentials;
   const connectButtonDisabled =
     connectionChecking || isCalendarConfigured || !authUrl;
   const connectButtonLabel = connectionChecking
@@ -216,6 +225,18 @@ export default function Calendar() {
     : isCalendarConfigured
     ? "Connected"
     : "Connect Google Calendar";
+
+  const handleDisconnect = async () => {
+    try {
+      await deleteCredentials().unwrap();
+      // Clear selected calendar immediately
+      setSelectedCalendarId("");
+      // Refetch verification to update isCalendarConfigured
+      await refetchVerification();
+    } catch (error) {
+      console.error("Failed to disconnect Google Calendar", error);
+    }
+  };
 
   const handleManualRefresh = () => {
     void loadEvents();
@@ -369,6 +390,18 @@ export default function Calendar() {
                 </p>
               )}
             </div>
+            <div className="flex gap-2 w-full md:w-auto">
+              {isCalendarConfigured ? (
+                <Button
+                  disabled={connectionChecking}
+                  onClick={handleDisconnect}
+                  variant="destructive"
+                  className="w-full md:w-auto"
+                >
+                  {deletingCredentials && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Disconnect
+                </Button>
+              ) : (
             <Button
               disabled={connectButtonDisabled}
               onClick={() => {
@@ -376,12 +409,14 @@ export default function Calendar() {
                   window.location.href = authUrl;
                 }
               }}
-              variant={isCalendarConfigured ? "outline" : "default"}
+                  variant="default"
               className="w-full md:w-auto"
             >
               {connectionChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {connectButtonLabel}
             </Button>
+              )}
+            </div>
           </div>
 
           {isCalendarConfigured && (
