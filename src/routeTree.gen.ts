@@ -42,6 +42,7 @@ import { Route as AuthenticatedCalendarIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedAutomationsIndexRouteImport } from './routes/_authenticated/automations/index'
 import { Route as AuthenticatedAutomationLogsIndexRouteImport } from './routes/_authenticated/automation-logs/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
+import { Route as AuthenticatedAppointmentsIndexRouteImport } from './routes/_authenticated/appointments/index'
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
@@ -228,6 +229,12 @@ const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
   path: '/apps/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAppointmentsIndexRoute =
+  AuthenticatedAppointmentsIndexRouteImport.update({
+    id: '/appointments/',
+    path: '/appointments/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ClerkAuthenticatedUserManagementRoute =
   ClerkAuthenticatedUserManagementRouteImport.update({
     id: '/user-management',
@@ -319,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/appointments': typeof AuthenticatedAppointmentsIndexRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/automation-logs': typeof AuthenticatedAutomationLogsIndexRoute
   '/automations': typeof AuthenticatedAutomationsIndexRoute
@@ -361,6 +369,7 @@ export interface FileRoutesByTo {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/appointments': typeof AuthenticatedAppointmentsIndexRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/automation-logs': typeof AuthenticatedAutomationLogsIndexRoute
   '/automations': typeof AuthenticatedAutomationsIndexRoute
@@ -408,6 +417,7 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/_authenticated/appointments/': typeof AuthenticatedAppointmentsIndexRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/automation-logs/': typeof AuthenticatedAutomationLogsIndexRoute
   '/_authenticated/automations/': typeof AuthenticatedAutomationsIndexRoute
@@ -453,6 +463,7 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
+    | '/appointments'
     | '/apps'
     | '/automation-logs'
     | '/automations'
@@ -495,6 +506,7 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
+    | '/appointments'
     | '/apps'
     | '/automation-logs'
     | '/automations'
@@ -541,6 +553,7 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
+    | '/_authenticated/appointments/'
     | '/_authenticated/apps/'
     | '/_authenticated/automation-logs/'
     | '/_authenticated/automations/'
@@ -809,6 +822,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/appointments/': {
+      id: '/_authenticated/appointments/'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AuthenticatedAppointmentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/clerk/_authenticated/user-management': {
       id: '/clerk/_authenticated/user-management'
       path: '/user-management'
@@ -918,6 +938,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedUsersCustomersRoute: typeof AuthenticatedUsersCustomersRoute
   AuthenticatedUsersEmployeesRoute: typeof AuthenticatedUsersEmployeesRoute
+  AuthenticatedAppointmentsIndexRoute: typeof AuthenticatedAppointmentsIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedAutomationLogsIndexRoute: typeof AuthenticatedAutomationLogsIndexRoute
   AuthenticatedAutomationsIndexRoute: typeof AuthenticatedAutomationsIndexRoute
@@ -941,6 +962,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedUsersCustomersRoute: AuthenticatedUsersCustomersRoute,
   AuthenticatedUsersEmployeesRoute: AuthenticatedUsersEmployeesRoute,
+  AuthenticatedAppointmentsIndexRoute: AuthenticatedAppointmentsIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedAutomationLogsIndexRoute: AuthenticatedAutomationLogsIndexRoute,
   AuthenticatedAutomationsIndexRoute: AuthenticatedAutomationsIndexRoute,

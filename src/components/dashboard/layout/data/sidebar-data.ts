@@ -13,6 +13,8 @@ import {
   Command,
   GalleryVerticalEnd,
   Calendar,
+  CalendarCheck,
+  ClipboardList,
   ShoppingCart,
   ShoppingBag,
   Receipt,
@@ -51,9 +53,14 @@ const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Tasks & appointments",
+          title: "Tasks",
           url: "/tasks",
-          icon: Calendar,
+          icon: ClipboardList,
+        },
+        {
+          title: "Appointments",
+          url: "/appointments",
+          icon: CalendarCheck,
         },
         {
           title: "Apps",
@@ -249,6 +256,7 @@ if (ENV !== "DEVELOPMENT") {
           "/packages",
           "/help-center",
           "/tasks",
+          "/appointments",
           "/chats",
           "/invoices",
           "/refunds",

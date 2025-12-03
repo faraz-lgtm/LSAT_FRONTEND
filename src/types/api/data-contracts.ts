@@ -945,6 +945,165 @@ export interface SwaggerBaseApiResponseForClassCancelOrderResultDto {
   data: CancelOrderResultDto;
 }
 
+export interface OrderAppointmentQueryDto {
+  /**
+   * Filter by assigned employee ID
+   * @example 1
+   */
+  assignedEmployeeId?: number;
+  /** Filter by task status */
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  /** Filter by task priority */
+  priority?: "low" | "medium" | "high";
+  /** Filter by task label */
+  label?: "meeting" | "personal" | "preparation" | "grading";
+  /** Filter by attendance status */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * Filter appointments from this date
+   * @example "2024-01-15T00:00:00.000Z"
+   */
+  startDate?: string;
+  /**
+   * Filter appointments to this date
+   * @example "2024-01-31T23:59:59.000Z"
+   */
+  endDate?: string;
+  /**
+   * Number of appointments to return
+   * @min 1
+   * @max 100
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Number of appointments to skip
+   * @min 0
+   * @example 0
+   */
+  offset?: number;
+}
+
+export interface TaskOutputDto {
+  /**
+   * Task ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Source type of the task (task or order_appointment)
+   * @example "task"
+   */
+  type: "task" | "order_appointment";
+  /**
+   * Task title
+   * @example "Prepare lesson materials"
+   */
+  title: string;
+  /**
+   * Task description
+   * @example "Review chapter 5 and prepare exercises"
+   */
+  description?: string;
+  /**
+   * Task start date and time
+   * @format date-time
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  startDateTime: string;
+  /**
+   * Task end date and time
+   * @format date-time
+   * @example "2024-01-15T15:00:00.000Z"
+   */
+  endDateTime: string;
+  /**
+   * Tutor ID who created this task
+   * @example 1
+   */
+  tutorId: number;
+  /**
+   * Google Calendar event ID
+   * @example "abc123def456"
+   */
+  googleCalendarEventId?: string;
+  /**
+   * Meeting link (Zoom, Google Meet, etc.)
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  meetingLink?: string;
+  /** List of invitees/attendees */
+  invitees?: {
+    /** @example "john@example.com" */
+    email?: string;
+    /** @example "John Doe" */
+    name?: string;
+    /** @example "accepted" */
+    responseStatus?: string;
+    /** @example 5 */
+    id?: number;
+  }[];
+  /**
+   * Task label
+   * @example "meeting"
+   */
+  label: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Task priority
+   * @example "medium"
+   */
+  priority: "low" | "medium" | "high";
+  /**
+   * Task status
+   * @example "pending"
+   */
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  /**
+   * Task creation timestamp
+   * @format date-time
+   * @example "2024-01-15T10:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Task last update timestamp
+   * @format date-time
+   * @example "2024-01-15T12:00:00.000Z"
+   */
+  updatedAt: string;
+  /**
+   * Order ID (if this task is from an order appointment)
+   * @example 501
+   */
+  orderId?: number;
+  /**
+   * Order item/product ID (if this task is from an order appointment)
+   * @example 5
+   */
+  itemId?: number;
+  /** Attendance status (if this task is from an order appointment) */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * When the attendance was marked (if this task is from an order appointment)
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  attendanceMarkedAt?: object;
+  /**
+   * User ID who marked the attendance (if this task is from an order appointment)
+   * @example 1
+   */
+  attendanceMarkedBy?: object;
+  /**
+   * Notes about the appointment/task
+   * @example "Student needs extra help with logic games"
+   */
+  notes?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto[];
+}
+
 export interface SlotsQueryDto {
   /**
    * Date in ISO 8601 format (UTC timezone)
@@ -1767,121 +1926,6 @@ export interface TaskInputDto {
   status?: "pending" | "in_progress" | "completed" | "cancelled";
 }
 
-export interface TaskOutputDto {
-  /**
-   * Task ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Source type of the task (task or order_appointment)
-   * @example "task"
-   */
-  type: "task" | "order_appointment";
-  /**
-   * Task title
-   * @example "Prepare lesson materials"
-   */
-  title: string;
-  /**
-   * Task description
-   * @example "Review chapter 5 and prepare exercises"
-   */
-  description?: string;
-  /**
-   * Task start date and time
-   * @format date-time
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  startDateTime: string;
-  /**
-   * Task end date and time
-   * @format date-time
-   * @example "2024-01-15T15:00:00.000Z"
-   */
-  endDateTime: string;
-  /**
-   * Tutor ID who created this task
-   * @example 1
-   */
-  tutorId: number;
-  /**
-   * Google Calendar event ID
-   * @example "abc123def456"
-   */
-  googleCalendarEventId?: string;
-  /**
-   * Meeting link (Zoom, Google Meet, etc.)
-   * @example "https://meet.google.com/abc-defg-hij"
-   */
-  meetingLink?: string;
-  /** List of invitees/attendees */
-  invitees?: {
-    /** @example "john@example.com" */
-    email?: string;
-    /** @example "John Doe" */
-    name?: string;
-    /** @example "accepted" */
-    responseStatus?: string;
-    /** @example 5 */
-    id?: number;
-  }[];
-  /**
-   * Task label
-   * @example "meeting"
-   */
-  label: "meeting" | "personal" | "preparation" | "grading";
-  /**
-   * Task priority
-   * @example "medium"
-   */
-  priority: "low" | "medium" | "high";
-  /**
-   * Task status
-   * @example "pending"
-   */
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  /**
-   * Task creation timestamp
-   * @format date-time
-   * @example "2024-01-15T10:00:00.000Z"
-   */
-  createdAt: string;
-  /**
-   * Task last update timestamp
-   * @format date-time
-   * @example "2024-01-15T12:00:00.000Z"
-   */
-  updatedAt: string;
-  /**
-   * Order ID (if this task is from an order appointment)
-   * @example 501
-   */
-  orderId?: number;
-  /**
-   * Order item/product ID (if this task is from an order appointment)
-   * @example 5
-   */
-  itemId?: number;
-  /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
-  /**
-   * When the attendance was marked (if this task is from an order appointment)
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  attendanceMarkedAt?: object;
-  /**
-   * User ID who marked the attendance (if this task is from an order appointment)
-   * @example 1
-   */
-  attendanceMarkedBy?: object;
-  /**
-   * Notes about the appointment/task
-   * @example "Student needs extra help with logic games"
-   */
-  notes?: object;
-}
-
 export interface TaskQueryDto {
   /**
    * Filter by tutor ID
@@ -1927,11 +1971,6 @@ export interface TaskQueryDto {
 export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   meta: MetaResponse;
   data: TaskOutputDto;
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto[];
 }
 
 export interface TopCustomerDto {
@@ -2162,6 +2201,11 @@ export interface SlackAutomationParameters {
    */
   delayMinutes?: number;
   /**
+   * Slack channel to send notification to
+   * @example "#orders"
+   */
+  channel?: string;
+  /**
    * Custom message text with placeholders. Available: {{orderId}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}}, {{itemCount}}
    * @example "🎉 New order #{{orderId}} from {{customerName}} - ${{total}}"
    */
@@ -2171,36 +2215,6 @@ export interface SlackAutomationParameters {
    * @example "New Order #{{orderId}}"
    */
   customBlockMessage?: string;
-  /**
-   * Whether to include order details in the Slack message
-   * @default true
-   * @example true
-   */
-  includeOrderDetails?: boolean;
-  /**
-   * Whether to include appointment information in the Slack message
-   * @default true
-   * @example true
-   */
-  includeAppointments?: boolean;
-  /**
-   * Whether to include order items in the Slack message
-   * @default true
-   * @example true
-   */
-  includeItems?: boolean;
-  /**
-   * Whether to include customer information in the Slack message
-   * @default true
-   * @example true
-   */
-  includeCustomerInfo?: boolean;
-  /**
-   * Whether to include meeting link in the Slack message
-   * @default true
-   * @example true
-   */
-  includeMeetingLink?: boolean;
 }
 
 export interface EmailAutomationParameters {
@@ -2269,24 +2283,12 @@ export interface CreateAutomationDto {
    * Communication tool type used for this automation
    * @example "email"
    */
-  toolType: "email" | "sms" | "slack";
+  toolType: "email" | "sms" | "slack" | "whatsapp";
   /**
-   * Parameters for the automation (JSON object)
+   * Default parameters for the automation (JSON object)
    * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
    */
-  parameters?: object;
-  /**
-   * Scheduling type for the automation
-   * @default "fixed-delay"
-   * @example "fixed-delay"
-   */
-  schedulingType?: "fixed-delay" | "session-based";
-  /**
-   * Whether the automation is enabled
-   * @default false
-   * @example false
-   */
-  isEnabled?: boolean;
+  defaultParameters?: object;
   /**
    * Whether the automation is archived
    * @default false
@@ -2333,25 +2335,25 @@ export interface UpdateAutomationDto {
    * Communication tool type used for this automation
    * @example "email"
    */
-  toolType?: "email" | "sms" | "slack";
+  toolType?: "email" | "sms" | "slack" | "whatsapp";
   /**
-   * Scheduling type for the automation
-   * @example "fixed-delay"
+   * Default parameters for the automation (JSON object)
+   * @example {"delayMinutes":0,"template":"order-confirmation","subject":"Order #{{orderNumber}} Confirmed"}
    */
-  schedulingType?: "fixed-delay" | "session-based";
+  defaultParameters?: object;
   /**
    * Whether the automation is archived
    * @example false
    */
   archived?: boolean;
   /**
-   * Enable or disable the automation
+   * Enable or disable the automation (organization-specific)
    * @example true
    */
   isEnabled?: boolean;
   /**
-   * Configuration parameters for the automation
-   * @example {"delayMinutes":30,"customMessage":"Custom message for {{customerName}}"}
+   * Organization-specific configuration parameters for the automation (merges with defaultParameters)
+   * @example {"delayMinutes":30,"channel":"#custom-orders"}
    */
   parameters?: object;
 }
@@ -2399,7 +2401,7 @@ export interface AutomationConfigOutputDto {
    * Communication tool used for this automation
    * @example "email"
    */
-  toolType: "email" | "sms" | "slack";
+  toolType: "email" | "sms" | "slack" | "whatsapp";
   /**
    * Whether the automation is enabled for this organization
    * @example true
@@ -2411,10 +2413,15 @@ export interface AutomationConfigOutputDto {
    */
   archived: boolean;
   /**
-   * Configuration parameters for the automation
-   * @example {"delayMinutes":0,"customMessage":"New order #{{orderId}}"}
+   * Configuration parameters for the automation (merged from default and org-specific)
+   * @example {"delayMinutes":0,"channel":"#orders"}
    */
   parameters?: object;
+  /**
+   * Default parameters defined for the automation
+   * @example {"delayMinutes":0,"template":"order-confirmation"}
+   */
+  defaultParameters?: object;
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
@@ -2842,7 +2849,7 @@ export interface CallWithLogsDto {
   direction?: "inbound" | "outbound";
   /**
    * Twilio Account SID
-   * @example "TWILIO SID"
+   * @example "AC1234567890abcdef1234567890abcdef"
    */
   accountSid?: string;
   /**
