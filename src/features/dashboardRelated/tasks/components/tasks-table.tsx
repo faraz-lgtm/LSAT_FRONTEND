@@ -32,8 +32,22 @@ import { Button } from '@/components/dashboard/ui/button'
 import { Calendar } from '@/components/dashboard/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/dashboard/ui/popover'
 import { CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns'
 import { cn } from '@/lib/dashboardRelated/utils'
+
+// Helper function to get date label
+function getDateLabel(dateStr: string): string {
+  const date = parseISO(dateStr)
+  if (isToday(date)) return 'Today'
+  if (isTomorrow(date)) return 'Tomorrow'
+  if (isYesterday(date)) return 'Yesterday'
+  return format(date, 'MMMM d, yyyy')
+}
+
+// Helper function to get date key for grouping
+function getDateKey(dateStr: string): string {
+  return format(parseISO(dateStr), 'yyyy-MM-dd')
+}
 import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import { ROLE } from '@/constants/roles'
@@ -341,14 +355,14 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
         </div>
       </div>
       
-      <div className='overflow-hidden rounded-md border'>
+      <div className='overflow-hidden rounded-md border bg-white'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className='bg-gray-50/80'>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead key={header.id} colSpan={header.colSpan} className='text-xs font-medium text-gray-500 uppercase tracking-wider'>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -369,7 +383,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                 const hasSorting = sorting.length > 0
                 
                 // If user has applied sorting, respect it and still separate active/expired
-                // If no sorting, use default behavior (sort by endDateTime within each group)
+                // If no sorting, use default behavior (sort by startDateTime within each group)
                 let activeTasks = rows.filter(row => {
                   const endDateTime = new Date(row.original.endDateTime)
                   return endDateTime > now
@@ -380,64 +394,96 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                   return endDateTime <= now
                 })
                 
-                // If no sorting is applied, sort by endDateTime within each group
+                // If no sorting is applied, sort by startDateTime within each group
                 if (!hasSorting) {
                   activeTasks = activeTasks.sort((a, b) => {
-                    const dateA = new Date(a.original.endDateTime)
-                    const dateB = new Date(b.original.endDateTime)
+                    const dateA = new Date(a.original.startDateTime)
+                    const dateB = new Date(b.original.startDateTime)
                     return dateA.getTime() - dateB.getTime() // Ascending order (earliest first)
                   })
                   
                   expiredTasks = expiredTasks.sort((a, b) => {
-                    const dateA = new Date(a.original.endDateTime)
-                    const dateB = new Date(b.original.endDateTime)
+                    const dateA = new Date(a.original.startDateTime)
+                    const dateB = new Date(b.original.startDateTime)
                     return dateB.getTime() - dateA.getTime() // Descending order (most recent first)
                   })
                 }
-                // If sorting is applied, the rows are already sorted by the table, so we just use them as-is
+
+                // Track current date key for date headers
+                let currentDateKey = ''
                 
                 return (
                   <>
-                    {/* Active Tasks */}
-                    {activeTasks.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                        className={onView ? 'cursor-pointer' : ''}
-                        onDoubleClick={onView ? () => onView(row.original) : undefined}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
+                    {/* Active Tasks with Date Headers */}
+                    {activeTasks.map((row) => {
+                      const task = row.original as TaskOutputDto
+                      const dateKey = task.startDateTime ? getDateKey(task.startDateTime) : ''
+                      const showDateHeader = dateKey !== currentDateKey
+                      currentDateKey = dateKey
+                      
+                      return (
+                        <>
+                          {showDateHeader && task.startDateTime && (
+                            <TableRow key={`date-${dateKey}`} className='bg-gray-50/50 hover:bg-gray-50/50'>
+                              <TableCell colSpan={columns.length} className='py-2 px-4'>
+                                <div className='flex items-center gap-2'>
+                                  <div className='h-2 w-2 rounded-full bg-blue-500'></div>
+                                  <span className='text-sm font-semibold text-gray-700'>
+                                    {getDateLabel(task.startDateTime)}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          <TableRow
+                            key={row.id}
+                            data-state={row.getIsSelected() && 'selected'}
+                            className={`group hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all ${onView ? 'cursor-pointer' : ''}`}
+                            onDoubleClick={onView ? () => onView(row.original) : undefined}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id} className='py-3'>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </>
+                      )
+                    })}
+                    
+                    {/* Expired Tasks Header */}
+                    {expiredTasks.length > 0 && (
+                      <TableRow className='bg-red-50/50 hover:bg-red-50/50'>
+                        <TableCell colSpan={columns.length} className='py-2 px-4'>
+                          <div className='flex items-center gap-2'>
+                            <div className='h-2 w-2 rounded-full bg-red-400'></div>
+                            <span className='text-sm font-semibold text-red-600'>
+                              Expired Tasks
+                            </span>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                     
                     {/* Expired Tasks */}
                     {expiredTasks.map((row) => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
-                        className={`bg-muted/20 hover:bg-muted/30 border-l-4 border-l-muted-foreground/40 ${onView ? 'cursor-pointer' : ''}`}
+                        className={`group bg-muted/20 hover:bg-red-50/50 border-l-4 border-l-red-300 hover:border-l-red-500 transition-all ${onView ? 'cursor-pointer' : ''}`}
                         onDoubleClick={onView ? () => onView(row.original) : undefined}
                       >
-                        {row.getVisibleCells().map((cell, index) => (
+                        {row.getVisibleCells().map((cell) => (
                           <TableCell 
                             key={cell.id}
-                            className="text-muted-foreground relative"
+                            className="py-3 text-muted-foreground"
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
-                            )}
-                            {/* Add expired indicator to the first cell */}
-                            {index === 0 && (
-                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-muted-foreground/60 rounded-full" 
-                                   title="Expired task" />
                             )}
                           </TableCell>
                         ))}
@@ -450,7 +496,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'
+                  className='h-24 text-center text-gray-500'
                 >
                   No results.
                 </TableCell>

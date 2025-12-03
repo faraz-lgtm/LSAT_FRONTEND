@@ -3,9 +3,17 @@ import { cn } from '@/lib/dashboardRelated/utils'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
-import { LongText } from '@/components/dashboard/long-text'
+import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
+
+// Helper to get initials from name
+function getInitials(name: string): string {
+  if (!name) return '?'
+  const parts = name.trim().split(' ')
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
 
 export const createOrdersColumns = (formatCurrency: (cents: number) => string): ColumnDef<OrderOutput>[] => [
   {
@@ -65,9 +73,20 @@ export const createOrdersColumns = (formatCurrency: (cents: number) => string): 
     cell: ({ row }) => {
       const customer = row.original.customer
       return (
-        <div className='flex flex-col'>
-          <LongText className='max-w-36 font-medium'>{customer.name}</LongText>
-          <span className='text-xs text-muted-foreground'>{customer.email}</span>
+        <div className='flex items-center gap-2 w-[200px]'>
+          <Avatar className='h-8 w-8 bg-blue-500 flex-shrink-0'>
+            <AvatarFallback className='bg-blue-500 text-white text-xs font-medium'>
+              {getInitials(customer.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className='flex flex-col min-w-0'>
+            <span className='text-sm font-medium text-gray-900 truncate'>
+              {customer.name}
+            </span>
+            <span className='text-xs text-gray-500 truncate'>
+              {customer.email}
+            </span>
+          </div>
         </div>
       )
     },
@@ -84,7 +103,7 @@ export const createOrdersColumns = (formatCurrency: (cents: number) => string): 
         `${customer.name} ${customer.email}`.toLowerCase().includes(searchValue)
       )
     },
-    meta: { className: 'w-40' },
+    meta: { className: 'w-52' },
   },
   {
     id: 'phone',
