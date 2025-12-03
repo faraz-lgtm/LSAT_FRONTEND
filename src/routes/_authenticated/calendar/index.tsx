@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { lazy } from "react";
+import { GoogleCalendarProvider } from "@/services/google-calendar/GoogleCalendarProvider";
 
 const calendarSearchSchema = z.object({});
 
@@ -9,7 +10,10 @@ const Calendar = lazy(() => import("@/features/dashboardRelated/calendar").then(
 
 export const Route = createFileRoute("/_authenticated/calendar/")({
   validateSearch: calendarSearchSchema,
-  component: () => <Calendar />,
+  component: () => (
+    <GoogleCalendarProvider>
+      <Calendar />
+    </GoogleCalendarProvider>
+  ),
 });
-
 

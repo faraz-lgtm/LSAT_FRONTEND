@@ -2,8 +2,15 @@ import type {
   ConversationOutputDto,
   MessageOutputDto,
   ThreadConversationOutputDto,
+  EmailAttachmentDto,
 } from '@/types/api/data-contracts'
-import type { ChatUser, Convo, MessageChannel, ContactDetail } from '@/features/dashboardRelated/chats/data/chat-types'
+import type {
+  ChatUser,
+  Convo,
+  MessageChannel,
+  ContactDetail,
+  EmailAttachment,
+} from '@/features/dashboardRelated/chats/data/chat-types'
 import { toFrontendChannel } from '@/utils/chat-channel'
 
 interface ConversationAttributes {
@@ -11,6 +18,13 @@ interface ConversationAttributes {
   unreadCount?: number
   isStarred?: boolean
   contactDetails?: ContactDetail
+}
+
+type MessageAttributes = {
+  channel?: string
+  hasHtml?: boolean
+  attachments?: EmailAttachmentDto[]
+  emailAttachments?: EmailAttachmentDto[]
 }
 
 /**
@@ -36,7 +50,7 @@ export function convertConversationToChatUser(
   const messages: Convo[] = conversation.latestMessage
     ? [
         {
-          sender: conversation.latestMessage.author || 'System',
+          sender: String(conversation.latestMessage.author || 'System'),
           message: conversation.latestMessage.body,
           timestamp: new Date(conversation.latestMessage.dateCreated).toISOString(),
           channel: attributes.channel,
@@ -67,14 +81,59 @@ export function convertConversationToChatUser(
 }
 
 /**
- * Parse message attributes to extract channel
+ * Parse message attributes to extract channel, HTML flag, and attachments
  */
-function parseMessageAttributes(attributes: string): { channel?: string } {
+function parseMessageAttributes(attributes: string): MessageAttributes {
   try {
     return attributes ? JSON.parse(attributes) : {}
   } catch {
     return {}
   }
+}
+
+function normalizeAttachments(
+  attachments?: EmailAttachmentDto[] | EmailAttachment[],
+): EmailAttachment[] | undefined {
+  if (!attachments || attachments.length === 0) {
+    return undefined
+  }
+
+  return attachments
+    .filter((attachment): attachment is EmailAttachmentDto | EmailAttachment =>
+      Boolean(attachment),
+    )
+    .map((attachment) => {
+      const normalized: EmailAttachment = {
+        filename: attachment.filename || 'attachment',
+        content: attachment.content || '',
+        type: attachment.type || 'application/octet-stream',
+      }
+
+      if ('size' in attachment && typeof attachment.size === 'number') {
+        normalized.size = attachment.size
+      }
+
+      if ('contentId' in attachment && typeof attachment.contentId === 'string') {
+        normalized.contentId = attachment.contentId
+      }
+
+      if (!normalized.filename && 'name' in attachment) {
+        const fallbackName = (attachment as { name?: string }).name
+        if (fallbackName) {
+          normalized.filename = fallbackName
+        }
+      }
+
+      if (!normalized.type && 'contentType' in attachment) {
+        const fallbackType = (attachment as { contentType?: string }).contentType
+        if (fallbackType) {
+          normalized.type = fallbackType
+        }
+      }
+
+      return normalized
+    })
+    .filter((attachment) => Boolean(attachment.content))
 }
 
 /**
@@ -103,13 +162,39 @@ export function convertMessageToConvo(
   const author = message.author || 'System'
   const sender = currentUserId && String(author) === String(currentUserId) 
     ? 'You' 
-    : author
+    : String(author)
+  
+  // Use emailBody if available for EMAIL channel, otherwise use body
+  const messageBody = 
+    messageChannel === 'Email'
+      ? message.emailBody || message.body
+      : message.body
+  
+  // Extract hasHtml from attributes
+  const hasHtml = attributes.hasHtml === true || Boolean(message.emailHtml)
+
+  const messageLevelAttachments = (message as unknown as { emailAttachments?: EmailAttachmentDto[] }).emailAttachments
+  const normalizedAttachments =
+    normalizeAttachments(
+      messageLevelAttachments ||
+        attributes.emailAttachments ||
+        attributes.attachments,
+    )
   
   return {
     sender,
-    message: message.body,
+    message: messageBody,
     timestamp: dateCreated,
     channel: messageChannel,
+    hasHtml,
+    ...(message.emailHtml ? { emailHtml: message.emailHtml } : {}),
+    // Pass through email threading fields if present (only for EMAIL channel messages)
+    ...(messageChannel === 'Email' && {
+      emailMessageId: message.emailMessageId,
+      emailInReplyTo: message.emailInReplyTo,
+      emailReferences: message.emailReferences,
+    }),
+    ...(normalizedAttachments ? { attachments: normalizedAttachments } : {}),
   }
 }
 
@@ -121,6 +206,17 @@ export function convertThreadToChatUser(
   thread: ThreadConversationOutputDto,
   currentUserId?: number | string,
 ): ChatUser {
+  console.log('[chat-adapters] convertThreadToChatUser called:', {
+    threadId: thread.threadId,
+    friendlyName: thread.friendlyName,
+    channelsCount: thread.channels.length,
+    channels: thread.channels.map(c => ({
+      channel: c.channel,
+      conversationSid: c.conversationSid,
+    })),
+    currentUserId,
+  });
+  
   // Find the counterpart participant (the other user in the conversation)
   const counterpart = thread.participants.find(
     (p) => p.userId !== thread.initiatorUserId && 
@@ -132,6 +228,12 @@ export function convertThreadToChatUser(
   const emailChannel = thread.channels.find((c) => c.channel === 'EMAIL')
   const primaryChannel = smsChannel || emailChannel || thread.channels[0]
   
+  console.log('[chat-adapters] Channel selection:', {
+    smsChannel: smsChannel ? { channel: smsChannel.channel, sid: smsChannel.conversationSid } : null,
+    emailChannel: emailChannel ? { channel: emailChannel.channel, sid: emailChannel.conversationSid } : null,
+    primaryChannel: primaryChannel ? { channel: primaryChannel.channel, sid: primaryChannel.conversationSid } : null,
+  });
+  
   // Build contact details from participant info
   const contactDetails: ContactDetail = {
     email: counterpart?.email,
@@ -142,8 +244,16 @@ export function convertThreadToChatUser(
     } : undefined,
   }
 
-  return {
+  const convertedChannels = thread.channels.map((c) => ({
+    channel: toFrontendChannel(c.channel),
+    conversationSid: c.conversationSid,
+  }));
+  
+  console.log('[chat-adapters] Converted channels:', convertedChannels);
+
+  const result = {
     id: primaryChannel?.conversationSid || thread.threadId, // Use SMS conversation SID as primary ID
+    databaseId: (thread as any).id, // Store the database ID from backend (thread.id)
     fullName: thread.friendlyName,
     username: '', // Threads don't have unique names
     profile: undefined,
@@ -156,11 +266,19 @@ export function convertThreadToChatUser(
     lastMessageTimestamp: undefined,
     // Store thread metadata for channel switching
     threadId: thread.threadId,
-    channels: thread.channels.map((c) => ({
-      channel: toFrontendChannel(c.channel),
-      conversationSid: c.conversationSid,
-    })),
-  }
+    channels: convertedChannels,
+    // Pass through original email subject if present (for EMAIL conversations)
+    originalSubject: thread.originalSubject,
+  };
+  
+  console.log('[chat-adapters] Converted ChatUser result:', {
+    id: result.id,
+    threadId: result.threadId,
+    channel: result.channel,
+    channels: result.channels,
+  });
+  
+  return result;
 }
 
 /**
@@ -171,13 +289,27 @@ export function convertConversationsToChatUsers(
   conversations: ConversationOutputDto[] | ThreadConversationOutputDto[],
   currentUserId?: number | string,
 ): ChatUser[] {
+  console.log('[chat-adapters] convertConversationsToChatUsers called:', {
+    count: conversations.length,
+    isThreadFormat: conversations.length > 0 && conversations[0] && 'threadId' in conversations[0],
+    currentUserId,
+  });
+  
   // Check if it's the new thread-based format
   if (conversations.length > 0 && conversations[0] && 'threadId' in conversations[0]) {
-    return (conversations as ThreadConversationOutputDto[]).map((thread) =>
+    console.log('[chat-adapters] Using thread-based format');
+    const result = (conversations as ThreadConversationOutputDto[]).map((thread) =>
       convertThreadToChatUser(thread, currentUserId)
-    )
+    );
+    console.log('[chat-adapters] Converted threads to ChatUsers:', result.map(c => ({
+      id: c.id,
+      threadId: c.threadId,
+      channels: c.channels,
+    })));
+    return result;
   }
   // Fallback to old format
+  console.log('[chat-adapters] Using old conversation format');
   return (conversations as ConversationOutputDto[]).map(convertConversationToChatUser)
 }
 

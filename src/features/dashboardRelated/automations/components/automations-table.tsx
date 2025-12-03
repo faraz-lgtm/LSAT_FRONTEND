@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { MoreHorizontal, Edit, Zap } from 'lucide-react'
+import { MoreHorizontal, Edit, Zap, Trash2 } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import { DataTableToolbar, DataTablePagination } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from '@/components/dashboard/data-table/bulk-actions'
@@ -51,7 +51,6 @@ const ToolTypeColors: Record<string, string> = {
   slack: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
   email: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
   sms: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
-  whatsapp: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
 }
 
 function formatToolType(type: string): string {
@@ -59,7 +58,7 @@ function formatToolType(type: string): string {
 }
 
 export function AutomationsTable({ data, search, navigate }: DataTableProps) {
-  const { setOpen, setCurrentRow } = useAutomations()
+  const { setOpen, setCurrentRow, setDeleteRow } = useAutomations()
   const [updateAutomation] = useUpdateAutomationMutation()
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -208,6 +207,16 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
               >
                 <Zap className="mr-2 h-4 w-4" />
                 View logs
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setDeleteRow(automation)
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete automation
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

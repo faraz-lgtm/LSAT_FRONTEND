@@ -210,17 +210,19 @@ export default function CalendarNav({ calendarRef, viewedDate, onCreateTask }: C
         <div className="ml-auto flex items-center gap-2">
           <Input placeholder="Search events" className="w-[200px]" />
           {/* New Event Dropdown: choose Task or Order */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button>
-                <PlusIcon className="mr-2 h-4 w-4" />
-                New Event
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {onCreateTask && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  New Event
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </div>

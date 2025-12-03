@@ -26,15 +26,39 @@ class ChatSocketService {
     })
 
     this.socket.on('connect', () => {
-      console.log('Chat WebSocket connected')
+      console.log('[chat-socket] WebSocket connected:', {
+        id: this.socket?.id,
+        connected: this.socket?.connected,
+      })
     })
 
-    this.socket.on('disconnect', () => {
-      console.log('Chat WebSocket disconnected')
+    this.socket.on('disconnect', (reason) => {
+      console.log('[chat-socket] WebSocket disconnected:', {
+        reason,
+        id: this.socket?.id,
+      })
     })
 
     this.socket.on('connect_error', (error) => {
-      console.error('Chat WebSocket connection error:', error)
+      console.error('[chat-socket] WebSocket connection error:', {
+        message: error.message,
+        type: (error as any).type,
+        description: (error as any).description,
+      })
+    })
+
+    // Log all incoming events for debugging
+    this.socket.onAny((eventName, ...args) => {
+      console.log('[chat-socket] Event received:', {
+        event: eventName,
+        argsCount: args.length,
+        args: args.map((arg, index) => ({
+          index,
+          type: typeof arg,
+          isObject: typeof arg === 'object',
+          keys: typeof arg === 'object' && arg !== null ? Object.keys(arg) : undefined,
+        })),
+      })
     })
 
     return this.socket

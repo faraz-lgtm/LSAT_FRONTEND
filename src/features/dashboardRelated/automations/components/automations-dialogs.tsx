@@ -1,9 +1,10 @@
 import { AutomationsEditDialog } from './automations-edit-dialog'
 import { AutomationsCreateDialog } from './automations-create-dialog'
+import { AutomationsDeleteDialog } from './automations-delete-dialog'
 import { useAutomations } from './automations-provider'
 
 export function AutomationsDialogs() {
-  const { open, setOpen, currentRow, setCurrentRow } = useAutomations()
+  const { open, setOpen, currentRow, setCurrentRow, deleteRow, setDeleteRow } = useAutomations()
   
   return (
     <>
@@ -31,6 +32,17 @@ export function AutomationsDialogs() {
             currentRow={currentRow}
           />
         </>
+      )}
+      {deleteRow && (
+        <AutomationsDeleteDialog
+          open={!!deleteRow}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setDeleteRow(null)
+            }
+          }}
+          currentRow={deleteRow}
+        />
       )}
     </>
   )
