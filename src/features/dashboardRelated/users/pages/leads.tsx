@@ -12,22 +12,21 @@ import { UsersProvider } from "../components/users-provider";
 import { UsersTable } from "../components/users-table";
 import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
 
-const route = getRouteApi("/_authenticated/users/customers");
+const route = getRouteApi("/_authenticated/users/leads");
 
-export function CustomersPage() {
+export function LeadsPage() {
   const { data: usersData, isSuccess } = useGetUsersQuery(undefined);
   const search = route.useSearch();
   const navigate = route.useNavigate();
 
-  const customers = useMemo(() => {
+  const leads = useMemo(() => {
     if (!isSuccess) return [];
     const all = usersData?.data || [];
-    // Filter for customers (CUST role) with hasPaidOrder === true
-    // Default hasPaidOrder to false if missing
-    return all.filter(u => {
-      const hasPaidOrder = u.hasPaidOrder ?? false;
-      return u.roles.includes('CUST') && hasPaidOrder;
-    });
+    // Filter for customers (CUST role) with orderCount === 0
+    return all.filter(u => 
+      u.roles.includes('CUST') && 
+      (u.ordersCount === 0)
+    );
   }, [isSuccess, usersData?.data]);
 
   return (
@@ -44,14 +43,14 @@ export function CustomersPage() {
       <Main>
         <div className="mb-2 flex flex-wrap items-center justify-between space-y-2">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Customers</h2>
-            <p className="text-muted-foreground">Customers with paid orders only.</p>
+            <h2 className="text-2xl font-bold tracking-tight">Leads</h2>
+            <p className="text-muted-foreground">Customers with zero orders.</p>
           </div>
           <UsersPrimaryButtons />
         </div>
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12">
           <UsersTable
-            data={customers}
+            data={leads}
             search={search}
             hideUsernameColumn
             hideRolesFilter
@@ -66,5 +65,4 @@ export function CustomersPage() {
     </UsersProvider>
   );
 }
-
 

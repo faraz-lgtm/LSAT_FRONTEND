@@ -45,8 +45,10 @@ import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authentica
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthenticatedUsersLeadsRouteImport } from './routes/_authenticated/users/leads'
 import { Route as AuthenticatedUsersEmployeesRouteImport } from './routes/_authenticated/users/employees'
 import { Route as AuthenticatedUsersCustomersRouteImport } from './routes/_authenticated/users/customers'
+import { Route as AuthenticatedUsersContactsRouteImport } from './routes/_authenticated/users/contacts'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -244,6 +246,11 @@ const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+const AuthenticatedUsersLeadsRoute = AuthenticatedUsersLeadsRouteImport.update({
+  id: '/users/leads',
+  path: '/users/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUsersEmployeesRoute =
   AuthenticatedUsersEmployeesRouteImport.update({
     id: '/users/employees',
@@ -254,6 +261,12 @@ const AuthenticatedUsersCustomersRoute =
   AuthenticatedUsersCustomersRouteImport.update({
     id: '/users/customers',
     path: '/users/customers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedUsersContactsRoute =
+  AuthenticatedUsersContactsRouteImport.update({
+    id: '/users/contacts',
+    path: '/users/contacts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsNotificationsRoute =
@@ -314,8 +327,10 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/users/employees': typeof AuthenticatedUsersEmployeesRoute
+  '/users/leads': typeof AuthenticatedUsersLeadsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -356,8 +371,10 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/users/employees': typeof AuthenticatedUsersEmployeesRoute
+  '/users/leads': typeof AuthenticatedUsersLeadsRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -403,8 +420,10 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/_authenticated/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/_authenticated/users/employees': typeof AuthenticatedUsersEmployeesRoute
+  '/_authenticated/users/leads': typeof AuthenticatedUsersLeadsRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -448,8 +467,10 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/users/contacts'
     | '/users/customers'
     | '/users/employees'
+    | '/users/leads'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -490,8 +511,10 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/users/contacts'
     | '/users/customers'
     | '/users/employees'
+    | '/users/leads'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -536,8 +559,10 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/users/contacts'
     | '/_authenticated/users/customers'
     | '/_authenticated/users/employees'
+    | '/_authenticated/users/leads'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
@@ -830,6 +855,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthSignInRouteImport
       parentRoute: typeof ClerkauthRouteRoute
     }
+    '/_authenticated/users/leads': {
+      id: '/_authenticated/users/leads'
+      path: '/users/leads'
+      fullPath: '/users/leads'
+      preLoaderRoute: typeof AuthenticatedUsersLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/employees': {
       id: '/_authenticated/users/employees'
       path: '/users/employees'
@@ -842,6 +874,13 @@ declare module '@tanstack/react-router' {
       path: '/users/customers'
       fullPath: '/users/customers'
       preLoaderRoute: typeof AuthenticatedUsersCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/users/contacts': {
+      id: '/_authenticated/users/contacts'
+      path: '/users/contacts'
+      fullPath: '/users/contacts'
+      preLoaderRoute: typeof AuthenticatedUsersContactsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/notifications': {
@@ -916,8 +955,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedUsersContactsRoute: typeof AuthenticatedUsersContactsRoute
   AuthenticatedUsersCustomersRoute: typeof AuthenticatedUsersCustomersRoute
   AuthenticatedUsersEmployeesRoute: typeof AuthenticatedUsersEmployeesRoute
+  AuthenticatedUsersLeadsRoute: typeof AuthenticatedUsersLeadsRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedAutomationLogsIndexRoute: typeof AuthenticatedAutomationLogsIndexRoute
   AuthenticatedAutomationsIndexRoute: typeof AuthenticatedAutomationsIndexRoute
@@ -939,8 +980,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedUsersContactsRoute: AuthenticatedUsersContactsRoute,
   AuthenticatedUsersCustomersRoute: AuthenticatedUsersCustomersRoute,
   AuthenticatedUsersEmployeesRoute: AuthenticatedUsersEmployeesRoute,
+  AuthenticatedUsersLeadsRoute: AuthenticatedUsersLeadsRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedAutomationLogsIndexRoute: AuthenticatedAutomationLogsIndexRoute,
   AuthenticatedAutomationsIndexRoute: AuthenticatedAutomationsIndexRoute,

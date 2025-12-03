@@ -365,6 +365,22 @@ export namespace Api {
   }
 
   /**
+   * @description Removes all Google Calendar OAuth credentials and disconnects the integration for the current user
+   * @tags user-calendar
+   * @name UserCalendarControllerRemoveCredentials
+   * @summary Remove Google Calendar integration
+   * @request DELETE:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerRemoveCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
    * @description Fetches all calendars available to the user from Google Calendar API
    * @tags user-calendar
    * @name UserCalendarControllerListCalendars

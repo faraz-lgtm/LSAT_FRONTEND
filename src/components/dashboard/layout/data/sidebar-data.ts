@@ -92,6 +92,8 @@ const sidebarData: SidebarData = {
       title: "Users",
       items: [
         { title: "Employees", url: "/users/employees", icon: Users },
+        { title: "Leads", url: "/users/leads", icon: Users },
+        { title: "Contacts", url: "/users/contacts", icon: Users },
         { title: "Customers", url: "/users/customers", icon: Users },
       ],
     },
@@ -243,6 +245,8 @@ if (ENV !== "DEVELOPMENT") {
           "/", 
           "/users", 
           "/users/employees",
+          "/users/leads",
+          "/users/contacts",
           "/users/customers",
           "/orders", 
           "/calendar", 
