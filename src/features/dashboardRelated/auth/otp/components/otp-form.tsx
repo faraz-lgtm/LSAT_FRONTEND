@@ -83,16 +83,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
       }
     } catch (error: any) {
       console.error('Verify OTP error:', error)
-      
-      if (error?.data?.message) {
-        toast.error(error.data.message)
-      } else if (error?.status === 400) {
-        toast.error('Invalid OTP code. Please try again.')
-      } else if (error?.status >= 500) {
-        toast.error('Server error. Please try again later.')
-      } else {
-        toast.error('Failed to verify OTP. Please try again.')
-      }
+      // Error toast is handled centrally in api.ts
     }
   }
 

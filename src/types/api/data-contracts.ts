@@ -945,6 +945,165 @@ export interface SwaggerBaseApiResponseForClassCancelOrderResultDto {
   data: CancelOrderResultDto;
 }
 
+export interface OrderAppointmentQueryDto {
+  /**
+   * Filter by assigned employee ID
+   * @example 1
+   */
+  assignedEmployeeId?: number;
+  /** Filter by task status */
+  status?: "pending" | "in_progress" | "completed" | "cancelled";
+  /** Filter by task priority */
+  priority?: "low" | "medium" | "high";
+  /** Filter by task label */
+  label?: "meeting" | "personal" | "preparation" | "grading";
+  /** Filter by attendance status */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * Filter appointments from this date
+   * @example "2024-01-15T00:00:00.000Z"
+   */
+  startDate?: string;
+  /**
+   * Filter appointments to this date
+   * @example "2024-01-31T23:59:59.000Z"
+   */
+  endDate?: string;
+  /**
+   * Number of appointments to return
+   * @min 1
+   * @max 100
+   * @example 10
+   */
+  limit?: number;
+  /**
+   * Number of appointments to skip
+   * @min 0
+   * @example 0
+   */
+  offset?: number;
+}
+
+export interface TaskOutputDto {
+  /**
+   * Task ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Source type of the task (task or order_appointment)
+   * @example "task"
+   */
+  type: "task" | "order_appointment";
+  /**
+   * Task title
+   * @example "Prepare lesson materials"
+   */
+  title: string;
+  /**
+   * Task description
+   * @example "Review chapter 5 and prepare exercises"
+   */
+  description?: string;
+  /**
+   * Task start date and time
+   * @format date-time
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  startDateTime: string;
+  /**
+   * Task end date and time
+   * @format date-time
+   * @example "2024-01-15T15:00:00.000Z"
+   */
+  endDateTime: string;
+  /**
+   * Tutor ID who created this task
+   * @example 1
+   */
+  tutorId: number;
+  /**
+   * Google Calendar event ID
+   * @example "abc123def456"
+   */
+  googleCalendarEventId?: string;
+  /**
+   * Meeting link (Zoom, Google Meet, etc.)
+   * @example "https://meet.google.com/abc-defg-hij"
+   */
+  meetingLink?: string;
+  /** List of invitees/attendees */
+  invitees?: {
+    /** @example "john@example.com" */
+    email?: string;
+    /** @example "John Doe" */
+    name?: string;
+    /** @example "accepted" */
+    responseStatus?: string;
+    /** @example 5 */
+    id?: number;
+  }[];
+  /**
+   * Task label
+   * @example "meeting"
+   */
+  label: "meeting" | "personal" | "preparation" | "grading";
+  /**
+   * Task priority
+   * @example "medium"
+   */
+  priority: "low" | "medium" | "high";
+  /**
+   * Task status
+   * @example "pending"
+   */
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  /**
+   * Task creation timestamp
+   * @format date-time
+   * @example "2024-01-15T10:00:00.000Z"
+   */
+  createdAt: string;
+  /**
+   * Task last update timestamp
+   * @format date-time
+   * @example "2024-01-15T12:00:00.000Z"
+   */
+  updatedAt: string;
+  /**
+   * Order ID (if this task is from an order appointment)
+   * @example 501
+   */
+  orderId?: number;
+  /**
+   * Order item/product ID (if this task is from an order appointment)
+   * @example 5
+   */
+  itemId?: number;
+  /** Attendance status (if this task is from an order appointment) */
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  /**
+   * When the attendance was marked (if this task is from an order appointment)
+   * @example "2024-01-15T14:00:00.000Z"
+   */
+  attendanceMarkedAt?: object;
+  /**
+   * User ID who marked the attendance (if this task is from an order appointment)
+   * @example 1
+   */
+  attendanceMarkedBy?: object;
+  /**
+   * Notes about the appointment/task
+   * @example "Student needs extra help with logic games"
+   */
+  notes?: object;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto[];
+}
+
 export interface SlotsQueryDto {
   /**
    * Date in ISO 8601 format (UTC timezone)
@@ -1767,121 +1926,6 @@ export interface TaskInputDto {
   status?: "pending" | "in_progress" | "completed" | "cancelled";
 }
 
-export interface TaskOutputDto {
-  /**
-   * Task ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Source type of the task (task or order_appointment)
-   * @example "task"
-   */
-  type: "task" | "order_appointment";
-  /**
-   * Task title
-   * @example "Prepare lesson materials"
-   */
-  title: string;
-  /**
-   * Task description
-   * @example "Review chapter 5 and prepare exercises"
-   */
-  description?: string;
-  /**
-   * Task start date and time
-   * @format date-time
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  startDateTime: string;
-  /**
-   * Task end date and time
-   * @format date-time
-   * @example "2024-01-15T15:00:00.000Z"
-   */
-  endDateTime: string;
-  /**
-   * Tutor ID who created this task
-   * @example 1
-   */
-  tutorId: number;
-  /**
-   * Google Calendar event ID
-   * @example "abc123def456"
-   */
-  googleCalendarEventId?: string;
-  /**
-   * Meeting link (Zoom, Google Meet, etc.)
-   * @example "https://meet.google.com/abc-defg-hij"
-   */
-  meetingLink?: string;
-  /** List of invitees/attendees */
-  invitees?: {
-    /** @example "john@example.com" */
-    email?: string;
-    /** @example "John Doe" */
-    name?: string;
-    /** @example "accepted" */
-    responseStatus?: string;
-    /** @example 5 */
-    id?: number;
-  }[];
-  /**
-   * Task label
-   * @example "meeting"
-   */
-  label: "meeting" | "personal" | "preparation" | "grading";
-  /**
-   * Task priority
-   * @example "medium"
-   */
-  priority: "low" | "medium" | "high";
-  /**
-   * Task status
-   * @example "pending"
-   */
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  /**
-   * Task creation timestamp
-   * @format date-time
-   * @example "2024-01-15T10:00:00.000Z"
-   */
-  createdAt: string;
-  /**
-   * Task last update timestamp
-   * @format date-time
-   * @example "2024-01-15T12:00:00.000Z"
-   */
-  updatedAt: string;
-  /**
-   * Order ID (if this task is from an order appointment)
-   * @example 501
-   */
-  orderId?: number;
-  /**
-   * Order item/product ID (if this task is from an order appointment)
-   * @example 5
-   */
-  itemId?: number;
-  /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
-  /**
-   * When the attendance was marked (if this task is from an order appointment)
-   * @example "2024-01-15T14:00:00.000Z"
-   */
-  attendanceMarkedAt?: object;
-  /**
-   * User ID who marked the attendance (if this task is from an order appointment)
-   * @example 1
-   */
-  attendanceMarkedBy?: object;
-  /**
-   * Notes about the appointment/task
-   * @example "Student needs extra help with logic games"
-   */
-  notes?: object;
-}
-
 export interface TaskQueryDto {
   /**
    * Filter by tutor ID
@@ -1927,11 +1971,6 @@ export interface TaskQueryDto {
 export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   meta: MetaResponse;
   data: TaskOutputDto;
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto[];
 }
 
 export interface TopCustomerDto {

@@ -103,18 +103,7 @@ export function ResetPasswordForm({
       }, 1500)
     } catch (error: any) {
       console.error('Reset password error:', error)
-
-      if (error?.data?.message) {
-        toast.error(error.data.message)
-      } else if (error?.status === 400) {
-        toast.error('Invalid OTP code or password requirements not met.')
-      } else if (error?.status === 404) {
-        toast.error('OTP expired or invalid. Please request a new one.')
-      } else if (error?.status >= 500) {
-        toast.error('Server error. Please try again later.')
-      } else {
-        toast.error('Failed to reset password. Please try again.')
-      }
+      // Error toast is handled centrally in api.ts
     }
   }
 

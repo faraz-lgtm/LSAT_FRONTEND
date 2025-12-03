@@ -13,6 +13,13 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/dashboard/ui/select'
+import {
   Form,
   FormControl,
   FormField,
@@ -38,6 +45,7 @@ import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
 import { useEffect, useState } from 'react'
 import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
 import type { ProductOutput } from '@/types/api/data-contracts'
+import { DateTime } from 'luxon'
 
 
 
@@ -51,6 +59,7 @@ const formSchema = z.object({
   roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER, ROLE.SUPER_ADMIN]))
     .min(1, 'At least one role is required.'),
   workHours: z.record(z.string(), z.array(z.string())).optional(),
+  timezone: z.string().optional(),
   serviceIds: z.array(z.number()).optional(),
   isEdit: z.boolean(),
 }).refine((data) => {
@@ -112,6 +121,7 @@ export function UsersActionDialog({
       password: '',
       roles: [],
       workHours: {},
+      timezone: '',
       serviceIds: [],
       isEdit: false,
     },
@@ -142,6 +152,7 @@ export function UsersActionDialog({
           password: '', // Don't pre-fill password for edit
           roles: validRoles,
           workHours: currentRow.workHours || {},
+          timezone: (currentRow as any).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
           serviceIds: currentRow.serviceIds || [],
           isEdit: true,
         }
@@ -161,6 +172,7 @@ export function UsersActionDialog({
           password: '',
           roles: initialRoles,
           workHours: {},
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           serviceIds: [],
           isEdit: false,
         })
@@ -175,6 +187,57 @@ export function UsersActionDialog({
   
   // Use separate state for phone input (similar to Appointment page pattern)
   const [phoneInputValue, setPhoneInputValue] = useState('')
+  
+  // Get supported timezones
+  const getSupportedTimezones = () => {
+    try {
+      return Intl.supportedValuesOf('timeZone')
+    } catch {
+      // Fallback list of common timezones if Intl.supportedValuesOf is not available
+      return [
+        'UTC',
+        'America/New_York',
+        'America/Chicago', 
+        'America/Denver',
+        'America/Los_Angeles',
+        'Europe/London',
+        'Europe/Paris',
+        'Europe/Berlin',
+        'Asia/Tokyo',
+        'Asia/Shanghai',
+        'Asia/Kolkata',
+        'Australia/Sydney',
+        'Pacific/Auckland'
+      ]
+    }
+  }
+  
+  // Convert work hours from local time + timezone to UTC
+  const convertWorkHoursToUTC = (workHours: Record<string, string[]>, timezone: string) => {
+    if (!workHours || !timezone) return workHours
+    
+    const convertedWorkHours: Record<string, string[]> = {}
+    
+    Object.entries(workHours).forEach(([day, timeSlots]) => {
+      convertedWorkHours[day] = timeSlots.map(slot => {
+        const [startTime, endTime] = slot.split('-')
+        if (!startTime || !endTime) return slot
+        
+        try {
+          // Create a dummy date (today) with the local times
+          const today = DateTime.now().toISODate()
+          const startUTC = DateTime.fromISO(`${today}T${startTime}:00`, { zone: timezone }).toUTC().toFormat('HH:mm')
+          const endUTC = DateTime.fromISO(`${today}T${endTime}:00`, { zone: timezone }).toUTC().toFormat('HH:mm')
+          return `${startUTC}-${endUTC}`
+        } catch {
+          // If conversion fails, return original slot
+          return slot
+        }
+      })
+    })
+    
+    return convertedWorkHours
+  }
   
   // Sync phoneInputValue with form value when form resets or phone changes
   useEffect(() => {
@@ -209,6 +272,11 @@ export function UsersActionDialog({
           return
         }
 
+        // Convert work hours to UTC if timezone is provided
+        const finalTimezone = values.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        const utcWorkHours = (isCustomerOnly || isAddingCustomer) ? undefined : 
+          values.workHours ? convertWorkHoursToUTC(values.workHours, finalTimezone) : undefined
+        
         const userData: RegisterInput = {
           name: values.name,
           email: values.email,
@@ -217,7 +285,7 @@ export function UsersActionDialog({
           password: values.password,
           roles: finalRoles,
           organizationId: organizationId,
-          workHours: (isCustomerOnly || isAddingCustomer) ? undefined : values.workHours,
+          workHours: utcWorkHours,
           serviceIds: (isCustomerOnly || isAddingCustomer) ? undefined : (values.serviceIds || []),
         }
         
@@ -229,6 +297,11 @@ export function UsersActionDialog({
         console.log("📝 Edit user - currentRow:", currentRow);
         const isCustomerOnly = isEditingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
         
+        // Convert work hours to UTC if timezone is provided
+        const finalTimezone = values.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        const utcWorkHours = (!isCustomerOnly && values.workHours) ? 
+          convertWorkHoursToUTC(values.workHours, finalTimezone) : undefined
+        
         const userData: UpdateUserInput & { serviceIds?: number[] } = {
           name: values.name,
           email: values.email,
@@ -236,8 +309,8 @@ export function UsersActionDialog({
           username: currentRow.username || '', // Use existing username when editing
           roles: !isEditingCustomer && values.roles ? values.roles : currentRow.roles || [],
         }
-        if (!isCustomerOnly && values.workHours) {
-          userData.workHours = values.workHours
+        if (!isCustomerOnly && utcWorkHours) {
+          userData.workHours = utcWorkHours
         }
         // Add serviceIds for employees (non-customers)
         if (!isCustomerOnly && values.serviceIds && values.serviceIds.length > 0) {
@@ -257,7 +330,7 @@ export function UsersActionDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log("❌ Error:", error);
-      toast.error(error?.data?.error.message || `Failed to ${isEdit ? 'update' : 'create'} user`)
+      // Error toast is handled centrally in api.ts
     }
   }
 
@@ -435,7 +508,7 @@ export function UsersActionDialog({
                     name='workHours'
                     render={({ field }) => (
                       <FormItem className='space-y-2'>
-                        <FormLabel className='text-sm font-medium'>Work Hours</FormLabel>
+                        <FormLabel className='text-sm font-medium'>Work Hours (Local Time)</FormLabel>
                         <FormControl>
                           <WorkHoursSelector
                             value={field.value || {}}
@@ -443,6 +516,33 @@ export function UsersActionDialog({
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='timezone'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Timezone</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className='col-span-4'>
+                              <SelectValue placeholder='Select timezone' />
+                            </SelectTrigger>
+                            <SelectContent className='max-h-60'>
+                              {getSupportedTimezones().map((tz) => (
+                                <SelectItem key={tz} value={tz}>
+                                  {tz.replace('_', ' ')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
                       </FormItem>
                     )}
                   />

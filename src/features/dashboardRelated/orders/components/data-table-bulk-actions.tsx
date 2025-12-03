@@ -48,7 +48,7 @@ export function DataTableBulkActions<TData>({
       table.resetRowSelection()
     } catch (error: any) {
       console.error("❌ Bulk delete error:", error)
-      toast.error(error?.data?.message || 'Failed to delete orders')
+      // Error toast is handled centrally in api.ts
     }
   }
 

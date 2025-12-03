@@ -13,6 +13,7 @@ const Home = lazy(() => import("./Pages/Home"));
 const PaymentSuccess = lazy(() => import("./Pages/PaymentSuccess"));
 const PaymentCancel = lazy(() => import("./Pages/PaymentCancel"));
 const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./Pages/TermsOfService"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -73,6 +74,7 @@ function App() {
           <Route element={<Layout />}>
             {/* Non-slug customer routes */}
             <Route path="/privacy_policy" element={<PrivacyPolicy />} />
+            <Route path="/terms_of_service" element={<TermsOfService />} />
             {/* Slug-based routes - matches paths like /betterlsat/cart, /betterlsat/Appointment */}
             <Route path="/:slug/cart" element={<Cart />} />
             <Route path="/:slug/Appointment" element={<Appointment />} />

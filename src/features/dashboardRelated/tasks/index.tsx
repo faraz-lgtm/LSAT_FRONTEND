@@ -29,9 +29,9 @@ export function Tasks() {
     return {
       limit: 50,
       startDate: startOfMonth.toISOString(),
-      googleCalendar:true as boolean,
       endDate: endOfMonth.toISOString(),
-      tutorId: isAdmin ? undefined : user?.id
+      tutorId: isAdmin ? undefined : user?.id,
+      googleCalendar:false
     }
   })
 
@@ -81,7 +81,7 @@ export function Tasks() {
       <Main>
         <div className='mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Tasks & Appointments</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Tasks</h2>
             <p className='text-muted-foreground'>
               All your scheduled work items, including personal tasks and customer appointments.
             </p>

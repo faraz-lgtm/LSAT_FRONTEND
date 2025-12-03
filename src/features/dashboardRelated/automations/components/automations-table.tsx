@@ -91,7 +91,7 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
       }).unwrap()
       toast.success(`Automation ${!row.isEnabled ? 'enabled' : 'disabled'} successfully`)
     } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to update automation')
+      // Error toast is handled centrally in api.ts
     } finally {
       setUpdatingKeys(prev => {
         const next = new Set(prev)

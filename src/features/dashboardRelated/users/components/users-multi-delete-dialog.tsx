@@ -60,7 +60,7 @@ export function UsersMultiDeleteDialog<TData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Bulk delete error:", error)
-      toast.error(error?.data?.message || 'Failed to delete users')
+      // Error toast is handled centrally in api.ts
     } finally {
       setIsDeleting(false)
     }

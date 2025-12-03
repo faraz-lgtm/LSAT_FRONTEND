@@ -43,7 +43,7 @@ export function OrdersDeleteDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Delete order error:", error)
-      toast.error(error?.data?.message || 'Failed to delete order')
+      // Error toast is handled centrally in api.ts
     } finally {
       setIsDeleting(false)
     }

@@ -29,6 +29,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { Resolver } from 'react-hook-form'
 import { format } from 'date-fns'
 import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { type TaskOutputDto } from '@/types/api/data-contracts'
 import type { RootState } from '@/redux/rootReducer'
@@ -69,7 +70,10 @@ export function TasksMutateDrawer({
   const isUpdate = !!currentRow
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation()
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation()
-  const {  user } = useSelector((state: RootState) => state.auth)
+  const { user } = useSelector((state: RootState) => state.auth)
+
+  // Ensure tutorId is always a number (user.id comes as string from JWT)
+  const currentUserId = user?.id ? Number(user.id) : 0
 
   const form = useForm<TaskForm>({
     resolver: zodResolver(formSchema) as unknown as Resolver<TaskForm>,
@@ -87,20 +91,30 @@ export function TasksMutateDrawer({
       description: '',
       startDateTime: '',
       endDateTime: '',
-      tutorId: user?.id ?? 0,
+      tutorId: currentUserId,
       label: 'meeting',
       priority: 'medium',
       status: 'pending',
     },
   })
 
+  // Update tutorId when drawer opens and it's not an update
+  useEffect(() => {
+    if (open && !isUpdate && currentUserId > 0) {
+      form.setValue('tutorId', currentUserId)
+    }
+  }, [open, isUpdate, currentUserId, form])
+
   const onSubmit = async (data: TaskForm) => {
     try {
       const taskData = {
         ...data,
+        tutorId: Number(data.tutorId), // Ensure tutorId is a number
         startDateTime: new Date(data.startDateTime).toISOString(),
         endDateTime: new Date(data.endDateTime).toISOString(),
       }
+
+      console.log('Submitting task data:', taskData) // Debug log
 
       if (isUpdate && currentRow) {
         await updateTask({ id: currentRow.id, data: taskData }).unwrap()
@@ -112,9 +126,9 @@ export function TasksMutateDrawer({
       
       onOpenChange(false)
       form.reset()
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to save task")
+    } catch (error: unknown) {
+      console.error('Task creation error:', error);
+      // Error toast is handled centrally in api.ts
     }
   }
 
@@ -314,7 +328,11 @@ export function TasksMutateDrawer({
           <SheetClose asChild>
             <Button variant='outline'>Close</Button>
           </SheetClose>
-          <Button form='tasks-form' type='submit' disabled={isCreating || isUpdating || !isFormValid}>
+          <Button 
+            type="button"
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={isCreating || isUpdating || !isFormValid}
+          >
             {isCreating || isUpdating ? 'Saving...' : 'Save changes'}
           </Button>
         </SheetFooter>

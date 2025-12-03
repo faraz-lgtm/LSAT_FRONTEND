@@ -13,6 +13,8 @@ import {
   Command,
   GalleryVerticalEnd,
   Calendar,
+  CalendarCheck,
+  ClipboardList,
   ShoppingCart,
   ShoppingBag,
   Receipt,
@@ -51,9 +53,14 @@ const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Tasks & appointments",
+          title: "Tasks",
           url: "/tasks",
-          icon: Calendar,
+          icon: ClipboardList,
+        },
+        {
+          title: "Appointments",
+          url: "/appointments",
+          icon: CalendarCheck,
         },
         {
           title: "Apps",
@@ -145,10 +152,6 @@ const sidebarData: SidebarData = {
               url: "/clerk/sign-in",
             },
             {
-              title: "Sign Up",
-              url: "/clerk/sign-up",
-            },
-            {
               title: "User Management",
               url: "/clerk/user-management",
             },
@@ -170,10 +173,6 @@ const sidebarData: SidebarData = {
             {
               title: "Sign In (2 Col)",
               url: "/sign-in-2",
-            },
-            {
-              title: "Sign Up",
-              url: "/sign-up",
             },
             {
               title: "Forgot Password",
@@ -253,6 +252,7 @@ if (ENV !== "DEVELOPMENT") {
           "/packages",
           "/help-center",
           "/tasks",
+          "/appointments",
           "/chats",
           "/invoices",
           "/refunds",

@@ -26,14 +26,14 @@ export function SignIn2() {
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking sign in, you agree to our{' '}
             <a
-              href='/terms'
+              href='/terms_of_service'
               className='hover:text-primary underline underline-offset-4'
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
-              href='/privacy'
+              href='/privacy_policy'
               className='hover:text-primary underline underline-offset-4'
             >
               Privacy Policy

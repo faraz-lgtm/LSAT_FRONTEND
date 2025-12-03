@@ -146,7 +146,7 @@ export function PackagesActionDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error:', error)
-      toast.error(error?.data?.error?.message || `Failed to ${isEdit ? 'update' : 'create'} package`)
+      // Error toast is handled centrally in api.ts
     }
   }
 

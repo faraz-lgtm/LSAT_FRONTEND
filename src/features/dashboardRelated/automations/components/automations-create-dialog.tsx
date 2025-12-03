@@ -207,7 +207,7 @@ export function AutomationsCreateDialog({
       setDynamicFields({})
     } catch (error: any) {
       console.error('Failed to create automation:', error)
-      toast.error(error?.data?.message || 'Failed to create automation')
+      // Error toast is handled centrally in api.ts
     }
   }
 

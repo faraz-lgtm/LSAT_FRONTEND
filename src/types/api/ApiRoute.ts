@@ -931,6 +931,59 @@ export namespace Api {
   }
 
   /**
+   * No description
+   * @tags order-appointments
+   * @name OrderAppointmentControllerFindAll
+   * @summary Get Order Appointments List
+   * @request GET:/api/v1/order-appointments
+   * @secure
+   */
+  export namespace OrderAppointmentControllerFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Filter by assigned employee ID
+       * @example 1
+       */
+      assignedEmployeeId?: number;
+      /** Filter by task status */
+      status?: "pending" | "in_progress" | "completed" | "cancelled";
+      /** Filter by task priority */
+      priority?: "low" | "medium" | "high";
+      /** Filter by task label */
+      label?: "meeting" | "personal" | "preparation" | "grading";
+      /** Filter by attendance status */
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+      /**
+       * Filter appointments from this date
+       * @example "2024-01-15T00:00:00.000Z"
+       */
+      startDate?: string;
+      /**
+       * Filter appointments to this date
+       * @example "2024-01-31T23:59:59.000Z"
+       */
+      endDate?: string;
+      /**
+       * Number of appointments to return
+       * @min 1
+       * @max 100
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Number of appointments to skip
+       * @min 0
+       * @example 0
+       */
+      offset?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
    * @description Returns available and booked slots for the specified date and package. Used by Orders, Tasks, and Appointments.
    * @tags slots
    * @name SlotControllerGetAvailableSlots

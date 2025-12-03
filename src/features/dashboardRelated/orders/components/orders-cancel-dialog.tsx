@@ -68,8 +68,7 @@ export function OrdersCancelDialog({
       })
     } catch (error: any) {
       console.error('Error canceling order:', error)
-      const errorMessage = error?.data?.message || error?.message || 'Failed to cancel order'
-      toast.error(errorMessage)
+      // Error toast is handled centrally in api.ts
     }
   }
 
