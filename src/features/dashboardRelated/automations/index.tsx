@@ -8,15 +8,17 @@ import { useGetAutomationsQuery } from "@/redux/apiSlices/Automation/automationS
 import type { AutomationConfigOutputDto } from "@/types/api/data-contracts";
 import { getRouteApi } from "@tanstack/react-router";
 import { AutomationsDialogs } from "./components/automations-dialogs";
-import { AutomationsProvider } from "./components/automations-provider";
+import { AutomationsPrimaryButtons } from "./components/automations-primary-buttons";
+import { AutomationsProvider, useAutomations } from "./components/automations-provider";
 import { AutomationsTable } from "./components/automations-table";
 
 const route = getRouteApi("/_authenticated/automations/");
 
-export function Automations() {
+function AutomationsContent() {
   const { data: automationsData, isSuccess, isLoading, error } = useGetAutomationsQuery();
   const search = route.useSearch();
   const navigate = route.useNavigate();
+  const { setOpen } = useAutomations();
 
   console.log("automationsData", automationsData);
   console.log("isSuccess:", isSuccess);
@@ -46,7 +48,7 @@ export function Automations() {
   }
 
   return (
-    <AutomationsProvider>
+    <>
       <Header fixed>
         <Search />
         <div className="ms-auto flex items-center space-x-4">
@@ -64,6 +66,9 @@ export function Automations() {
               Configure email and Slack notification automations.
             </p>
           </div>
+          <AutomationsPrimaryButtons 
+            onCreateAutomation={() => setOpen('create')}
+          />
         </div>
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12">
           <AutomationsTable
@@ -76,6 +81,14 @@ export function Automations() {
       </Main>
 
       <AutomationsDialogs />
+    </>
+  );
+}
+
+export function Automations() {
+  return (
+    <AutomationsProvider>
+      <AutomationsContent />
     </AutomationsProvider>
   );
 }

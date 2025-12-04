@@ -48,10 +48,9 @@ interface CalendarNavProps {
   calendarRef: calendarRef;
   viewedDate: Date;
   onCreateTask?: () => void;
-  onCreateOrder?: () => void;
 }
 
-export default function CalendarNav({ calendarRef, viewedDate, onCreateTask, onCreateOrder }: CalendarNavProps) {
+export default function CalendarNav({ calendarRef, viewedDate, onCreateTask }: CalendarNavProps) {
   const [monthOpen, setMonthOpen] = useState(false);
   const [yearOpen, setYearOpen] = useState(false);
   const [dayOpen, setDayOpen] = useState(false);
@@ -211,18 +210,19 @@ export default function CalendarNav({ calendarRef, viewedDate, onCreateTask, onC
         <div className="ml-auto flex items-center gap-2">
           <Input placeholder="Search events" className="w-[200px]" />
           {/* New Event Dropdown: choose Task or Order */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button>
-                <PlusIcon className="mr-2 h-4 w-4" />
-                New Event
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
-              <DropdownMenuItem onClick={onCreateOrder}>Create Order</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {onCreateTask && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  New Event
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onCreateTask}>Create Task</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </div>

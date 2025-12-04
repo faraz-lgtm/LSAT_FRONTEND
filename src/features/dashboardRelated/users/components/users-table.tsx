@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   type SortingState,
   type VisibilityState,
@@ -24,8 +24,15 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
-import { usersColumns as columns } from './users-columns'
+import { usersColumns as baseColumns } from './users-columns'
 import type { UserOutput } from '@/types/api/data-contracts'
+import { useUsers } from './users-provider'
+import { useSelector } from 'react-redux'
+import type { RootState } from '@/redux/store'
+import { canEditUser } from '@/utils/rbac'
+import { convertAuthUserToIUser } from '@/utils/authUserConverter'
+import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
+import { useMemo } from 'react'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -38,13 +45,29 @@ type DataTableProps = {
   data: UserOutput[]
   search: Record<string, unknown>
   navigate: NavigateFn
+  hideCustomerTypeFilter?: boolean
+  hideRolesFilter?: boolean
+  hideUsernameColumn?: boolean
+  excludeRolesFromFilter?: string[]
+  showGoogleCalendarColumn?: boolean
 } 
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
+export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter, showGoogleCalendarColumn }: DataTableProps) {
+  const { setOpen, setCurrentRow } = useUsers()
+  const currentUser = useSelector((state: RootState) => state.auth.user)
+  const currentUserForRBAC = convertAuthUserToIUser(currentUser)
+  
+  // Fetch products for serviceIds mapping
+  const { data: productsData } = useGetProductsQuery()
+  const products = useMemo(() => productsData?.data || [], [productsData?.data])
+  
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  
+  // Create columns with products in meta
+  const columns = useMemo(() => baseColumns, [])
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
@@ -64,16 +87,21 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     globalFilter: { enabled: false },
     columnFilters: [
       // username per-column text filter
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' },
-      { columnId: 'roles', searchKey: 'roles', type: 'array' },
-      { columnId: 'ordersCount', searchKey: 'leads', type: 'array' },
+      ...(hideUsernameColumn ? [] : [{ columnId: 'username', searchKey: 'username', type: 'string' as const }]),
+      // name filter when username column is hidden
+      ...(hideUsernameColumn ? [{ columnId: 'name', searchKey: 'name', type: 'string' as const }] : []),
+      { columnId: 'isAccountDisabled', searchKey: 'status', type: 'array' as const },
+      ...(hideRolesFilter ? [] : [{ columnId: 'roles', searchKey: 'roles', type: 'array' as const }]),
+      ...(hideCustomerTypeFilter ? [] : [{ columnId: 'ordersCount', searchKey: 'leads', type: 'array' as const }]),
     ],
   })
 
   const table = useReactTable({
     data,
     columns,
+    meta: {
+      products,
+    },
     state: {
       sorting,
       pagination,
@@ -82,6 +110,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       columnVisibility,
     },
     enableRowSelection: true,
+    manualPagination: false,
     onPaginationChange,
     onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
@@ -95,16 +124,76 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  // Track previous values to avoid unnecessary checks
+  const prevStateRef = useRef({
+    dataLength: data.length,
+    pageSize: pagination.pageSize,
+    filtersKey: JSON.stringify(columnFilters),
+    initialized: false,
+  })
+
+  // Only check page range when data, filters, or pageSize change - NOT when pageIndex changes
+  // This prevents the effect from interfering with normal pagination navigation
   useEffect(() => {
-    ensurePageInRange(table.getPageCount())
-  }, [table, ensurePageInRange])
+    const currentState = {
+      dataLength: data.length,
+      pageSize: pagination.pageSize,
+      filtersKey: JSON.stringify(columnFilters),
+    }
+
+    // Only run if something actually changed that affects page count (not just reference equality)
+    // Explicitly exclude pageIndex changes from triggering this effect
+    const hasChanged =
+      !prevStateRef.current.initialized ||
+      prevStateRef.current.dataLength !== currentState.dataLength ||
+      prevStateRef.current.pageSize !== currentState.pageSize ||
+      prevStateRef.current.filtersKey !== currentState.filtersKey
+
+    if (hasChanged) {
+      prevStateRef.current = { ...currentState, initialized: true }
+      const pageCount = table.getPageCount()
+      
+      // Only check and fix page if we have data and pageCount is valid
+      if (pageCount > 0) {
+        // Use a small delay to ensure any pending navigation from pagination clicks has completed
+        const timeoutId = setTimeout(() => {
+          const currentPageNum = (search as Record<string, unknown>).page as number | undefined
+          const defaultPage = 1
+          const pageNum = typeof currentPageNum === 'number' ? currentPageNum : defaultPage
+          
+          // Only call ensurePageInRange if page is actually out of range
+          // This prevents unnecessary navigation calls that cause flickering
+          if (pageNum > pageCount) {
+            ensurePageInRange(pageCount)
+          }
+        }, 100)
+        return () => clearTimeout(timeoutId)
+      }
+    }
+    return undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.length, pagination.pageSize, columnFilters])
+
+  useEffect(() => {
+    if (hideUsernameColumn) {
+      setColumnVisibility((prev) => ({ ...prev, username: false }))
+    }
+  }, [hideUsernameColumn])
+
+  useEffect(() => {
+    // Hide Google Calendar column by default, show only when explicitly requested
+    setColumnVisibility((prev) => ({ 
+      ...prev, 
+      googleCalendarIntegration: showGoogleCalendarColumn === true 
+    }))
+  }, [showGoogleCalendarColumn])
 
   return (
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Filter users...'
-        searchKey='username'
+        searchKey={hideUsernameColumn ? 'name' : 'username'}
         filters={[
           {
             columnId: 'isAccountDisabled',
@@ -114,19 +203,25 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Disabled', value: 'disabled' },
             ],
           },
-          {
-            columnId: 'roles',
-            title: 'Roles',
-            options: roles.map((role) => ({ ...role })),
-          },
-          {
-            columnId: 'ordersCount',
-            title: 'Customer Type',
-            options: [
-              { label: 'Leads', value: 'leads' },
-              { label: 'Customers', value: 'customers' },
-            ],
-          },
+          ...(
+            hideRolesFilter ? [] : [{
+              columnId: 'roles',
+              title: 'Roles',
+              options: roles
+                .filter((r) => !(excludeRolesFromFilter || []).includes(r.value))
+                .map((role) => ({ ...role })),
+            }]
+          ),
+          ...(
+            hideCustomerTypeFilter ? [] : [{
+              columnId: 'ordersCount',
+              title: 'Customer Type',
+              options: [
+                { label: 'Leads', value: 'leads' },
+                { label: 'Customers', value: 'customers' },
+              ],
+            }]
+          ),
         ]}
       />
       <div className='overflow-hidden rounded-md border'>
@@ -162,7 +257,14 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  className='group/row cursor-pointer'
+                  onDoubleClick={() => {
+                    // Check if current user can edit this user before opening dialog
+                    if (canEditUser(currentUserForRBAC, row.original)) {
+                      setCurrentRow(row.original)
+                      setOpen('edit')
+                    }
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

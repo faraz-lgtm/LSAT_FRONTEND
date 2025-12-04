@@ -7,6 +7,10 @@ import { format } from 'date-fns'
 import type { TaskOutputDto } from '@/types/api/data-contracts'
 import type { UserOutput } from '@/types/api/data-contracts'
 import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
+import { ClickableTutorCell } from './clickable-tutor-cell'
+import { ClickableCustomerCell } from './clickable-customer-cell'
+import { isOrderAppointment } from '@/utils/task-helpers'
+import { useNavigate } from '@tanstack/react-router'
 
 // Filter options for the columns
 const labels = [
@@ -32,7 +36,9 @@ const priorities = [
 export const createTasksColumns = (
   onEdit: (row: TaskOutputDto) => void,
   onDelete: (row: TaskOutputDto) => void,
-  userIdToUser?: Record<number, UserOutput>
+  onView?: (row: TaskOutputDto) => void,
+  userIdToUser?: Record<number, UserOutput>,
+  emailToUser?: Record<string, UserOutput>
 ): ColumnDef<TaskOutputDto>[] => [
   {
     id: 'select',
@@ -64,8 +70,62 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='ID' />
     ),
     cell: ({ row }) => <div className='w-[80px] font-medium'>#{row.getValue('id')}</div>,
-    enableSorting: false,
     enableHiding: false,
+  },
+  {
+    id: 'type',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Type' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      const isAppointment = isOrderAppointment(task)
+      
+      return (
+        <div className='flex w-[140px] items-center'>
+          <Badge variant={isAppointment ? 'secondary' : 'outline'}>
+            {isAppointment ? 'Order Appointment' : 'Personal Task'}
+          </Badge>
+        </div>
+      )
+    },
+    accessorFn: (row) => isOrderAppointment(row) ? 'Order Appointment' : 'Personal Task',
+    sortingFn: (rowA, rowB) => {
+      const typeA = isOrderAppointment(rowA.original) ? 'Order Appointment' : 'Personal Task'
+      const typeB = isOrderAppointment(rowB.original) ? 'Order Appointment' : 'Personal Task'
+      return typeA.localeCompare(typeB)
+    },
+  },
+  {
+    id: 'orderId',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Order ID' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      
+      if (!isOrderAppointment(task) || !task.orderId) {
+        return <div className='w-[100px]'>—</div>
+      }
+      
+      return (
+        <OrderIdCell orderId={task.orderId} />
+      )
+    },
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      if (!isOrderAppointment(task) || !task.orderId) {
+        return -1
+      }
+      return task.orderId
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const orderIdA = (isOrderAppointment(taskA) && taskA.orderId) ? taskA.orderId : -1
+      const orderIdB = (isOrderAppointment(taskB) && taskB.orderId) ? taskB.orderId : -1
+      return orderIdA - orderIdB
+    },
   },
   {
     accessorKey: 'title',
@@ -87,14 +147,126 @@ export const createTasksColumns = (
     ),
     cell: ({ row }) => {
       const task = row.original as TaskOutputDto
-      // Prefer attendee employee id if available; fallback to task.tutorId
-      const attendeeId = task.invitees?.find((i) => typeof i?.id === 'number')?.id
-      const resolvedUser = attendeeId && userIdToUser ? userIdToUser[attendeeId] : undefined
-      const fallbackUser = userIdToUser && userIdToUser[task.tutorId]
-      const displayName = resolvedUser?.name || fallbackUser?.name || '—'
-      return <div className='w-[160px]'>{displayName}</div>
+      // Get tutor ID from task.tutorId
+      const tutorId = task.tutorId
+      const user = tutorId && userIdToUser ? userIdToUser[tutorId] : undefined
+      const displayName = user?.name || '—'
+      return (
+        <ClickableTutorCell
+          tutorId={tutorId}
+          userIdToUser={userIdToUser}
+          displayName={displayName}
+        />
+      )
     },
-    enableSorting: false,
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      const tutorId = task.tutorId
+      const user = tutorId && userIdToUser ? userIdToUser[tutorId] : undefined
+      return user?.name || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const tutorIdA = taskA.tutorId
+      const tutorIdB = taskB.tutorId
+      const userA = tutorIdA && userIdToUser ? userIdToUser[tutorIdA] : undefined
+      const userB = tutorIdB && userIdToUser ? userIdToUser[tutorIdB] : undefined
+      const nameA = userA?.name || ''
+      const nameB = userB?.name || ''
+      return nameA.localeCompare(nameB)
+    },
+  },
+  {
+    id: 'customer',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Customer' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      // Find invitee with name "Customer"
+      const customerInvitee = task.invitees?.find((i) => i.name === 'Customer')
+      
+      if (!customerInvitee) {
+        return <div className='w-[200px] truncate'>—</div>
+      }
+      
+      // Get customer email from invitees
+      const customerEmail = customerInvitee.email
+      const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+      
+      // Display customer name from users API if found, otherwise fallback to invitee name or email
+      const displayValue = customer?.name || customerInvitee.name || customerEmail || '—'
+      return (
+        <ClickableCustomerCell
+          customerEmail={customerEmail}
+          emailToUser={emailToUser}
+          displayValue={displayValue}
+        />
+      )
+    },
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      const customerInvitee = task.invitees?.find((i) => i.name === 'Customer')
+      if (!customerInvitee) {
+        return ''
+      }
+      const customerEmail = customerInvitee.email
+      const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
+      return customer?.name || customerInvitee.name || customerEmail || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const taskA = rowA.original as TaskOutputDto
+      const taskB = rowB.original as TaskOutputDto
+      const customerInviteeA = taskA.invitees?.find((i) => i.name === 'Customer')
+      const customerInviteeB = taskB.invitees?.find((i) => i.name === 'Customer')
+      
+      const customerEmailA = customerInviteeA?.email
+      const customerEmailB = customerInviteeB?.email
+      const customerA = customerEmailA && emailToUser ? emailToUser[customerEmailA.toLowerCase()] : undefined
+      const customerB = customerEmailB && emailToUser ? emailToUser[customerEmailB.toLowerCase()] : undefined
+      
+      const nameA = customerA?.name || customerInviteeA?.name || customerEmailA || ''
+      const nameB = customerB?.name || customerInviteeB?.name || customerEmailB || ''
+      return nameA.localeCompare(nameB)
+    },
+  },
+  {
+    id: 'meetingLink',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Meeting Link' />
+    ),
+    cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      const meetingLink = task.meetingLink
+      
+      if (!meetingLink) {
+        return <div className='w-[200px] truncate'>—</div>
+      }
+      
+      return (
+        <div className='w-[200px] truncate'>
+          <a
+            href={meetingLink}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-600 hover:text-blue-800 underline truncate block'
+            title={meetingLink}
+          >
+            {meetingLink}
+          </a>
+        </div>
+      )
+    },
+    accessorFn: (row) => {
+      const task = row as TaskOutputDto
+      return task.meetingLink || ''
+    },
+    sortingFn: (rowA, rowB) => {
+      const meetingLinkA = rowA.original.meetingLink || ''
+      const meetingLinkB = rowB.original.meetingLink || ''
+      return meetingLinkA.localeCompare(meetingLinkB)
+    },
   },
   {
     accessorKey: 'label',
@@ -102,7 +274,18 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='Label' />
     ),
     cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
       const label = labels.find((label) => label.value === row.getValue('label'))
+      
+      // Show label for tasks, show "Appointment" badge for order appointments
+      if (isOrderAppointment(task)) {
+        return (
+          <div className='flex w-[100px] items-center'>
+            <Badge variant='secondary'>Appointment</Badge>
+          </div>
+        )
+      }
+      
       return (
         <div className='flex w-[100px] items-center'>
           {label && <Badge variant='outline'>{label.label}</Badge>}
@@ -194,6 +377,13 @@ export const createTasksColumns = (
       <DataTableColumnHeader column={column} title='Priority' />
     ),
     cell: ({ row }) => {
+      const task = row.original as TaskOutputDto
+      
+      // Only show priority for tasks, not order appointments
+      if (isOrderAppointment(task)) {
+        return <div className='w-[100px]'>—</div>
+      }
+      
       const priority = priorities.find(
         (priority) => priority.value === row.getValue('priority')
       )
@@ -212,11 +402,38 @@ export const createTasksColumns = (
       )
     },
     filterFn: (row, id, value) => {
+      const task = row.original as TaskOutputDto
+      // Only filter tasks, not appointments
+      if (isOrderAppointment(task)) {
+        return false
+      }
       return value.includes(row.getValue(id))
     },
   },
   {
     id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} />,
+    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} onView={onView} />,
   },
 ]
+
+// Component for clickable Order ID cell
+function OrderIdCell({ orderId }: { orderId: number }) {
+  const navigate = useNavigate()
+  
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation()
+        navigate({
+          to: '/orders',
+          search: {
+            orderId: orderId,
+          },
+        })
+      }}
+      className='w-[100px] font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left'
+    >
+      #{orderId}
+    </button>
+  )
+}

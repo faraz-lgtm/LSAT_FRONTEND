@@ -9,6 +9,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/dashboard/confirm-dialog'
+import type { TaskOutputDto } from '@/types/api/data-contracts'
+import { isOrderAppointment } from '@/utils/task-helpers'
 
 type TaskMultiDeleteDialogProps<TData> = {
   open: boolean
@@ -33,11 +35,12 @@ export function TasksMultiDeleteDialog<TData>({
       return
     }
 
-    // Check if any selected task has ID 0
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hasTaskWithIdZero = selectedRows.some((row: any) => row.original.id === 0)
-    if (hasTaskWithIdZero) {
-      toast.warning("Cannot delete tasks with ID 0")
+    // Check if any selected item is an order appointment
+    const selectedTasks = selectedRows.map(row => row.original as TaskOutputDto)
+    const hasAppointments = selectedTasks.some(isOrderAppointment)
+    
+    if (hasAppointments) {
+      toast.warning("Cannot delete order appointments. Please deselect them and try again.")
       return
     }
 

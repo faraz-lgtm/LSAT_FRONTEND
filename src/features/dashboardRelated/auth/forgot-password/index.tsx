@@ -19,7 +19,7 @@ export function ForgotPassword() {
             Forgot Password
           </CardTitle>
           <CardDescription>
-            Enter your registered email and <br /> we will send you a link to
+            Enter your registered email or phone number and <br /> we will send you an OTP code to
             reset your password.
           </CardDescription>
         </CardHeader>
@@ -28,12 +28,12 @@ export function ForgotPassword() {
         </CardContent>
         <CardFooter>
           <p className='text-muted-foreground mx-auto px-8 text-center text-sm text-balance'>
-            Don't have an account?{' '}
+            Remember your password?{' '}
             <Link
-              to='/sign-up'
+              to='/sign-in'
               className='hover:text-primary underline underline-offset-4'
             >
-              Sign up
+              Sign in
             </Link>
             .
           </p>

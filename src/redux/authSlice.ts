@@ -21,8 +21,22 @@ function decodeJWT(token: string): any {
   }
 }
 
+// Utility function to check if token is expired
+function isTokenExpired(token: string): boolean {
+  try {
+    const decoded = decodeJWT(token)
+    if (!decoded || !decoded.exp) return true
+    // exp is in seconds, convert to milliseconds
+    return Date.now() >= decoded.exp * 1000
+  } catch {
+    return true
+  }
+}
+
 const ACCESS_TOKEN = 'accessToken'
 const REFRESH_TOKEN = 'refreshToken'
+const ORGANIZATION_ID = 'organizationId'
+const ORGANIZATION_SLUG = 'organizationSlug'
 
 export interface AuthUser {
   id: number;
@@ -34,16 +48,22 @@ interface AuthState {
   user: AuthUser | null
   accessToken: string
   refreshToken: string
+  organizationId: number | null
+  organizationSlug: string | null
   isAuthenticated: boolean
 }
 
 // Initialize state from cookies
 const accessToken = getCookie(ACCESS_TOKEN) ? JSON.parse(getCookie(ACCESS_TOKEN)!) : ''
 const refreshToken = getCookie(REFRESH_TOKEN) ? JSON.parse(getCookie(REFRESH_TOKEN)!) : ''
+const organizationId = getCookie(ORGANIZATION_ID) ? Number(JSON.parse(getCookie(ORGANIZATION_ID)!)) : null
+const organizationSlug = getCookie(ORGANIZATION_SLUG) ? JSON.parse(getCookie(ORGANIZATION_SLUG)!) : null
 
-// Decode user info from access token if available
+// Decode user info from access token if available AND not expired
+// If token is expired, user will be populated after first API call triggers refresh
 let user: AuthUser | null = null
-if (accessToken) {
+let decodedOrganizationId: number | null = null
+if (accessToken && !isTokenExpired(accessToken)) {
   const decodedToken = decodeJWT(accessToken)
   if (decodedToken) {
     user = {
@@ -51,14 +71,23 @@ if (accessToken) {
       username: decodedToken.username || '',
       roles: decodedToken.roles || []
     }
+    // Extract organizationId from token if present
+    decodedOrganizationId = decodedToken.organizationId ? Number(decodedToken.organizationId) : null
   }
 }
+
+// Use organizationId from token if available, otherwise use cookie
+const finalOrganizationId = decodedOrganizationId || organizationId
 
 const initialState: AuthState = {
   user,
   accessToken,
   refreshToken,
-  isAuthenticated: !!(accessToken && refreshToken && user), // Set to true if all exist
+  organizationId: finalOrganizationId,
+  organizationSlug,
+  // Allow authentication if we have refreshToken (even if accessToken is expired)
+  // User info will be populated after first API call triggers token refresh
+  isAuthenticated: !!refreshToken,
 }
 
 const authSlice = createSlice({
@@ -67,7 +96,11 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<AuthUser | null>) => {
       state.user = action.payload
-      state.isAuthenticated = !!action.payload
+      // Don't override isAuthenticated here - it should be based on refreshToken
+      // If user is set, we're still authenticated as long as refreshToken exists
+      if (!action.payload && !state.refreshToken) {
+        state.isAuthenticated = false
+      }
     },
     setAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload
@@ -91,13 +124,31 @@ const authSlice = createSlice({
       state.refreshToken = ''
       removeCookie(REFRESH_TOKEN)
     },
+    setOrganization: (state, action: PayloadAction<{ organizationId: number | null; organizationSlug: string | null }>) => {
+      state.organizationId = action.payload.organizationId
+      state.organizationSlug = action.payload.organizationSlug
+      if (action.payload.organizationId !== null) {
+        setCookie(ORGANIZATION_ID, JSON.stringify(action.payload.organizationId))
+      } else {
+        removeCookie(ORGANIZATION_ID)
+      }
+      if (action.payload.organizationSlug) {
+        setCookie(ORGANIZATION_SLUG, JSON.stringify(action.payload.organizationSlug))
+      } else {
+        removeCookie(ORGANIZATION_SLUG)
+      }
+    },
     reset: (state) => {
       state.user = null
       state.accessToken = ''
       state.refreshToken = ''
+      state.organizationId = null
+      state.organizationSlug = null
       state.isAuthenticated = false
       removeCookie(ACCESS_TOKEN)
       removeCookie(REFRESH_TOKEN)
+      removeCookie(ORGANIZATION_ID)
+      removeCookie(ORGANIZATION_SLUG)
     },
   },
 })
@@ -107,6 +158,7 @@ export const {
   setAccessToken, 
   setRefreshToken, 
   setTokens, 
+  setOrganization,
   resetAccessToken, 
   resetRefreshToken, 
   reset 

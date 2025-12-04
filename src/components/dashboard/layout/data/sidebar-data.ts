@@ -1,26 +1,20 @@
 import {
   Construction,
   LayoutDashboard,
-  Monitor,
   Bug,
-  ListTodo,
   FileX,
   HelpCircle,
   Lock,
-  Bell,
   Package,
-  Palette,
   ServerOff,
-  Settings,
-  Wrench,
-  UserCog,
   UserX,
   Users,
-  MessagesSquare,
   ShieldCheck,
   Command,
   GalleryVerticalEnd,
   Calendar,
+  CalendarCheck,
+  ClipboardList,
   ShoppingCart,
   ShoppingBag,
   Receipt,
@@ -28,6 +22,8 @@ import {
   CreditCard,
   Zap,
   Activity,
+  Building2,
+  MessagesSquare,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
@@ -59,7 +55,12 @@ const sidebarData: SidebarData = {
         {
           title: "Tasks",
           url: "/tasks",
-          icon: ListTodo,
+          icon: ClipboardList,
+        },
+        {
+          title: "Appointments",
+          url: "/appointments",
+          icon: CalendarCheck,
         },
         {
           title: "Apps",
@@ -69,14 +70,9 @@ const sidebarData: SidebarData = {
         {
           title: "Chats",
           url: "/chats",
-          badge: "3",
           icon: MessagesSquare,
         },
-        {
-          title: "Users",
-          url: "/users",
-          icon: Users,
-        },
+        
         {
           title: "Orders",
           url: "/orders",
@@ -97,6 +93,21 @@ const sidebarData: SidebarData = {
           url: "/calendar",
           icon: Calendar,
         },
+      ],
+    },
+    {
+      title: "Users",
+      items: [
+        { title: "Employees", url: "/users/employees", icon: Users },
+        { title: "Leads", url: "/users/leads", icon: Users },
+        { title: "Contacts", url: "/users/contacts", icon: Users },
+        { title: "Customers", url: "/users/customers", icon: Users },
+      ],
+    },
+    {
+      title: "Admin",
+      items: [
+        { title: "Organizations", url: "/organizations", icon: Building2, superAdminOnly: true },
       ],
     },
     {
@@ -141,10 +152,6 @@ const sidebarData: SidebarData = {
               url: "/clerk/sign-in",
             },
             {
-              title: "Sign Up",
-              url: "/clerk/sign-up",
-            },
-            {
               title: "User Management",
               url: "/clerk/user-management",
             },
@@ -166,10 +173,6 @@ const sidebarData: SidebarData = {
             {
               title: "Sign In (2 Col)",
               url: "/sign-in-2",
-            },
-            {
-              title: "Sign Up",
-              url: "/sign-up",
             },
             {
               title: "Forgot Password",
@@ -218,37 +221,6 @@ const sidebarData: SidebarData = {
       title: "Other",
       items: [
         {
-          title: "Settings",
-          icon: Settings,
-          items: [
-            {
-              title: "Profile",
-              url: "/settings",
-              icon: UserCog,
-            },
-            {
-              title: "Account",
-              url: "/settings/account",
-              icon: Wrench,
-            },
-            {
-              title: "Appearance",
-              url: "/settings/appearance",
-              icon: Palette,
-            },
-            {
-              title: "Notifications",
-              url: "/settings/notifications",
-              icon: Bell,
-            },
-            {
-              title: "Display",
-              url: "/settings/display",
-              icon: Monitor,
-            },
-          ],
-        },
-        {
           title: "Help Center",
           url: "/help-center",
           icon: HelpCircle,
@@ -268,11 +240,28 @@ if (ENV !== "DEVELOPMENT") {
       ...group,
       items: group.items.filter((item) => {
         // Allow items with direct URLs
-        if (item.url && ["/", "/users", "/orders", "/calendar", "/packages","/help-center","/tasks", cartUrl].includes(item.url)) {
-          return true;
-        }
-        // Allow Settings (collapsible item without direct URL)
-        if (item.title === "Settings") {
+        if (item.url && [
+          "/", 
+          "/users", 
+          "/users/employees",
+          "/users/leads",
+          "/users/contacts",
+          "/users/customers",
+          "/orders", 
+          "/calendar", 
+          "/packages",
+          "/help-center",
+          "/tasks",
+          "/appointments",
+          "/chats",
+          "/invoices",
+          "/refunds",
+          "/transactions",
+          "/automations",
+          "/automation-logs",
+          "/organizations",
+          cartUrl
+        ].includes(item.url)) {
           return true;
         }
         return false;

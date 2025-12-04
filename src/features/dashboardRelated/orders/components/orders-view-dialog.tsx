@@ -11,12 +11,20 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import { Badge } from '@/components/dashboard/ui/badge'
+import { Textarea } from '@/components/dashboard/ui/textarea'
 import type { OrderOutput } from '@/types/api/data-contracts'
 import { useGetRefundsByOrderQuery } from '@/redux/apiSlices/Refunds/refundsSlice'
 import { formatCurrency } from '@/utils/currency'
 import { formatDateTime } from '@/utils/currency'
 import { RefundStatusBadge } from '@/components/dashboard/ui/refund-status-badge'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Clipboard, Check } from 'lucide-react'
+import { 
+  useListOrderAppointmentsQuery, 
+  useMarkAppointmentAttendanceMutation, 
+  useUpdateOrderNotesMutation,
+  useGenerateRescheduleLinkMutation,
+} from '@/redux/apiSlices/Order/orderSlice'
+import { useEffect, useMemo, useState } from 'react'
 
 type OrdersViewDialogProps = {
   currentRow: OrderOutput
@@ -42,6 +50,27 @@ export function OrdersViewDialog({
   })
   
   const refunds = refundsData?.data || []
+
+  // Notes state + mutation
+  const [notes, setNotes] = useState<string>(currentRow.notes ?? '')
+  useEffect(() => {
+    if (open) setNotes(currentRow.notes ?? '')
+  }, [open, currentRow.notes])
+  const [updateNotes, { isLoading: isSavingNotes }] = useUpdateOrderNotesMutation()
+
+  // Appointments list + attendance mutation
+  const { data: apptsData, isLoading: isLoadingAppts } = useListOrderAppointmentsQuery(currentRow.id, { skip: !open })
+  const [markAttendance, { isLoading: isMarking }] = useMarkAppointmentAttendanceMutation()
+  const [generateLink, { isLoading: isGenerating } ] = useGenerateRescheduleLinkMutation()
+  const [copyingApptId, setCopyingApptId] = useState<number | null>(null)
+  const [copiedApptId, setCopiedApptId] = useState<number | null>(null)
+  const [copyErrorApptId, setCopyErrorApptId] = useState<number | null>(null)
+  const appointments = useMemo(() => {
+    // handle either wrapped BaseApiResponse or raw array
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = (apptsData as any)?.data ?? apptsData
+    return (payload ?? []) as Array<{ id: number; orderId: number; itemId: number; slotDateTime: string; assignedEmployeeId?: number | null; attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW' }>
+  }, [apptsData])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,6 +119,38 @@ export function OrdersViewDialog({
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Total Amount</label>
                 <p className='text-sm font-semibold text-green-600'>{formatCurrency(totalAmount * 100)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes and Tags */}
+          <div className='space-y-3'>
+            <h3 className='text-lg font-semibold'>Notes</h3>
+            <div className='space-y-2'>
+              {Array.isArray(currentRow.tags) && currentRow.tags.length > 0 && (
+                <div className='flex flex-wrap gap-2'>
+                  {currentRow.tags.map((t, i) => (
+                    <Badge key={i} variant='outline' className='uppercase'>
+                      {t}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <Textarea
+                placeholder='Add order notes...'
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+              <div className='flex justify-end'>
+                <Button
+                  size='sm'
+                  disabled={isSavingNotes}
+                  onClick={async () => {
+                    await updateNotes({ id: currentRow.id, body: { notes } })
+                  }}
+                >
+                  {isSavingNotes ? 'Saving...' : 'Save Notes'}
+                </Button>
               </div>
             </div>
           </div>
@@ -155,13 +216,9 @@ export function OrdersViewDialog({
                       <span className='font-medium text-muted-foreground'>Duration:</span>
                       <div className='text-foreground'>{item.Duration} minutes</div>
                     </div>
-                    <div>
-                      <span className='font-medium text-muted-foreground'>Employee ID:</span>
-                      <div className='text-foreground'>{item.assignedEmployeeIds.join(', ')}</div>
-                    </div>
                   </div>
                   
-                  {item.DateTime.length > 0 && (
+                  {Array.isArray(item.DateTime) && item.DateTime.length > 0 && (
                     <div className='border-t pt-3'>
                       <div className='flex items-center justify-between mb-2'>
                         <span className='text-sm font-medium'>Scheduled Sessions ({item.DateTime.length})</span>
@@ -178,6 +235,76 @@ export function OrdersViewDialog({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Appointments */}
+          <div className='space-y-3'>
+            <h3 className='text-lg font-semibold'>Appointments</h3>
+            {isLoadingAppts ? (
+              <div className='text-center text-muted-foreground py-4'>Loading appointments...</div>
+            ) : appointments.length === 0 ? (
+              <div className='text-center text-muted-foreground py-4'>No appointments found</div>
+            ) : (
+              <div className='space-y-3'>
+                {appointments.map((appt) => (
+                  <div key={appt.id} className='grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 border rounded-lg'>
+                    <div className='col-span-2 space-y-1'>
+                      <div className='text-sm font-medium'>{new Date(appt.slotDateTime).toLocaleString()}</div>
+                      <div className='text-xs text-muted-foreground'>Item #{appt.itemId} • Employee: {appt.assignedEmployeeId ?? 'Unassigned'}</div>
+                      <div>
+                        <Badge variant='outline' className='uppercase'>{appt.attendanceStatus}</Badge>
+                      </div>
+                    </div>
+                    <div className='flex flex-wrap items-center gap-2 sm:justify-end'>
+                      <Button size='sm' variant='secondary' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'SHOWED' } })}>Showed</Button>
+                      <Button size='sm' variant='secondary' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'NO_SHOW' } })}>No Show</Button>
+                      <Button size='sm' variant='outline' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'UNKNOWN' } })}>Reset</Button>
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        disabled={isGenerating || copyingApptId === appt.id}
+                        onClick={async () => {
+                          setCopyErrorApptId(null)
+                          setCopiedApptId(null)
+                          setCopyingApptId(appt.id)
+                          try {
+                            const resp = await generateLink({ appointmentId: appt.id }).unwrap()
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const url = (resp as any)?.data?.url ?? (resp as any)?.url
+                            if (url) {
+                              await navigator.clipboard.writeText(url)
+                              setCopiedApptId(appt.id)
+                              setTimeout(() => setCopiedApptId((prev) => (prev === appt.id ? null : prev)), 1500)
+                            } else {
+                              setCopyErrorApptId(appt.id)
+                            }
+                          } catch {
+                            setCopyErrorApptId(appt.id)
+                          } finally {
+                            setCopyingApptId(null)
+                          }
+                        }}
+                      >
+                        {copiedApptId === appt.id ? (
+                          <span className='inline-flex items-center gap-1'>
+                            <Check className='h-4 w-4 text-green-600' /> Copied
+                          </span>
+                        ) : copyingApptId === appt.id ? (
+                          <span className='inline-flex items-center gap-1'>Generating…</span>
+                        ) : (
+                          <span className='inline-flex items-center gap-1'>
+                            <Clipboard className='h-4 w-4' /> Copy reschedule link
+                          </span>
+                        )}
+                      </Button>
+                      {copyErrorApptId === appt.id && (
+                        <span className='text-xs text-destructive'>Failed to copy. Try again.</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Refund History */}

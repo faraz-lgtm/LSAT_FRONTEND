@@ -2,9 +2,11 @@
 // services/api.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { setTokens, setUser, reset } from "./authSlice";
+import { setTokens, setUser, setOrganization, reset } from "./authSlice";
+import { ROLE } from "@/constants/roles";
+import { toast } from 'sonner'
 
-const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? '' : 'https://api.betterlsat.com');
+const BASE_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://api.betterlsat.com');
 
 // JWT decode utility
 function decodeJWT(token: string): any {
@@ -49,9 +51,53 @@ const baseQueryWithReauth: BaseQueryFn<
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as any;
       const token = state.auth?.accessToken;
+      const user = state.auth?.user;
+      const organizationId = state.auth?.organizationId;
+      
+      // Only add Authorization header - organizationId is automatically extracted from JWT token by backend
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
+      
+      // Add X-Organization-Id header for Super Admin in Dashboard only
+      // This allows the backend to determine which organization the Super Admin is viewing
+      // The backend will use this header to scope all GET, POST, PUT, PATCH requests to that organization
+      // Only send this header on Dashboard routes, not on customer-facing routes
+      if (user && organizationId && typeof window !== 'undefined') {
+        const pathname = window.location.pathname;
+        const isDashboardRoute = pathname.startsWith('/dashboard');
+        
+        if (isDashboardRoute) {
+          const isSuperAdmin = user.roles?.some((role: string) => 
+            role === ROLE.SUPER_ADMIN || role === 'SUPER_ADMIN'
+          ) || false;
+          
+          if (isSuperAdmin) {
+            headers.set("X-Organization-Id", organizationId.toString());
+          }
+        }
+      }
+      
+      // Extract organization slug from URL pathname and send in X-Organization-Slug header
+      // This is sent with ALL API requests to help backend identify the organization context
+      // Examples: /bettermcat → bettermcat, /bettermcat/cart → bettermcat
+      if (typeof window !== 'undefined') {
+        const pathname = window.location.pathname;
+        
+        // Extract slug from URL path (e.g., /bettermcat or /bettermcat/cart → bettermcat)
+        // Exclude known non-organization routes
+        const slugMatch = pathname.match(/^\/([^/]+)/);
+        const slugFromPath = slugMatch && slugMatch[1] && 
+          !['cart', 'Appointment', 'free_purchase', 'payment', 'success', 'cancel', 'reschedule', 'dashboard'].includes(slugMatch[1])
+          ? slugMatch[1]
+          : null;
+        
+        // Send X-Organization-Slug header if we found a slug in the pathname
+        if (slugFromPath) {
+          headers.set("X-Organization-Slug", slugFromPath);
+        }
+      }
+      
       return headers;
     },
   });
@@ -62,7 +108,12 @@ const baseQueryWithReauth: BaseQueryFn<
   // BUT NOT for login/auth endpoints (they should handle 401 errors themselves)
   if (result.error && result.error.status === 401) {
     const url = typeof args === 'string' ? args : args.url;
-    const isAuthEndpoint = url.includes('auth/login') || url.includes('auth/register');
+    const isAuthEndpoint = 
+      url.includes('auth/login') || 
+      url.includes('auth/register') ||
+      url.includes('auth/forgot-password') ||
+      url.includes('auth/verify-otp') ||
+      url.includes('auth/reset-password');
     
     if (isAuthEndpoint) {
       console.log("🚫 Skipping token refresh for auth endpoint:", url);
@@ -123,6 +174,19 @@ const baseQueryWithReauth: BaseQueryFn<
             roles: decodedToken.roles || [],
           };
           api.dispatch(setUser(user));
+          
+          // Extract and store organizationId from token if present
+          if (decodedToken.organizationId) {
+            const organizationId = Number(decodedToken.organizationId);
+            // Keep existing organizationSlug if available, or set to null
+            const currentOrgSlug = state.auth?.organizationSlug || null;
+            api.dispatch(setOrganization({
+              organizationId,
+              organizationSlug: currentOrgSlug,
+            }));
+            console.log("🏢 Organization ID updated from token:", organizationId);
+          }
+          
           console.log("👤 User data updated from new token");
         }
 
@@ -183,46 +247,87 @@ const baseQueryWithReauth: BaseQueryFn<
   if (result.error) {
     const error = result.error as FetchBaseQueryError & { data?: any };
     
+    // Extract error message from nested structure: { error: { message: "..." } }
+    // API always returns errors in this format
+    const extractErrorMessage = (errorData: any): string => {
+      if (errorData?.error?.message) {
+        return errorData.error.message;
+      }
+      if (errorData?.message) {
+        return errorData.message;
+      }
+      return '';
+    };
+    
+    const errorMessage = extractErrorMessage(error.data);
+    
     // Create enhanced error with user-friendly messages
     const enhanceError = (status: number, defaultMessage: string) => {
+      const extractedMessage = extractErrorMessage(error.data);
       return {
         ...error,
         data: {
-          message: error.data?.message || defaultMessage,
+          message: extractedMessage || defaultMessage,
           status,
-          ...(error.data || {})
-        }
+          ...(error.data || {}),
+        } as any
       } as FetchBaseQueryError;
     };
 
     // Handle 400 Bad Request
     if (error.status === 400) {
-      console.error("❌ Bad Request (400):", error.data);
-      result.error = enhanceError(400, "Invalid request. Please check your input.");
+      if (errorMessage.includes('Organization') && errorMessage.includes('not found')) {
+        console.error("❌ Organization not found (400):", error.data);
+        result.error = enhanceError(400, "Organization not found or is inactive. Please contact support.");
+        const enhancedErrorData = result.error.data as any;
+        toast.error(enhancedErrorData?.message || "Organization not found or is inactive. Please contact support.");
+      } else {
+        console.error("❌ Bad Request (400):", error.data);
+        result.error = enhanceError(400, "Invalid request. Please check your input.");
+        // Show the actual error message if available, otherwise show default
+        if (errorMessage) {
+          toast.error(errorMessage);
+        }
+      }
     }
     
     // Handle 403 Forbidden
     else if (error.status === 403) {
       console.error("❌ Forbidden (403):", error.data);
       result.error = enhanceError(403, "You don't have permission to perform this action.");
+      toast.error(errorMessage || "You don't have permission to perform this action.");
     }
     
     // Handle 404 Not Found
     else if (error.status === 404) {
-      console.error("❌ Not Found (404):", error.data);
-      result.error = enhanceError(404, "The requested resource was not found.");
+      if (errorMessage.includes('Organization context required')) {
+        console.error("❌ Organization context required (404):", error.data);
+        result.error = enhanceError(404, "Organization context is required. Please ensure you're accessing the correct organization.");
+        toast.error("Organization context is required. Please ensure you're accessing the correct organization.");
+      } else {
+        console.error("❌ Not Found (404):", error.data);
+        result.error = enhanceError(404, "The requested resource was not found.");
+        toast.error(errorMessage || "The requested resource was not found.");
+      }
     }
     
     // Handle 500 Server Error
     else if (error.status === 500) {
       console.error("❌ Server Error (500):", error.data);
       result.error = enhanceError(500, "Server error occurred. Please try again later.");
+      toast.error("Server error occurred. Please try again later.");
     }
     
     // Handle other server errors (502, 503, 504)
     else if (typeof error.status === 'number' && error.status >= 502 && error.status <= 504) {
       console.error(`❌ Server Error (${error.status}):`, error.data);
       result.error = enhanceError(error.status, "Service temporarily unavailable. Please try again later.");
+      toast.error("Service temporarily unavailable. Please try again later.");
+    }
+    
+    // Handle any other errors with messages
+    else if (errorMessage) {
+      toast.error(errorMessage);
     }
   }
 
@@ -254,6 +359,6 @@ async function performTokenRefresh(refreshToken: string): Promise<RefreshTokenRe
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation"],
+  tagTypes: ["Orders", "Users", "AvailableSlots", "Products", "Tasks", "Dashboard", "Invoices", "Refunds", "Transactions", "Currency", "Automation", "Chat", "Organization", "Calendar"],
   endpoints: () => ({}), // Empty - endpoints will be injected by slices
 });

@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { lazy, Suspense } from "react";
-
-// Lazy load Calendar component (includes FullCalendar ~250KB)
-const Calendar = lazy(() => import("@/features/dashboardRelated/calendar"));
+import { lazy } from "react";
+import { GoogleCalendarProvider } from "@/services/google-calendar/GoogleCalendarProvider";
 
 const calendarSearchSchema = z.object({});
+
+// Lazy load Calendar to enable code splitting (Calendar is large with FullCalendar)
+const Calendar = lazy(() => import("@/features/dashboardRelated/calendar").then(m => ({ default: m.default })));
 
 export const Route = createFileRoute("/_authenticated/calendar/")({
   validateSearch: calendarSearchSchema,
   component: () => (
-    <Suspense fallback={<div className="flex items-center justify-center h-64">Loading calendar...</div>}>
+    <GoogleCalendarProvider>
       <Calendar />
-    </Suspense>
+    </GoogleCalendarProvider>
   ),
 });
-
 

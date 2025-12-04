@@ -10,6 +10,7 @@ export type UserStatus = z.infer<typeof userStatusSchema>
 const userRoleSchema = z.union([
   z.literal('ADMIN'),
   z.literal('USER'),
+  z.literal('SUPER_ADMIN'),
   z.literal('CUST'),
 ])
 

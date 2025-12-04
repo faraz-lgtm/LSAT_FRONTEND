@@ -15,7 +15,7 @@ import type { OrderOutput } from '@/types/api/data-contracts'
 import { OrdersMultiDeleteDialog } from './orders-multi-delete-dialog'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { ROLE } from '@/constants/roles'
+import { isAdminOrSuperAdmin } from '@/utils/rbac'
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
@@ -28,7 +28,7 @@ export function DataTableBulkActions<TData>({
   const [deleteOrder] = useDeleteOrderMutation()
   const selectedRows = table.getFilteredSelectedRowModel().rows
   const user = useSelector((state: RootState) => state.auth.user)
-  const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
+  const isAdmin = isAdminOrSuperAdmin(user?.roles)
 
   const handleBulkDelete = async () => {
     const selectedOrders = selectedRows.map((row) => row.original as OrderOutput)
@@ -48,7 +48,7 @@ export function DataTableBulkActions<TData>({
       table.resetRowSelection()
     } catch (error: any) {
       console.error("❌ Bulk delete error:", error)
-      toast.error(error?.data?.message || 'Failed to delete orders')
+      // Error toast is handled centrally in api.ts
     }
   }
 

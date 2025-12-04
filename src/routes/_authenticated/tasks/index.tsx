@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { Tasks } from '@/features/dashboardRelated/tasks'
+import { lazy } from 'react'
 
 // Define the filter options directly here since we removed the data folder
 const statuses = [
@@ -29,6 +29,9 @@ const taskSearchSchema = z.object({
     .catch([]),
   filter: z.string().optional().catch(''),
 })
+
+// Lazy load Tasks to enable code splitting
+const Tasks = lazy(() => import('@/features/dashboardRelated/tasks').then(m => ({ default: m.Tasks })))
 
 export const Route = createFileRoute('/_authenticated/tasks/')({
   validateSearch: taskSearchSchema,

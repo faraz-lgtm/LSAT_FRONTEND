@@ -1,86 +1,116 @@
 import type { ProductOutput } from "../types/api/data-contracts";
 import type { ItemInput } from "../types/api/data-contracts";
 import { useCurrencyFormatter } from "../utils/currency";
+import { Check, ShoppingCart, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../redux/store";
 
 type ProductCardProps = {
   product: ProductOutput;
   onAddToCart?: (product: ItemInput) => void;
-  isLoading?: boolean;
 };
 
-const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardProps) => {
+const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const formatCurrency = useCurrencyFormatter();
   const isFree = product.price === 0;
-  const isPopular = product.id === 6; // 5X Prep Session Bundle
+  
+  // Check if product is in cart
+  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const isInCart = cartItems.some(item => item.id === product.id);
+  const isLoading = useSelector((state: RootState) => state.cart.isLoading);
 
-  // Convert ProductOutput to ItemInput for cart
-  const convertToItemInput = (productOutput: ProductOutput): ItemInput => {
-    return {
-      id: productOutput.id,
-      name: productOutput.name,
-      price: productOutput.price,
-      Duration: productOutput.Duration,
-      Description: productOutput.Description,
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (!onAddToCart) return;
+    
+    const itemInput: ItemInput = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      Duration: product.Duration,
+      Description: product.Description,
       DateTime: [],
       quantity: 1,
-      sessions: productOutput.sessions,
-      // assignedEmployeeId: 1,
+      sessions: product.sessions,
     };
+    
+    onAddToCart(itemInput);
   };
 
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(convertToItemInput(product));
-    }
+  const handleCardClick = () => {
+    // Don't do anything on card click - buttons handle the interaction
   };
 
   return (
-    <div
-      className={`relative ${isPopular ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-105 group ${
-        isPopular ? "border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800" : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
-      }`}
-    >
+    <>
+      <style>{`
+        .customer-product-card.group:hover h5,
+        .customer-product-card.group:hover .price-text,
+        .customer-product-card.group:hover .save-text,
+        .customer-product-card.group:hover p,
+        .customer-product-card.group:hover ul,
+        .customer-product-card.group:hover li,
+        .customer-product-card.group:hover li span {
+          color: var(--customer-text-white) !important;
+        }
+        .customer-product-card.group:hover .check-icon,
+        .customer-product-card.group:hover svg.check-icon {
+          color: var(--customer-text-white) !important;
+          stroke: var(--customer-text-white) !important;
+        }
+      `}</style>
+      <div
+        onClick={handleCardClick}
+        className="customer-product-card relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl group cursor-pointer border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-[var(--customer-primary)]"
+      >
       {/* Badge */}
       {product.badge && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="absolute top-2 right-0 badge transform z-10">
           <span 
             style={{ 
               backgroundColor: product.badge.color,
               color: '#ffffff'
             }}
-            className="px-4 py-1 rounded-full text-sm font-semibold shadow-lg animate-pulse"
+            className="px-2 py-0.5 sm:px-4 sm:py-1 text-[10px] sm:text-xs lg:text-sm font-semibold shadow-lg"
           >
             {product.badge.text}
           </span>
         </div>
       )}
 
-      {/* Popular Badge - Only show if not already showing in product.badge */}
-      {isPopular && !product.badge && (
-        <div className="absolute top-4 right-4 z-10">
-          <span className="bg-white/90 text-blue-600 px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-            Most Popular
-          </span>
-        </div>
-      )}
 
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className={`p-2 sm:p-4 lg:p-6 xl:p-8 flex flex-col h-full overflow-hidden ${product.badge ? 'pt-8 sm:pt-10 lg:pt-12' : ''}`}>
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h5 className={`${isPopular ? 'bg-white text-blue-500' : 'bg-green-500 text-white'} text-base sm:text-lg font-bold mb-2 leading-tight px-3 sm:px-4 py-2 rounded-lg transition-all duration-300`}>
+        <div className="text-center mb-2 sm:mb-4 lg:mb-6">
+          <h5 
+            className="font-bold mb-1 sm:mb-2 leading-tight px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 transition-all duration-300"
+            style={{
+              fontSize: 'var(--customer-text-base-size)',
+              color: 'var(--customer-text-blue)'
+            }}
+          >
             {product.name}
           </h5>
-          <div className={`w-12 sm:w-16 h-1 ${isPopular ? 'bg-white' : 'bg-blue-600'} mx-auto rounded-full transition-all duration-300`}></div>
+          <div className="w-8 sm:w-12 lg:w-16 h-0.5 sm:h-1 bg-blue-600 group-hover:bg-white mx-auto rounded-full transition-all duration-300"></div>
         </div>
 
         {/* Price */}
-        <div className="text-center mb-4 sm:mb-6">
+        <div className="text-center mb-2 sm:mb-4 lg:mb-6">
           <div className="flex items-center justify-center space-x-2">
             {isFree ? (
-              <span className={`text-3xl sm:text-4xl font-bold ${isPopular ? 'text-white' : 'text-green-600'}`}>Free</span>
+              <span 
+                className="price-text text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold transition-all duration-300"
+                style={{ color: 'var(--customer-text-blue)' }}
+              >
+                Free
+              </span>
             ) : (
               <>
-                <span className={`text-3xl sm:text-4xl font-bold ${isPopular ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`}>
+                <span 
+                  className="price-text text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold transition-all duration-300"
+                  style={{ color: 'var(--customer-text-blue)' }}
+                >
                   {formatCurrency(product.price * 100)}
                 </span>
               </>
@@ -88,112 +118,81 @@ const ProductCard = ({ product, onAddToCart, isLoading = false }: ProductCardPro
           </div>
 
           {product.save ? (
-            <div className={`text-xs sm:text-sm font-medium mt-1 ${isPopular ? 'text-white' : 'text-green-600'}`}>
+            <div 
+              className="save-text text-[10px] sm:text-xs lg:text-sm font-medium mt-0.5 sm:mt-1 transition-all duration-300"
+              style={{ color: 'var(--customer-text-blue)' }}
+            >
               Save {formatCurrency((product.save || 0) * 100)}!
             </div>
           ) : null}
         </div>
 
         {/* Description */}
-        <div className="mb-6 sm:mb-8">
-          <p className={`text-center leading-relaxed text-sm sm:text-base ${isPopular ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
+        <div className="mb-2 sm:mb-4 lg:mb-6">
+          <p 
+            className="text-center leading-relaxed text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 dark:text-gray-300 transition-all duration-300"
+          >
             {product.Description}
           </p>
         </div>
 
         {/* Features for paid plans */}
-        {!isFree && (
-          <div className="mb-6 sm:mb-8">
-            <ul className={`space-y-1 sm:space-y-2 text-xs sm:text-sm ${isPopular ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
-              {product.id === 5 && (
-                <>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    One-on-one tutoring session
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Flexible scheduling
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Personalized study plan
-                  </li>
-                </>
-              )}
-              {product.id === 6 && (
-                <>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    5 one-on-one sessions
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Comprehensive study plan
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Progress tracking
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Practice materials included
-                  </li>
-                </>
-              )}
-              {product.id === 7 && (
-                <>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    10 one-on-one sessions
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Complete prep program
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Detailed progress tracking
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    All practice materials
-                  </li>
-                  <li className="flex items-center">
-                    <span className={`w-2 h-2 ${isPopular ? 'bg-white' : 'bg-blue-600'} rounded-full mr-3`}></span>
-                    Mock exam sessions
-                  </li>
-                </>
-              )}
+        {!isFree && product.features && product.features.length > 0 && (
+          <div className="flex-1 flex flex-col justify-start">
+            {/* Horizontal divider line */}
+            <div className="border-t mb-2 sm:mb-4 lg:mb-6 border-gray-300 dark:border-gray-600 group-hover:border-white/30 transition-all duration-300"></div>
+            
+            <ul 
+              className="space-y-0.5 sm:space-y-1 lg:space-y-2 text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gray-300 transition-all duration-300 overflow-y-auto"
+              style={{ maxHeight: '130px' }}
+            >
+              {product.features.map((feature, index) => (
+                <li key={index} className="flex items-start">
+                  <Check 
+                    className="check-icon w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 mr-1.5 sm:mr-2 lg:mr-3 flex-shrink-0 transition-all duration-300 mt-0.5"
+                  />
+                  <span 
+                    className="flex-1 break-words"
+                  >
+                    {feature}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         )}
 
-        {/* CTA Button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={isLoading}
-          className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-lg transition-all duration-300 ${
-            isLoading
-              ? "bg-gray-400 text-white cursor-not-allowed"
-              : isFree
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : isPopular
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  : "bg-gray-900 text-white hover:bg-gray-800"
-          }`}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
-              <span className="text-xs sm:text-sm">Fetching Slots...</span>
-            </div>
-          ) : (
-            isFree ? "Book Free Call" : `Add to Cart - ${formatCurrency(product.price * 100)}`
-          )}
-        </button>
+        {/* Add to Cart / Remove from Cart Button */}
+        <div className="mt-auto pt-2 sm:pt-3 lg:pt-4 border-t flex justify-center flex-shrink-0 border-gray-200 dark:border-gray-700 group-hover:border-white/30 transition-all duration-300">
+          <button
+            onClick={handleButtonClick}
+            disabled={isLoading}
+            className={`w-auto max-w-[85%] sm:w-full flex items-center justify-center space-x-1 sm:space-x-2 py-1.5 sm:py-2 lg:py-2.5 px-2 sm:px-3 lg:px-4 text-[10px] sm:text-xs lg:text-sm xl:text-base rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+              isInCart
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'text-white'
+            }`}
+            style={!isInCart ? { backgroundColor: 'var(--customer-button-green)' } : undefined}
+          >
+            {isInCart ? (
+              <>
+                <X className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
+                <span className="truncate" style={{ color: 'var(--customer-text-white)' }}>
+                  Remove from Cart
+                </span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
+                <span className="truncate" style={{ color: 'var(--customer-text-white)' }}>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
+
       </div>
     </div>
+    </>
   );
 };
 

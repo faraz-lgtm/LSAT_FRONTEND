@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 
-// Lazy load Dashboard component to reduce initial bundle size
-const Dashboard = lazy(() => import('@/features/dashboardRelated/dashboard').then(module => ({ default: module.Dashboard })))
+// Lazy load dashboard to enable code splitting
+const Dashboard = lazy(() => import('@/features/dashboardRelated/dashboard').then(m => ({ default: m.Dashboard })))
 
 export const Route = createFileRoute('/_authenticated/')({
   component: () => (

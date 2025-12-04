@@ -18,60 +18,52 @@ export const GlobalProgressBar: React.FC<GlobalProgressBarProps> = ({
   className = '' 
 }) => {
   return (
-    <div className={`w-full bg-white dark:bg-gray-800 rounded-lg p-2 mb-4 ${className}`}>
-      {/* Header */}
-      {/* <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Checkout Progress</h3>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          Step {currentStep} of {steps.length}
-        </span>
-      </div> */}
-      
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between px-2">
+    <div className={`flex justify-center ${className}`}>
+      <div className="customer-progress-bar bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-4 flex items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = step.id < currentStep;
           const isCurrent = step.id === currentStep;
           
           return (
-            <div key={step.id} className="flex flex-col items-center relative flex-1">
-              {/* Step Circle */}
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-semibold z-10 ${
-                isCompleted 
-                  ? 'bg-green-500 text-white' 
-                  : isCurrent 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-              }`}>
-                {isCompleted ? (
-                  <CheckCircle className="w-2 h-2" />
-                ) : (
-                  step.id
-                )}
-              </div>
-              
-              {/* Step Label */}
-              <div className="mt-1">
-                <div className={`text-xs font-medium text-center ${
-                  isCurrent 
+            <React.Fragment key={step.id}>
+              <div className="flex items-center">
+                {/* Step Circle */}
+                <div className={`flex items-center justify-center rounded-full font-semibold z-10 flex-shrink-0 ${
+                  isCompleted || isCurrent
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                }`} style={{ 
+                  width: 'clamp(1.25rem, var(--customer-progress-bar-circle-size), 2rem)',
+                  height: 'clamp(1.25rem, var(--customer-progress-bar-circle-size), 2rem)',
+                  fontSize: 'var(--customer-progress-bar-text-size)'
+                }}>
+                  {isCompleted ? (
+                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    step.id
+                  )}
+                </div>
+                
+                {/* Step Label */}
+                <div className={`ml-2 sm:ml-3 font-medium whitespace-nowrap ${
+                  isCurrent || isCompleted
                     ? 'text-blue-600 dark:text-blue-400' 
-                    : isCompleted 
-                    ? 'text-green-600 dark:text-green-400' 
                     : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  {step.shortLabel}
+                }`} style={{ fontSize: 'var(--customer-progress-bar-text-size)' }}>
+                  <span className="hidden sm:inline">{step.label}</span>
+                  <span className="sm:hidden">{step.shortLabel}</span>
                 </div>
               </div>
               
-              {/* Connecting Line - Only between circles */}
+              {/* Connecting Line - Only between steps */}
               {index < steps.length - 1 && (
-                <div className={`absolute top-2 left-1/2 w-full h-0.5 ${
+                <div className={`flex-1 mx-2 sm:mx-4 h-0.5 ${
                   isCompleted 
-                    ? 'bg-green-500' 
+                    ? 'bg-blue-600' 
                     : 'bg-gray-300 dark:bg-gray-600'
-                }`} style={{ transform: 'translateX(50%)' }} />
+                }`} />
               )}
-            </div>
+            </React.Fragment>
           );
         })}
       </div>

@@ -1,11 +1,29 @@
-import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 import { api } from "../../api";
-import type { AutomationConfigOutputDto, UpdateAutomationConfigDto } from "@/types/api/data-contracts";
+import type { 
+  CreateAutomationDto,
+  UpdateAutomationDto,
+  SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
+  SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
+  SwaggerBaseApiResponseForClassAutomationLog
+} from "@/types/api/data-contracts";
 
 export interface AutomationLogOutputDto {
   id: number;
   automationKey: string;
+  triggerEvent?: string;
+  toolType?: string;
+  eventData?: {
+    order?: {
+      id: number;
+      [key: string]: any;
+    };
+    ctx?: {
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
   executedAt: string;
+  createdAt?: string;
   status: 'success' | 'failure' | 'pending';
   metadata?: object;
   error?: string;
@@ -23,7 +41,7 @@ export interface AutomationLogsQueryParams {
 export const automationApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // GET /api/v1/automation - List all automations
-    getAutomations: builder.query<BaseApiResponse<AutomationConfigOutputDto[]>, void>({
+    getAutomations: builder.query<SwaggerBaseApiResponseForClassAutomationConfigOutputDto, void>({
       query: () => ({
         url: "automation",
         method: "GET",
@@ -31,8 +49,18 @@ export const automationApi = api.injectEndpoints({
       providesTags: ['Automation'],
     }),
 
+    // POST /api/v1/automation - Create new automation
+    createAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, CreateAutomationDto>({
+      query: (data) => ({
+        url: "automation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Automation'],
+    }),
+
     // PATCH /api/v1/automation/:key - Update automation configuration
-    updateAutomation: builder.mutation<BaseApiResponse<AutomationConfigOutputDto>, { key: string; data: UpdateAutomationConfigDto }>({
+    updateAutomation: builder.mutation<SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity, { key: string; data: UpdateAutomationDto }>({
       query: ({ key, data }) => ({
         url: `automation/${key}`,
         method: "PATCH",
@@ -42,21 +70,40 @@ export const automationApi = api.injectEndpoints({
     }),
 
     // GET /api/v1/automation/:key/logs - Get automation logs
-    getAutomationLogs: builder.query<BaseApiResponse<AutomationLogOutputDto[]>, { key: string; params?: AutomationLogsQueryParams }>({
+    getAutomationLogs: builder.query<SwaggerBaseApiResponseForClassAutomationLog, { key: string; params?: AutomationLogsQueryParams }>({
       query: ({ key, params }) => ({
         url: `automation/${key}/logs`,
         method: "GET",
-        params: params || {},
+        params: {
+          ...(params || {})
+        }
       }),
+      providesTags: ['Automation'],
+      // Force refetch on mount and don't keep unused data
+      keepUnusedDataFor: 0,
     }),
 
     // GET /api/v1/automation/logs - Get all automation logs (optional endpoint)
-    getAllAutomationLogs: builder.query<BaseApiResponse<AutomationLogOutputDto[]>, AutomationLogsQueryParams | void>({
+    getAllAutomationLogs: builder.query<SwaggerBaseApiResponseForClassAutomationLog, AutomationLogsQueryParams | void>({
       query: (params) => ({
         url: "automation/logs",
         method: "GET",
-        params: params || {},
+        params: {
+          ...(params || {})
+        }
       }),
+      providesTags: ['Automation'],
+      // Force refetch on mount and don't keep unused data
+      keepUnusedDataFor: 0,
+    }),
+
+    // DELETE /api/v1/automation/:key - Delete automation (soft delete/archive)
+    deleteAutomation: builder.mutation<void, { key: string }>({
+      query: ({ key }) => ({
+        url: `automation/${key}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Automation'],
     }),
   }),
 });
@@ -64,8 +111,10 @@ export const automationApi = api.injectEndpoints({
 // Export hooks for use in components
 export const {
   useGetAutomationsQuery,
+  useCreateAutomationMutation,
   useUpdateAutomationMutation,
   useGetAutomationLogsQuery,
   useGetAllAutomationLogsQuery,
+  useDeleteAutomationMutation,
 } = automationApi;
 

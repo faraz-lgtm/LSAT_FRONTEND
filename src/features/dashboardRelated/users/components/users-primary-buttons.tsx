@@ -7,7 +7,7 @@ import { canAddUser } from '@/utils/rbac'
 import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 
 export function UsersPrimaryButtons() {
-  const { setOpen } = useUsers()
+  const { setOpen, pageType } = useUsers()
   
   // Get current user from auth state
   const currentUser = useSelector((state: RootState) => state.auth.user)
@@ -23,17 +23,22 @@ export function UsersPrimaryButtons() {
     return null
   }
   
+  const addButtonText = pageType === 'customers' ? 'Add Customer' : 'Add User'
+  const showInviteButton = pageType !== 'employees' && pageType !== 'customers'
+  
   return (
     <div className='flex gap-2'>
-      <Button
-        variant='outline'
-        className='space-x-1'
-        onClick={() => setOpen('invite')}
-      >
-        <span>Invite User</span> <MailPlus size={18} />
-      </Button>
+      {showInviteButton && (
+        <Button
+          variant='outline'
+          className='space-x-1'
+          onClick={() => setOpen('invite')}
+        >
+          <span>Invite User</span> <MailPlus size={18} />
+        </Button>
+      )}
       <Button className='space-x-1' onClick={() => setOpen('add')}>
-        <span>Add User</span> <UserPlus size={18} />
+        <span>{addButtonText}</span> <UserPlus size={18} />
       </Button>
     </div>
   )

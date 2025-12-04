@@ -46,7 +46,7 @@ export function RefundsProcessDialog({
           <AlertTitle>Confirm Processing</AlertTitle>
           <AlertDescription>
             You are about to process refund #{currentRow.refundNumber} for customer ID {currentRow.customerId} 
-            with an amount of {formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount)}. This will initiate the refund through Stripe.
+            {currentRow.amount && ` with an amount of ${formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount * 100)}`}. This will initiate the refund through Stripe.
           </AlertDescription>
         </Alert>
 

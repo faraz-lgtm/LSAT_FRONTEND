@@ -8,6 +8,7 @@ import { useGetAllAutomationLogsQuery, type AutomationLogOutputDto } from "@/red
 import { getRouteApi } from "@tanstack/react-router";
 import { AutomationLogsTable } from "./components/automation-logs-table";
 import { AutomationLogsProvider } from "./components/automation-logs-provider";
+import { AutomationLogsDialogs } from "./components/automation-logs-dialogs";
 
 const route = getRouteApi("/_authenticated/automation-logs/");
 
@@ -30,7 +31,10 @@ export function AutomationLogs() {
   let logs: AutomationLogOutputDto[] = [];
 
   if (isSuccess && logsData) {
-    logs = logsData.data || [];
+    // The API returns SwaggerBaseApiResponseForClassAutomationLog which has structure:
+    // { meta: MetaResponse, data: AutomationLog[] }
+    // logsData is already SwaggerBaseApiResponseForClassAutomationLog, so logsData.data is AutomationLog[]
+    logs = (logsData.data || []) as AutomationLogOutputDto[];
   }
 
   if (isLoading) {
@@ -78,6 +82,8 @@ export function AutomationLogs() {
           />
         </div>
       </Main>
+
+      <AutomationLogsDialogs />
     </AutomationLogsProvider>
   );
 }

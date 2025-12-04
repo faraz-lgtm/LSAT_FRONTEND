@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Edit } from "lucide-react";
 import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Slot"; 
+import { useGetPublicRescheduleSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
 import type { RootState } from "../../redux/store";
 
 import { useSelector } from "react-redux";
@@ -24,20 +25,30 @@ type Slot = {
   label: string;
 };
 
-export function DateTimePicker({
-  value,
-  packageId,
-  onChange,
-  excludedSlots = [],
-}: {
-  value?: Date | undefined;
-  packageId: number;
-  onChange: (date: Date) => void;
-  excludedSlots?: Date[];
-}) {
+type DateTimePickerProps =
+  | {
+      value?: Date | undefined;
+      packageId: number;
+      onChange: (date: Date) => void;
+      excludedSlots?: Date[];
+      token?: undefined;
+    }
+  | {
+      value?: Date | undefined;
+      packageId?: undefined;
+      token: string; // reschedule mode
+      onChange: (date: Date) => void;
+      excludedSlots?: Date[];
+    };
+
+export function DateTimePicker(props: DateTimePickerProps) {
 
   const { items } = useSelector((state: RootState) => state.cart);
 
+  const { value, onChange } = props as any;
+  const excludedSlots: Date[] = Array.isArray((props as any).excludedSlots)
+    ? (props as any).excludedSlots
+    : [];
   const [date, setDate] = React.useState<Date | undefined>(value);
   console.log('date', date);
   const [selectedSlot, setSelectedSlot] = React.useState<Slot | undefined>(date?{
@@ -46,14 +57,21 @@ export function DateTimePicker({
   }:undefined);
 
 
-  // Fetch available slots from API
-  const { data: slotsData, isLoading: slotsLoading, error: slotsError } = useGetAvailableSlotsQuery({
-
-    packageId: packageId,
-    date: date && date instanceof Date ? new Date(date).toISOString(): new Date().toISOString(), // Day as number using UTC to avoid timezone issues
-  }, {
-    skip: !date || !(date instanceof Date), // Only fetch when date is selected and is a valid Date
-  });
+  // Fetch available slots from API (package mode or reschedule mode)
+  const isRescheduleMode = (props as any).token !== undefined;
+  const { data: packageSlotsData, isLoading: pkgLoading,isFetching: pkgFetching, error: pkgError } = useGetAvailableSlotsQuery(
+    {
+      packageId: (props as any).packageId as number,
+      date: date && date instanceof Date ? new Date(date).toISOString() : new Date().toISOString(),
+    },
+    {
+      skip: !date || !(date instanceof Date) || isRescheduleMode,
+    }
+  );
+  const { data: rescheduleSlotsData, isLoading: resLoading,isFetching: resFetching, error: resError } = useGetPublicRescheduleSlotsQuery(
+    { token: (props as any).token as string, dateISO: date && date instanceof Date ? new Date(date).toISOString() : undefined },
+    { skip: !isRescheduleMode || !date || !(date instanceof Date) }
+  );
   /**
    * Checks if the date passed to it is within next 12 hours
    * returns true if it is
@@ -138,10 +156,16 @@ export function DateTimePicker({
     });
   }
 
+  const slotsLoading = isRescheduleMode ? resLoading || resFetching : pkgLoading || pkgFetching;
+  console.log('slotsLoading', slotsLoading);
+  console.log('resLoading', resLoading);
+  console.log('pkgLoading', pkgLoading);
+  const slotsError = isRescheduleMode ? resError : pkgError;
+  const effectiveData = isRescheduleMode ? (rescheduleSlotsData as any)?.data : (packageSlotsData as any)?.data;
   const availableSlots: Slot[] = React.useMemo(() => {
-    if (!slotsData) return [];
-    return generateSlots(slotsData.data);
-  }, [slotsData,generateSlots]);
+    if (!effectiveData) return [];
+    return generateSlots(effectiveData);
+  }, [effectiveData, generateSlots]);
 
 
 
@@ -259,7 +283,7 @@ export function DateTimePicker({
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
+          {!slotsLoading && !slotsError && <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2">
             {availableSlots.length === 0 && !slotsLoading ? (
               <div className="col-span-2 sm:col-span-3 p-4 text-center text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300">
                 No available slots for this date
@@ -286,7 +310,7 @@ export function DateTimePicker({
                );
              })
             )}
-           </div>
+           </div>}
 
           {/* <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
             <ScrollArea className="w-64 sm:w-auto">

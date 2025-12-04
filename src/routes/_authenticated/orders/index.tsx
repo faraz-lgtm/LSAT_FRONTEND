@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { Orders } from '@/features/dashboardRelated/orders'
+import { lazy } from 'react'
 
 const orderSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -12,6 +12,9 @@ const orderSearchSchema = z.object({
     .catch([]),
   orderId: z.number().optional().catch(undefined),
 })
+
+// Lazy load Orders to enable code splitting
+const Orders = lazy(() => import('@/features/dashboardRelated/orders').then(m => ({ default: m.Orders })))
 
 // Orders route for dashboard
 export const Route = createFileRoute('/_authenticated/orders/')({

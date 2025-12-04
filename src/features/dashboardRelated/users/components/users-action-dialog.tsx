@@ -13,6 +13,13 @@ import {
   DialogTitle,
 } from '@/components/dashboard/ui/dialog'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/dashboard/ui/select'
+import {
   Form,
   FormControl,
   FormField,
@@ -33,22 +40,27 @@ import { convertAuthUserToIUser } from '@/utils/authUserConverter'
 import { toast } from 'sonner';
 import PhoneInput from "react-phone-input-2";
 import { useUpdateUserMutation } from '@/redux/apiSlices/User/userSlice'
-import { type UserOutput } from '@/types/api/data-contracts'
+import { type UserOutput, type UpdateUserInput, type RegisterInput } from '@/types/api/data-contracts'
 import { WorkHoursSelector } from '@/components/dashboard/work-hours-selector'
+import { useEffect, useState } from 'react'
+import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice'
+import type { ProductOutput } from '@/types/api/data-contracts'
+import { DateTime } from 'luxon'
 
 
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
-  username: z.string().min(1, 'Username is required.'),
   phone: z.string().min(1, 'Phone number is required.'),
   email: z.email({
     error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
   }),
   password: z.string().optional(),
-  roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER]))
+  roles: z.array(z.enum([ROLE.USER, ROLE.ADMIN, ROLE.CUSTOMER, ROLE.SUPER_ADMIN]))
     .min(1, 'At least one role is required.'),
   workHours: z.record(z.string(), z.array(z.string())).optional(),
+  timezone: z.string().optional(),
+  serviceIds: z.array(z.number()).optional(),
   isEdit: z.boolean(),
 }).refine((data) => {
   // Password is required only for new users (not edit mode) and not for CUSTOMER role
@@ -76,10 +88,11 @@ export function UsersActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
-  const { setOpen } = useUsers()
+  const { setOpen, pageType } = useUsers()
   const [registerUser, { isLoading }] = useRegisterUserMutation()
   const [updateUser,{isLoading:updateLoading}]=useUpdateUserMutation()
-  // Get current user from auth state
+  // Get current user and organizationId from auth state
+  const { organizationId } = useSelector((state: RootState) => state.auth)
   const currentUser = useSelector((state: RootState) => state.auth.user)
   
   // Convert AuthUser to UserOutput format for RBAC functions
@@ -88,55 +101,192 @@ export function UsersActionDialog({
   // Get available roles based on current user's permissions
   const availableRoles = getAvailableRolesForNewUser(currentUserForRBAC)
   
+  // Filter roles based on page type
+  const filteredAvailableRoles = pageType === 'employees' 
+    ? availableRoles.filter(role => role === ROLE.USER || role === ROLE.ADMIN)
+    : availableRoles
+  
+  // Check if editing a customer (customer-only user)
+  const isEditingCustomer = isEdit && currentRow && currentRow.roles.length === 1 && currentRow.roles.includes(ROLE.CUSTOMER)
+  
+  // Check if adding a customer (on customers page and not editing)
+  const isAddingCustomer = !isEdit && pageType === 'customers'
+  
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEdit
-      ? {
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      roles: [],
+      workHours: {},
+      timezone: '',
+      serviceIds: [],
+      isEdit: false,
+    },
+  })
+
+  // Fetch products/packages for serviceIds selection
+  const { data: productsData } = useGetProductsQuery()
+  const packages = productsData?.data || []
+
+  // Reset form when dialog opens/closes or currentRow changes
+  useEffect(() => {
+    if (open) {
+      if (isEdit && currentRow) {
+        console.log('🔄 Resetting form with currentRow:', currentRow)
+        console.log('📞 Phone from currentRow:', currentRow.phone)
+        const phoneValue = currentRow.phone || ''
+        const phoneWithoutPlus = phoneValue ? phoneValue.replace(/^\+/, '') : ''
+        
+        // Filter out COMPANY_ADMIN role as it's not in the User schema
+        const validRoles = currentRow.roles.filter(role => 
+          role === 'USER' || role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
+        ) as ('USER' | 'ADMIN' | 'SUPER_ADMIN' | 'CUST')[]
+        
+        const formValues = {
           name: currentRow.name,
-          username: currentRow.username,
-          phone: currentRow.phone,
+          phone: phoneValue,
           email: currentRow.email,
           password: '', // Don't pre-fill password for edit
-          roles: currentRow.roles,
+          roles: validRoles,
           workHours: currentRow.workHours || {},
-          isEdit,
+          timezone: (currentRow as any).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          serviceIds: currentRow.serviceIds || [],
+          isEdit: true,
         }
-      : {
+        console.log('📝 Form values being set:', formValues)
+        form.reset(formValues)
+        
+        // Also set the phone input state directly
+        setPhoneInputValue(phoneWithoutPlus)
+        console.log('📱 Setting phoneInputValue to:', phoneWithoutPlus)
+      } else {
+        // Auto-set role to CUST when adding customer
+        const initialRoles = isAddingCustomer ? [ROLE.CUSTOMER] : []
+        form.reset({
           name: '',
-          username: '',
           email: '',
           phone: '',
           password: '',
-          roles: [],
+          roles: initialRoles,
           workHours: {},
-          isEdit,
-        },
-  })
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          serviceIds: [],
+          isEdit: false,
+        })
+        setPhoneInputValue('')
+      }
+    }
+  }, [open, isEdit, currentRow, form])
 
   // Watch roles to determine if user is customer-only
   const watchedRoles = form.watch('roles')
-  const isCustomerOnly = watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)
+  const isCustomerOnly = (watchedRoles.length === 1 && watchedRoles.includes(ROLE.CUSTOMER)) || isAddingCustomer
+  
+  // Use separate state for phone input (similar to Appointment page pattern)
+  const [phoneInputValue, setPhoneInputValue] = useState('')
+  
+  // Get supported timezones
+  const getSupportedTimezones = () => {
+    try {
+      return Intl.supportedValuesOf('timeZone')
+    } catch {
+      // Fallback list of common timezones if Intl.supportedValuesOf is not available
+      return [
+        'UTC',
+        'America/New_York',
+        'America/Chicago', 
+        'America/Denver',
+        'America/Los_Angeles',
+        'Europe/London',
+        'Europe/Paris',
+        'Europe/Berlin',
+        'Asia/Tokyo',
+        'Asia/Shanghai',
+        'Asia/Kolkata',
+        'Australia/Sydney',
+        'Pacific/Auckland'
+      ]
+    }
+  }
+  
+  // Convert work hours from local time + timezone to UTC
+  const convertWorkHoursToUTC = (workHours: Record<string, string[]>, timezone: string) => {
+    if (!workHours || !timezone) return workHours
+    
+    const convertedWorkHours: Record<string, string[]> = {}
+    
+    Object.entries(workHours).forEach(([day, timeSlots]) => {
+      convertedWorkHours[day] = timeSlots.map(slot => {
+        const [startTime, endTime] = slot.split('-')
+        if (!startTime || !endTime) return slot
+        
+        try {
+          // Create a dummy date (today) with the local times
+          const today = DateTime.now().toISODate()
+          const startUTC = DateTime.fromISO(`${today}T${startTime}:00`, { zone: timezone }).toUTC().toFormat('HH:mm')
+          const endUTC = DateTime.fromISO(`${today}T${endTime}:00`, { zone: timezone }).toUTC().toFormat('HH:mm')
+          return `${startUTC}-${endUTC}`
+        } catch {
+          // If conversion fails, return original slot
+          return slot
+        }
+      })
+    })
+    
+    return convertedWorkHours
+  }
+  
+  // Sync phoneInputValue with form value when form resets or phone changes
+  useEffect(() => {
+    const phoneValue = form.getValues('phone') || ''
+    const phoneWithoutPlus = phoneValue ? phoneValue.replace(/^\+/, '') : ''
+    if (phoneWithoutPlus !== phoneInputValue) {
+      setPhoneInputValue(phoneWithoutPlus)
+    }
+  }, [form, phoneInputValue, open, currentRow])
 
   const onSubmit = async (values: UserForm) => {
     console.log("🚀 onSubmit called with values:", values);
     try {
       if (!isEdit) {
         // Create new user
-        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
+        const isCustomerOnly = isAddingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
         
         if (!isCustomerOnly && !values.password) {
           toast.error("Password is required for non-customer users.")
           return
         }
         
-        const userData = {
+        // Auto-generate username from email (use part before @)
+        const emailPart = values.email ? values.email.split('@')[0] : ''
+        const autoUsername = emailPart ? emailPart.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'user'
+        
+        // Auto-set role to CUST when adding from customers page
+        const finalRoles = isAddingCustomer ? [ROLE.CUSTOMER] : values.roles
+        
+        if (!organizationId) {
+          toast.error("Organization ID is required. Please ensure you're in an organization context.")
+          return
+        }
+
+        // Convert work hours to UTC if timezone is provided
+        const finalTimezone = values.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        const utcWorkHours = (isCustomerOnly || isAddingCustomer) ? undefined : 
+          values.workHours ? convertWorkHoursToUTC(values.workHours, finalTimezone) : undefined
+        
+        const userData: RegisterInput = {
           name: values.name,
-          username: values.username,
           email: values.email,
           phone: values.phone,
+          username: autoUsername,
           password: values.password,
-          roles: values.roles,
-          workHours: isCustomerOnly ? undefined : values.workHours,
+          roles: finalRoles,
+          organizationId: organizationId,
+          workHours: utcWorkHours,
+          serviceIds: (isCustomerOnly || isAddingCustomer) ? undefined : (values.serviceIds || []),
         }
         
         await registerUser(userData).unwrap()
@@ -145,14 +295,28 @@ export function UsersActionDialog({
       } else {
         console.log("📝 Edit user - values:", values);
         console.log("📝 Edit user - currentRow:", currentRow);
-        const isCustomerOnly = values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER);
-        const userData = {
+        const isCustomerOnly = isEditingCustomer || (values.roles.length === 1 && values.roles.includes(ROLE.CUSTOMER));
+        
+        // Convert work hours to UTC if timezone is provided
+        const finalTimezone = values.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        const utcWorkHours = (!isCustomerOnly && values.workHours) ? 
+          convertWorkHoursToUTC(values.workHours, finalTimezone) : undefined
+        
+        const userData: UpdateUserInput & { serviceIds?: number[] } = {
           name: values.name,
-          username: values.username,
           email: values.email,
           phone: values.phone,
-          roles: values.roles,
-          workHours: isCustomerOnly ? undefined : values.workHours,
+          username: currentRow.username || '', // Use existing username when editing
+          roles: !isEditingCustomer && values.roles ? values.roles : currentRow.roles || [],
+        }
+        if (!isCustomerOnly && utcWorkHours) {
+          userData.workHours = utcWorkHours
+        }
+        // Add serviceIds for employees (non-customers)
+        if (!isCustomerOnly && values.serviceIds && values.serviceIds.length > 0) {
+          userData.serviceIds = values.serviceIds
+        } else if (!isCustomerOnly && (!values.serviceIds || values.serviceIds.length === 0)) {
+          userData.serviceIds = []
         }
         console.log("🔄 Calling updateUser with:", {id: currentRow.id, userData});
         const result = await updateUser({id: currentRow.id, userData}).unwrap()
@@ -166,7 +330,7 @@ export function UsersActionDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log("❌ Error:", error);
-      toast.error(error?.data?.error.message || `Failed to ${isEdit ? 'update' : 'create'} user`)
+      // Error toast is handled centrally in api.ts
     }
   }
 
@@ -180,7 +344,12 @@ export function UsersActionDialog({
     >
       <DialogContent className='sm:max-w-2xl max-h-[80vh]'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>
+            {isEdit 
+              ? 'Edit User' 
+              : (pageType === 'customers' ? 'Add New Customer' : 'Add New User')
+            }
+          </DialogTitle>
           <DialogDescription>
             {isEdit ? 'Update the user here. ' : 'Create new user here. '}
             Click save when you&apos;re done.
@@ -217,25 +386,6 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Username
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john_doe'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name='email'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
@@ -262,9 +412,13 @@ export function UsersActionDialog({
                     <FormControl>
                       <div className='col-span-4'>
                         <PhoneInput
+                          key={`phone-${currentRow?.id || 'new'}-${open}`}
                           country={"pk"} // default to Pakistan
-                          value={field.value || ''}
-                          onChange={(val) => field.onChange("+" + val)}
+                          value={phoneInputValue}
+                          onChange={(val) => {
+                            setPhoneInputValue(val)
+                            field.onChange("+" + val)
+                          }}
                           inputProps={{
                             id: "phone",
                             name: "phone",
@@ -303,65 +457,120 @@ export function UsersActionDialog({
                   )}
                 />
               )}
-              <FormField
-                control={form.control}
-                name='roles'
-                render={({ field }) => {
-                  return (
-                    <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
-                      <MultiSelectDropdown
-                        value={field.value?.map(role => {
-                          // Convert uppercase role constant to lowercase for display
-                          console.log("role", role);
-                          const roleMap: Record<string, string> = {
-                            [ROLE.ADMIN]: 'admin',
-                            [ROLE.USER]: 'user',
-                            [ROLE.CUSTOMER]: 'cust'
-                          }
-                          return roleMap[role] || role.toLowerCase()
-                        }) || []}
-                        onValueChange={(values) => {
-                          // Convert lowercase values back to uppercase role constants
-                          const roleMap: Record<string, string> = {
-                            'admin': ROLE.ADMIN,
-                            'user': ROLE.USER,
-                            'cust': ROLE.CUSTOMER
-                          }
-                          field.onChange(values.map(value => roleMap[value] || value.toUpperCase()))
-                        }}
-                        placeholder='Select roles'
-                        className='col-span-4'
-                        items={roles
-                          .filter(role => availableRoles.includes(role.value.toUpperCase() as ROLE))
-                          .map(({ label, value, icon }) => ({
-                            label,
-                            value,
-                            icon,
-                          }))}
-                      />
-                      <FormMessage className='col-span-4 col-start-3' />
-                    </FormItem>
-                  )
-                }}
-              />
-              {!isCustomerOnly && (
+              {!isEditingCustomer && !isAddingCustomer && (
                 <FormField
                   control={form.control}
-                  name='workHours'
-                  render={({ field }) => (
-                    <FormItem className='space-y-2'>
-                      <FormLabel className='text-sm font-medium'>Work Hours</FormLabel>
-                      <FormControl>
-                        <WorkHoursSelector
-                          value={field.value || {}}
-                          onChange={field.onChange}
+                  name='roles'
+                  render={({ field }) => {
+                    return (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
+                        <MultiSelectDropdown
+                          value={field.value?.map(role => {
+                            // Convert uppercase role constant to lowercase for display
+                            console.log("role", role);
+                            const roleMap: Record<string, string> = {
+                              [ROLE.ADMIN]: 'admin',
+                              [ROLE.USER]: 'user',
+                              [ROLE.CUSTOMER]: 'cust'
+                            }
+                            return roleMap[role] || role.toLowerCase()
+                          }) || []}
+                          onValueChange={(values) => {
+                            // Convert lowercase values back to uppercase role constants
+                            const roleMap: Record<string, string> = {
+                              'admin': ROLE.ADMIN,
+                              'user': ROLE.USER,
+                              'cust': ROLE.CUSTOMER
+                            }
+                            field.onChange(values.map(value => roleMap[value] || value.toUpperCase()))
+                          }}
+                          placeholder='Select roles'
+                          className='col-span-4'
+                          items={roles
+                            .filter(role => filteredAvailableRoles.includes(role.value.toUpperCase() as ROLE))
+                            .map(({ label, value, icon }) => ({
+                              label,
+                              value,
+                              icon,
+                            }))}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )
+                  }}
                 />
+              )}
+              {!isCustomerOnly && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='workHours'
+                    render={({ field }) => (
+                      <FormItem className='space-y-2'>
+                        <FormLabel className='text-sm font-medium'>Work Hours (Local Time)</FormLabel>
+                        <FormControl>
+                          <WorkHoursSelector
+                            value={field.value || {}}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='timezone'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Timezone</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className='col-span-4'>
+                              <SelectValue placeholder='Select timezone' />
+                            </SelectTrigger>
+                            <SelectContent className='max-h-60'>
+                              {getSupportedTimezones().map((tz) => (
+                                <SelectItem key={tz} value={tz}>
+                                  {tz.replace('_', ' ')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='serviceIds'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Service Packages</FormLabel>
+                        <FormControl>
+                          <MultiSelectDropdown
+                            value={field.value?.map(id => id.toString()) || []}
+                            onValueChange={(values) => {
+                              field.onChange(values.map(v => parseInt(v, 10)).filter(id => !isNaN(id)))
+                            }}
+                            placeholder='Select packages'
+                            className='col-span-4'
+                            items={packages.map((pkg: ProductOutput) => ({
+                              label: pkg.name,
+                              value: pkg.id.toString(),
+                            }))}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
             </form>
           </Form>

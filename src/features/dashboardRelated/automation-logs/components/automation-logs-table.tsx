@@ -16,6 +16,7 @@ import { MoreHorizontal, Eye } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import { DataTableToolbar, DataTablePagination } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from '@/components/dashboard/data-table/bulk-actions'
+import { useNavigate } from '@tanstack/react-router'
 import {
   Table,
   TableBody,
@@ -60,9 +61,15 @@ function AutomationLogsStatusBadge({ status }: { status: string }) {
 
 export function AutomationLogsTable({ data, search, navigate }: DataTableProps) {
   const { setOpen, setCurrentRow } = useAutomationLogs()
+  const routerNavigate = useNavigate()
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  // Helper function to extract order ID from eventData
+  const getOrderId = (log: AutomationLogOutputDto): number | null => {
+    return log.eventData?.order?.id ?? null
+  }
 
   const {
     columnFilters,
@@ -70,14 +77,22 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
     pagination,
     onPaginationChange,
     ensurePageInRange,
+    globalFilter,
+    onGlobalFilterChange,
   } = useTableUrlState({
     search,
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: false },
+    globalFilter: { enabled: true, key: 'search' },
     columnFilters: [
-      { columnId: 'automationKey', searchKey: 'automationKey', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
+      { 
+        columnId: 'orderId', 
+        searchKey: 'orderId', 
+        type: 'string',
+        serialize: (v) => v,
+        deserialize: (v) => typeof v === 'number' ? String(v) : v,
+      },
     ],
   })
 
@@ -91,6 +106,46 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
             {row.getValue('automationKey')}
           </div>
         )
+      },
+    },
+    {
+      id: 'orderId',
+      header: 'Order ID',
+      cell: ({ row }) => {
+        const log = row.original
+        const orderId = getOrderId(log)
+        
+        if (!orderId) {
+          return <div className="text-sm text-muted-foreground">—</div>
+        }
+        
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              routerNavigate({
+                to: '/orders',
+                search: {
+                  orderId: orderId,
+                },
+              })
+            }}
+            className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+          >
+            #{orderId}
+          </button>
+        )
+      },
+      filterFn: (row, _id, filterValue) => {
+        const orderId = getOrderId(row.original)
+        if (!orderId) return false
+        const filterStr = String(filterValue).trim()
+        if (!filterStr) return true
+        return String(orderId).includes(filterStr)
+      },
+      accessorFn: (row) => {
+        const orderId = getOrderId(row)
+        return orderId ? String(orderId) : ''
       },
     },
     {
@@ -186,6 +241,7 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
       rowSelection,
       columnFilters,
       columnVisibility,
+      globalFilter,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -193,6 +249,21 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const searchValue = String(filterValue).toLowerCase().trim()
+      if (!searchValue) return true
+      
+      // Search in automation key
+      const automationKey = String(row.getValue('automationKey') || '').toLowerCase()
+      if (automationKey.includes(searchValue)) return true
+      
+      // Search in order ID
+      const orderId = getOrderId(row.original)
+      if (orderId && String(orderId).includes(searchValue)) return true
+      
+      return false
+    },
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -209,8 +280,18 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
-        searchKey="automationKey"
-        searchPlaceholder="Search logs..."
+        searchPlaceholder="Search by automation key or order ID..."
+        filters={[
+          {
+            columnId: 'status',
+            title: 'Status',
+            options: [
+              { label: 'Success', value: 'success' },
+              { label: 'Failure', value: 'failure' },
+              { label: 'Pending', value: 'pending' },
+            ],
+          },
+        ]}
       />
       {table.getState().rowSelection && Object.keys(table.getState().rowSelection).length > 0 && (
         <DataTableBulkActions table={table} entityName="log">
@@ -246,6 +327,11 @@ export function AutomationLogsTable({ data, search, navigate }: DataTableProps) 
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className='cursor-pointer'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('view')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

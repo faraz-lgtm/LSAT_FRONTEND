@@ -1,6 +1,6 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { Refunds } from '@/features/dashboardRelated/refunds'
+import { lazy } from 'react'
 
 const refundSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -13,6 +13,9 @@ const refundSearchSchema = z.object({
   orderId: z.number().optional().catch(undefined),
   filter: z.string().optional().catch(''),
 })
+
+// Lazy load Refunds to enable code splitting
+const Refunds = lazy(() => import('@/features/dashboardRelated/refunds').then(m => ({ default: m.Refunds })))
 
 // Refunds route
 export const Route = createFileRoute('/_authenticated/refunds/')({

@@ -21,7 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/dashboard/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
+import { DataTablePagination, DataTableViewOptions } from '@/components/dashboard/data-table'
+import { DataTableFacetedFilter } from '@/components/dashboard/data-table/faceted-filter'
+import { Input } from '@/components/dashboard/ui/input'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { createTasksColumns } from './tasks-columns'
 import type { TaskQueryDto, TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
@@ -34,9 +37,7 @@ import { cn } from '@/lib/dashboardRelated/utils'
 import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import { ROLE } from '@/constants/roles'
-import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/redux/store'
+import { SelectDropdown } from '@/components/dashboard/select-dropdown'
 
 const route = getRouteApi('/_authenticated/tasks/')
 
@@ -67,15 +68,24 @@ type DataTableProps = {
   onFiltersChange: (filters: TaskQueryDto) => void
   onEdit: (row: TaskOutputDto) => void
   onDelete: (row: TaskOutputDto) => void
+  onView?: (row: TaskOutputDto) => void
+  isAdmin?: boolean
+  usersData?: { data?: UserOutput[] }
+  usersLoading?: boolean
 }
 
-export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }: DataTableProps) {
-  // Current user and users map for resolving tutor names
-  const user = useSelector((state: RootState) => state.auth.user)
-  const isAdmin = (user?.roles || []).includes(ROLE.ADMIN)
-  const { data: usersData } = useGetUsersQuery()
+export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, onView, isAdmin = false, usersData, usersLoading = false }: DataTableProps) {
+  // Users map for resolving tutor names (by ID)
   const userIdToUser = (usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
     acc[u.id] = u
+    return acc
+  }, {})
+  
+  // Email to user map for resolving customer names (by email)
+  const emailToUser = (usersData?.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
+    if (u.email) {
+      acc[u.email.toLowerCase()] = u
+    }
     return acc
   }, {})
 
@@ -161,7 +171,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
   }, [dateRange, onFiltersChange, filters])
 
   // Create columns with handlers
-  const columns = createTasksColumns(onEdit, onDelete, userIdToUser)
+  const columns = createTasksColumns(onEdit, onDelete, onView, userIdToUser, emailToUser)
 
   const table = useReactTable({
     data: clientFilteredData,
@@ -204,30 +214,85 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
   return (
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>
       <div className="flex items-center justify-between">
-        <DataTableToolbar
-          table={table}
-          searchPlaceholder='Filter by title or ID...'
-          filters={[
-            {
-              columnId: 'status',
-              title: 'Status',
-              options: statuses,
-            },
-            {
-              columnId: 'priority',
-              title: 'Priority',
-              options: priorities,
-            },
-            {
-              columnId: 'label',
-              title: 'Label',
-              options: labels,
-            },
-          ]}
-        />
+        <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
+          <Input
+            placeholder='Filter by title or ID...'
+            value={table.getState().globalFilter ?? ''}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
+            className='h-8 w-[150px] lg:w-[250px]'
+          />
+          <div className='flex gap-x-2'>
+            {[
+              {
+                columnId: 'status',
+                title: 'Status',
+                options: statuses,
+              },
+              {
+                columnId: 'priority',
+                title: 'Priority',
+                options: priorities,
+              },
+              {
+                columnId: 'label',
+                title: 'Label',
+                options: labels,
+              },
+            ].map((filter) => {
+              const column = table.getColumn(filter.columnId)
+              if (!column) return null
+              return (
+                <DataTableFacetedFilter
+                  key={filter.columnId}
+                  column={column}
+                  title={filter.title}
+                  options={filter.options}
+                />
+              )
+            })}
+            
+            {/* Employee Filter - Beside Label */}
+            {isAdmin && (
+              <SelectDropdown
+                className='min-w-[220px]'
+                placeholder='Filter by employee'
+                isPending={usersLoading}
+                defaultValue={filters.tutorId ? String(filters.tutorId) : undefined}
+                isControlled
+                onValueChange={(val) => {
+                  onFiltersChange({
+                    ...filters,
+                    tutorId: val === 'all' ? undefined : Number(val),
+                  })
+                }}
+                items={[
+                  { label: 'All Employees', value: 'all' },
+                  ...(usersData?.data
+                    ?.filter((u) => (u.roles || []).some(r => r === ROLE.USER || r === ROLE.ADMIN || r === ROLE.SUPER_ADMIN))
+                    .map((u) => ({ label: `${u.name} (@${u.username})`, value: String(u.id) })) || []),
+                ]}
+              />
+            )}
+          </div>
+          {(table.getState().columnFilters.length > 0 || table.getState().globalFilter) && (
+            <Button
+              variant='ghost'
+              onClick={() => {
+                table.resetColumnFilters()
+                table.setGlobalFilter('')
+              }}
+              className='h-8 px-2 lg:px-3'
+            >
+              Reset
+              <Cross2Icon className='ms-2 h-4 w-4' />
+            </Button>
+          )}
+        </div>
         
-        {/* Date Range Filter */}
         <div className="flex items-center space-x-2">
+          <DataTableViewOptions table={table} />
+          
+          {/* Date Range Filter */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -301,37 +366,45 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
               (() => {
                 const now = new Date()
                 const rows = table.getRowModel().rows
+                const hasSorting = sorting.length > 0
                 
-                // Separate and sort tasks
-                const activeTasks = rows
-                  .filter(row => {
-                    const endDateTime = new Date(row.original.endDateTime)
-                    return endDateTime > now
-                  })
-                  .sort((a, b) => {
+                // If user has applied sorting, respect it and still separate active/expired
+                // If no sorting, use default behavior (sort by endDateTime within each group)
+                let activeTasks = rows.filter(row => {
+                  const endDateTime = new Date(row.original.endDateTime)
+                  return endDateTime > now
+                })
+                
+                let expiredTasks = rows.filter(row => {
+                  const endDateTime = new Date(row.original.endDateTime)
+                  return endDateTime <= now
+                })
+                
+                // If no sorting is applied, sort by endDateTime within each group
+                if (!hasSorting) {
+                  activeTasks = activeTasks.sort((a, b) => {
                     const dateA = new Date(a.original.endDateTime)
                     const dateB = new Date(b.original.endDateTime)
                     return dateA.getTime() - dateB.getTime() // Ascending order (earliest first)
                   })
-                
-                const expiredTasks = rows
-                  .filter(row => {
-                    const endDateTime = new Date(row.original.endDateTime)
-                    return endDateTime <= now
-                  })
-                  .sort((a, b) => {
+                  
+                  expiredTasks = expiredTasks.sort((a, b) => {
                     const dateA = new Date(a.original.endDateTime)
                     const dateB = new Date(b.original.endDateTime)
                     return dateB.getTime() - dateA.getTime() // Descending order (most recent first)
                   })
+                }
+                // If sorting is applied, the rows are already sorted by the table, so we just use them as-is
                 
                 return (
                   <>
-                    {/* Active Tasks - Upcoming tasks in ascending order */}
+                    {/* Active Tasks */}
                     {activeTasks.map((row) => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
+                        className={onView ? 'cursor-pointer' : ''}
+                        onDoubleClick={onView ? () => onView(row.original) : undefined}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
@@ -344,12 +417,13 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
                       </TableRow>
                     ))}
                     
-                    {/* Expired Tasks - Past tasks in descending order */}
+                    {/* Expired Tasks */}
                     {expiredTasks.map((row) => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
-                        className="bg-muted/20 hover:bg-muted/30 border-l-4 border-l-muted-foreground/40"
+                        className={`bg-muted/20 hover:bg-muted/30 border-l-4 border-l-muted-foreground/40 ${onView ? 'cursor-pointer' : ''}`}
+                        onDoubleClick={onView ? () => onView(row.original) : undefined}
                       >
                         {row.getVisibleCells().map((cell, index) => (
                           <TableCell 
@@ -386,7 +460,7 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete }:
         </Table>
       </div>
       <DataTablePagination table={table} />
-      <DataTableBulkActions table={table} />
+      <DataTableBulkActions table={table} onEdit={onEdit} onDelete={onDelete} onView={onView} />
     </div>
   )
 }

@@ -26,6 +26,7 @@ import { DataTableBulkActions } from './data-table-bulk-actions.tsx'
 import { createPackagesColumns } from './packages-columns.tsx'
 import type { ProductOutput } from '@/types/api/data-contracts'
 import { formatCurrency } from '@/utils/currency'
+import { usePackages } from './packages-provider'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,6 +45,7 @@ export function PackagesTable({ data, search, navigate }: DataTableProps) {
   console.log("PackagesTable received data:", data);
   console.log("PackagesTable data length:", data?.length);
   
+  const { setOpen, setCurrentRow } = usePackages()
   const columns = createPackagesColumns(formatCurrency);
   
   // Validate data structure
@@ -153,6 +155,11 @@ export function PackagesTable({ data, search, navigate }: DataTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className='cursor-pointer'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('edit')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell

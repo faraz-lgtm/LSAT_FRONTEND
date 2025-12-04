@@ -16,7 +16,7 @@ const route = getRouteApi("/_authenticated/invoices/");
 
 export function Invoices() {
   const { data: invoicesData, isSuccess, isLoading, error } = useGetInvoicesQuery();
-  const { data: usersData } = useGetUsersQuery();
+  const { data: usersData } = useGetUsersQuery({});
   const search = route.useSearch();
   const navigate = route.useNavigate();
 

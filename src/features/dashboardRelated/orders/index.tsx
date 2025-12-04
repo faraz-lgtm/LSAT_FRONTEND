@@ -8,7 +8,10 @@ import { ThemeSwitch } from "@/components/dashboard/theme-switch";
 import { OrdersDialogs } from "./components/orders-dialogs";
 import { OrdersProvider } from "./components/orders-provider";
 import { OrdersTable } from "./components/orders-table";
+import { OrdersPrimaryButtons } from "./components/orders-primary-buttons";
 import { useGetOrdersQuery } from "@/redux/apiSlices/Order/orderSlice";
+import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
+import { useState } from "react";
 import type { OrderOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/orders/");
@@ -17,6 +20,7 @@ export function Orders() {
   const { data: ordersData, isSuccess, isLoading, error } = useGetOrdersQuery();
   const search = route.useSearch();
   const navigate = route.useNavigate();
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   console.log("ordersData", ordersData);
   console.log("isSuccess:", isSuccess);
@@ -61,13 +65,18 @@ export function Orders() {
       </Header>
 
       <Main>
-        <div className="mb-2 flex flex-wrap items-center justify-between space-y-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Orders</h2>
             <p className="text-muted-foreground">
               View and manage customer orders.
             </p>
           </div>
+          <OrdersPrimaryButtons 
+            onCreateOrder={() => {
+              setCreateOrderOpen(true)
+            }}
+          />
         </div>
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12">
           <OrdersTable
@@ -80,6 +89,7 @@ export function Orders() {
       </Main>
 
       <OrdersDialogs />
+      <OrderCreateForm isOpen={createOrderOpen} onClose={() => setCreateOrderOpen(false)} />
     </OrdersProvider>
   );
 }

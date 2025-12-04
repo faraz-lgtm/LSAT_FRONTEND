@@ -27,6 +27,9 @@ export default function PaymentSuccess() {
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
 
+  // Determine if this is a free session variant
+  const isFreeSession = searchParams.get("type") === "free_session";
+
   useEffect(() => {
     // Extract payment details from URL parameters
     const session_id = searchParams.get("session_id");
@@ -43,7 +46,7 @@ export default function PaymentSuccess() {
 
     // Clear cart and user info on successful payment
 
-    console.log("✅ Payment successful - clearing cart and user info");
+    console.log("✅ Booking successful - clearing cart and user info");
     dispatch(clearCart());
     dispatch(clearInfo());
 
@@ -64,54 +67,57 @@ export default function PaymentSuccess() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 flex items-center justify-center">
+      <div className="min-h-screen customer-page-bg flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen customer-page-bg">
+      <div className="container mx-auto py-8">
+        <div className="customer-container customer-content">
           {/* Success Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
               <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Payment Successful!
+              {isFreeSession ? "Meeting booked successfully" : "Booking Successful!"}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Thank you for your purchase. Your payment has been processed
-              successfully.
+              {isFreeSession
+                ? "Thank you for reservation. Your reservation has been successful"
+                : "Thank you for your purchase. Your payment has been processed successfully."}
             </p>
           </div>
 
-          {/* Payment Details Card */}
-          <Card className="mb-6 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Payment Details
-              </CardTitle>
-              <CardDescription>
-                Your transaction has been completed successfully
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentDetails.sessionId && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Transaction ID
-                  </label>
-                  <p className="text-xs font-mono text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                    {paymentDetails.sessionId}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Payment Details Card - Only show for non-free sessions */}
+          {!isFreeSession && (
+            <Card className="mb-6 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Payment Details
+                </CardTitle>
+                <CardDescription>
+                  Your transaction has been completed successfully
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {paymentDetails.sessionId && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Transaction ID
+                    </label>
+                    <p className="text-xs font-mono text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                      {paymentDetails.sessionId}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Next Steps */}
           <Card className="mb-6">
@@ -123,56 +129,97 @@ export default function PaymentSuccess() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      1
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      Confirmation Email
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      You'll receive a confirmation email with your receipt and
-                      order details.
-                    </p>
-                  </div>
-                </div>
+                {isFreeSession ? (
+                  // Free session variant - show all steps
+                  <>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          1
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Confirmation Email
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Your sessions are confirmed — a confirmation email with your schedule has been sent
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      2
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      Schedule Your Sessions
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Our team will contact you to schedule your LSAT/MCAT
-                      preparation sessions.
-                    </p>
-                  </div>
-                </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          2
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Schedule Your Sessions
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Our team will contact you to schedule your LSAT
+                          preparation sessions.
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      3
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      Start Learning
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Begin your personalized LSAT/MCAT preparation journey with
-                      expert guidance.
-                    </p>
-                  </div>
-                </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          3
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Start Learning
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Begin your personalized LSAT preparation journey with
+                          expert guidance.
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  // Appointment variant - remove point 2, move 3 to 2
+                  <>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          1
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Confirmation Email/SMS
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Your sessions are confirmed — a confirmation email with your schedule has been sent
+
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          2
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          Start Learning
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Begin your personalized LSAT preparation journey with
+                          expert guidance.
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

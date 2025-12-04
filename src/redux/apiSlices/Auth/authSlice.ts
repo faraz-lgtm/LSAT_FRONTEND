@@ -2,7 +2,7 @@
 import { api } from "@/redux/api";
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
 // import type { UserOutput } from "../User/userSlice";
-import type { AuthTokenOutput, LoginInput, LoginOutput, RefreshTokenInput, RegisterInput, UserOutput } from "@/types/api/data-contracts";
+import type { AuthTokenOutput, ForgotPasswordInput, ForgotPasswordOutput, LoginInput, LoginOutput, RefreshTokenInput, RegisterInput, ResetPasswordInput, ResetPasswordOutput, UserOutput, VerifyOtpInput, VerifyOtpOutput } from "@/types/api/data-contracts";
 
 // Types for auth endpoints
 // export interface LoginInput {
@@ -71,9 +71,30 @@ export const authApi = api.injectEndpoints({
         body: userData,
       }),
       invalidatesTags: ['Users'],
-    })
+    }),
+    forgotPassword: builder.mutation<BaseApiResponse<ForgotPasswordOutput>, ForgotPasswordInput>({
+      query: (body) => ({
+        url: 'auth/forgot-password',
+        method: 'POST',
+        body,
+      }),
+    }),
+    verifyOtp: builder.mutation<BaseApiResponse<VerifyOtpOutput>, VerifyOtpInput>({
+      query: (body) => ({
+        url: 'auth/verify-otp',
+        method: 'POST',
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<BaseApiResponse<ResetPasswordOutput>, ResetPasswordInput>({
+      query: (body) => ({
+        url: 'auth/reset-password',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
 // Export hooks
-export const { useLoginMutation, useRefreshTokenMutation,useRegisterUserMutation } = authApi;
+export const { useLoginMutation, useRefreshTokenMutation, useRegisterUserMutation, useForgotPasswordMutation, useVerifyOtpMutation, useResetPasswordMutation } = authApi;

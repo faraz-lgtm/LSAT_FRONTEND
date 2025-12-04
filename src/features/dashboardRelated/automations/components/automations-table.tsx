@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { MoreHorizontal, Edit, Zap } from 'lucide-react'
+import { MoreHorizontal, Edit, Zap, Trash2 } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import { DataTableToolbar, DataTablePagination } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from '@/components/dashboard/data-table/bulk-actions'
@@ -51,7 +51,6 @@ const ToolTypeColors: Record<string, string> = {
   slack: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
   email: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
   sms: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
-  whatsapp: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
 }
 
 function formatToolType(type: string): string {
@@ -59,7 +58,7 @@ function formatToolType(type: string): string {
 }
 
 export function AutomationsTable({ data, search, navigate }: DataTableProps) {
-  const { setOpen, setCurrentRow } = useAutomations()
+  const { setOpen, setCurrentRow, setDeleteRow } = useAutomations()
   const [updateAutomation] = useUpdateAutomationMutation()
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -92,7 +91,7 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
       }).unwrap()
       toast.success(`Automation ${!row.isEnabled ? 'enabled' : 'disabled'} successfully`)
     } catch (error: any) {
-      toast.error(error?.data?.message || 'Failed to update automation')
+      // Error toast is handled centrally in api.ts
     } finally {
       setUpdatingKeys(prev => {
         const next = new Set(prev)
@@ -109,11 +108,13 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
       cell: ({ row }) => {
         const name = row.getValue('name') as string
         const description = row.original.description
+        const key = row.original.key
         return (
           <div>
             <div className="font-medium">{name}</div>
+            <div className="text-xs font-mono text-muted-foreground">{key}</div>
             {description && (
-              <div className="text-sm text-muted-foreground">{description}</div>
+              <div className="text-sm text-muted-foreground mt-1">{description}</div>
             )}
           </div>
         )
@@ -162,6 +163,18 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
       },
     },
     {
+      accessorKey: 'archived',
+      header: 'Archived',
+      cell: ({ row }) => {
+        const archived = row.getValue('archived') as boolean
+        return (
+          <Badge variant={archived ? 'secondary' : 'outline'} className="text-xs">
+            {archived ? 'Archived' : 'Active'}
+          </Badge>
+        )
+      },
+    },
+    {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => {
@@ -194,6 +207,16 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
               >
                 <Zap className="mr-2 h-4 w-4" />
                 View logs
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setDeleteRow(automation)
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete automation
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -271,6 +294,11 @@ export function AutomationsTable({ data, search, navigate }: DataTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className='cursor-pointer'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('edit')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

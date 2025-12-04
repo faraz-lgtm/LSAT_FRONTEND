@@ -31,6 +31,7 @@ export function RefundsViewDialog({
           <div className='space-y-3'>
             <h3 className='text-lg font-semibold'>Customer Information</h3>
             <div className='grid grid-cols-2 gap-4'>
+              {/* Note: customerName and customerEmail are not available in RefundOutput type */}
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Customer ID</label>
                 <p className='text-sm'>{currentRow.customerId}</p>
@@ -54,7 +55,7 @@ export function RefundsViewDialog({
               </div>
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Amount</label>
-                <p className='text-sm font-semibold'>{formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount)}</p>
+                <p className='text-sm font-semibold'>{currentRow.amount ? formatCurrency(typeof currentRow.amount === 'string' ? parseFloat(currentRow.amount) * 100 : currentRow.amount * 100) : 'N/A'}</p>
               </div>
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Reason</label>

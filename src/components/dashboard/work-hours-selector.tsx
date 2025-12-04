@@ -165,8 +165,8 @@ export function WorkHoursSelector({ value, onChange }: WorkHoursSelectorProps) {
                               </SelectContent>
                             </Select>
                             
-                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md font-medium">
-                              UTC
+                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md font-medium">
+                              Local
                             </span>
                           </div>
                           

@@ -18,10 +18,6 @@ export const taskApi = api.injectEndpoints({
         // Filter out false boolean values to avoid API validation issues
         const filteredParams = Object.entries(params).reduce((acc, [key, value]) => {
           if (value !== undefined && value !== null) {
-            // Only include googleCalendar if it's explicitly true
-            if (key === 'googleCalendar' && value === false) {
-              return acc;
-            }
             acc[key] = value;
           }
           return acc;

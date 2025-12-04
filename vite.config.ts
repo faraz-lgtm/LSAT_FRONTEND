@@ -37,69 +37,43 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library','posthog-js']
+    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library','posthog-js'],
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   build: {
     rollupOptions: {
-      external: ['solid-js', 'solid-js/web', 'googleapis', 'google-auth-library'],
       output: {
-        manualChunks: {
-          // FullCalendar and its plugins (~250KB)
-          'fullcalendar': [
-            '@fullcalendar/react',
-            '@fullcalendar/core',
-            '@fullcalendar/daygrid',
-            '@fullcalendar/timegrid',
-            '@fullcalendar/interaction',
-            '@fullcalendar/list',
-            '@fullcalendar/multimonth',
-            'fullcalendar'
-          ],
-          // Recharts charting library (~150KB)
-          'recharts': ['recharts'],
-          // TanStack Router (~100KB)
-          'tanstack-router': [
-            '@tanstack/react-router'
-          ],
-          // TanStack Table (~50KB)
-          'tanstack-table': [
-            '@tanstack/react-table'
-          ],
-          // Redux and related (~100KB)
-          'redux': [
-            '@reduxjs/toolkit',
-            'react-redux',
-            'redux-persist'
-          ],
-          // Radix UI - group larger components (~100KB)
-          'radix-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-tooltip'
-          ],
-          // PostHog analytics (~50KB)
-          'posthog': ['posthog-js'],
-          // Clerk authentication (~100KB)
-          'clerk': ['@clerk/clerk-react'],
-          // React Hook Form (~50KB)
-          'react-hook-form': ['react-hook-form', '@hookform/resolvers'],
-          // Lucide icons (~100KB+ depending on usage)
-          'lucide-icons': ['lucide-react'],
-          // Date utilities (~50KB)
-          'date-fns': ['date-fns'],
-          // Validation library (~50KB)
-          'zod': ['zod'],
-          // HTTP client (~30KB)
-          'axios': ['axios'],
-          // React Router (~100KB)
-          'react-router': ['react-router-dom']
-        }
-      }
-    }
-  }
+        // Smart chunking: Keep React ecosystem together, split only independent large libs
+        // Route-level code splitting (React.lazy) will handle the rest
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            // Split only large independent libraries that don't depend on React
+            if (id.includes('@fullcalendar/') || id.includes('fullcalendar')) {
+              return 'vendor-calendar';
+            }
+            
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            
+            if (id.includes('socket.io')) {
+              return 'vendor-socket';
+            }
+            
+            // Everything else (including React and all React-dependent libs) stays together
+            // This prevents React initialization errors while route-level splitting reduces bundle size
+            // The route-level lazy loading we added will create separate chunks for each route
+          }
+        },
+      },
+    },
+    // Enable minification and source maps
+    minify: 'esbuild',
+    sourcemap: false,
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+  },
 })
+
 
 
