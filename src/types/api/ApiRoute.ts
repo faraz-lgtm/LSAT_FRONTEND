@@ -953,7 +953,7 @@ export namespace Api {
       /** Filter by task label */
       label?: "meeting" | "personal" | "preparation" | "grading";
       /** Filter by attendance status */
-      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
       /**
        * Filter appointments from this date
        * @example "2024-01-15T00:00:00.000Z"

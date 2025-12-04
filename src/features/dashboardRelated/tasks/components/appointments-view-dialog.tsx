@@ -106,7 +106,8 @@ export function AppointmentsViewDialog({
       }).unwrap()
       // Invalidate Tasks cache so the updated attendance shows in the table
       dispatch(taskApi.util.invalidateTags(['Tasks']))
-      toast.success(`Attendance marked as ${status}`)
+      const statusLabel = status === 'SHOWED' ? 'Completed' : status === 'NO_SHOW' ? 'No Show' : 'Pending'
+      toast.success(`Attendance marked as ${statusLabel}`)
     } catch (error) {
       console.error('Error marking attendance:', error)
       toast.error('Failed to mark attendance')
@@ -324,7 +325,9 @@ export function AppointmentsViewDialog({
                     <label className='text-sm font-medium text-muted-foreground'>Status</label>
                     <div className='mt-1'>
                       <Badge variant='outline' className='uppercase'>
-                        {currentRow.attendanceStatus || 'UNKNOWN'}
+                        {currentRow.attendanceStatus === 'SHOWED' ? 'Completed' : 
+                         currentRow.attendanceStatus === 'NO_SHOW' ? 'No Show' : 
+                         currentRow.attendanceStatus === 'RESCHEDULED' ? 'Rescheduled' : 'Pending'}
                       </Badge>
                     </div>
                   </div>
@@ -336,7 +339,7 @@ export function AppointmentsViewDialog({
                     disabled={isMarking || !appointmentId} 
                     onClick={() => handleMarkAttendance('SHOWED')}
                   >
-                    Showed
+                    Completed
                   </Button>
                   <Button 
                     size='sm' 

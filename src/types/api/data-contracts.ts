@@ -818,7 +818,7 @@ export interface SwaggerBaseApiResponseForClassOrderOutput {
 }
 
 export interface MarkAppointmentAttendanceDto {
-  status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  status: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
 }
 
 export interface UpdateAppointmentNotesDto {
@@ -963,7 +963,7 @@ export interface OrderAppointmentQueryDto {
   /** Filter by task label */
   label?: "meeting" | "personal" | "preparation" | "grading";
   /** Filter by attendance status */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
   /**
    * Filter appointments from this date
    * @example "2024-01-15T00:00:00.000Z"
@@ -1086,7 +1086,7 @@ export interface TaskOutputDto {
    */
   itemId?: number;
   /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
   /**
    * When the attendance was marked (if this task is from an order appointment)
    * @example "2024-01-15T14:00:00.000Z"
