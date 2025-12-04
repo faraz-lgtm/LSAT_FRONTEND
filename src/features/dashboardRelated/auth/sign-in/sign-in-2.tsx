@@ -3,6 +3,7 @@ import { cn } from '@/lib/dashboardRelated/utils'
 import dashboardDark from './assets/dashboard-dark.png'
 import dashboardLight from './assets/dashboard-light.png'
 import { UserAuthForm } from './components/user-auth-form'
+import { buildPathWithUTM } from '@/utils/utmTracker'
 
 export function SignIn2() {
   return (
@@ -26,14 +27,18 @@ export function SignIn2() {
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking sign in, you agree to our{' '}
             <a
-              href='/terms_of_service'
+              href={buildPathWithUTM('/terms_of_service')}
+              target="_blank"
+              rel="noopener noreferrer"
               className='hover:text-primary underline underline-offset-4'
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
-              href='/privacy_policy'
+              href={buildPathWithUTM('/privacy_policy')}
+              target="_blank"
+              rel="noopener noreferrer"
               className='hover:text-primary underline underline-offset-4'
             >
               Privacy Policy

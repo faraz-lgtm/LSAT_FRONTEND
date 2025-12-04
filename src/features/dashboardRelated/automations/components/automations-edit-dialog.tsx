@@ -737,27 +737,29 @@ export function AutomationsEditDialog({
               </div>
             )}
 
-              {/* UTM Parameters - Common for all tool types */}
-              <FormField
-                control={form.control}
-                name="parameters"
-                render={() => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm">Include UTM Parameters</FormLabel>
-                      <FormDescription className="text-xs">
-                        Include UTM tracking parameters (utm_source, utm_medium, utm_campaign, etc.) in automation links
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={dynamicFields.includeUtmParameters === 'true'}
-                        onCheckedChange={(checked) => updateDynamicField('includeUtmParameters', String(checked))}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {/* UTM Parameters - Only for Slack */}
+              {isSlack && (
+                <FormField
+                  control={form.control}
+                  name="parameters"
+                  render={() => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm">Include UTM Parameters</FormLabel>
+                        <FormDescription className="text-xs">
+                          Include UTM tracking parameters (utm_source, utm_medium, utm_campaign, etc.) in automation links
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={dynamicFields.includeUtmParameters === 'true'}
+                          onCheckedChange={(checked) => updateDynamicField('includeUtmParameters', String(checked))}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Additional delay parameter for all types */}
               <FormField

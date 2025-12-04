@@ -8,6 +8,7 @@ import { Separator } from '@/components/dashboard/ui/separator'
 import { getOrganizationSlugFromUrl } from '@/utils/organization'
 import { useSelector } from 'react-redux'
 import { buildPathWithUTM } from '@/utils/utmTracker'
+import type { RootState } from '@/redux/rootReducer'
 
 interface CancelDetails {
   sessionId?: string
@@ -215,7 +216,7 @@ const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Having trouble with your payment? Contact our support team at{' '}
               <a 
-                href="mailto:support@betterlsatmcat.com" 
+                href="mailto:support@betterlsat.com" 
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 support@betterlsatmcat.com

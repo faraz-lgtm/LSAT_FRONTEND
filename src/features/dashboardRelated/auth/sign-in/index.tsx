@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
+import { buildPathWithUTM } from '@/utils/utmTracker'
 
 export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
@@ -55,14 +56,18 @@ export function SignIn() {
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking sign in, you agree to our{' '}
             <a
-              href='/terms_of_service'
+              href={buildPathWithUTM('/terms_of_service')}
+              target="_blank"
+              rel="noopener noreferrer"
               className='hover:text-primary underline underline-offset-4'
             >
               Terms of Service
             </a>{' '}
             and{' '}
             <a
-              href='/privacy_policy'
+              href={buildPathWithUTM('/privacy_policy')}
+              target="_blank"
+              rel="noopener noreferrer"
               className='hover:text-primary underline underline-offset-4'
             >
               Privacy Policy

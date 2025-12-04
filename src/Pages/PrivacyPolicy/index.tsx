@@ -12,112 +12,80 @@ const PrivacyPolicy = () => {
             </h1>
             
             <div className="prose prose-lg dark:prose-invert max-w-none space-y-6">
-              <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Introduction</h2>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We respect your privacy and are committed to protecting your personal data. 
-                  This privacy policy explains how we collect, use, and safeguard your information 
-                  when you use our services.
+              <div className="mb-6">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Effective Date: August 12, 2025
                 </p>
-              </section>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Last Updated: August 12, 2025
+                </p>
+              </div>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Information We Collect</h2>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">1. Information We Collect</h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We may collect the following types of information:
+                  We collect:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>Personal identification information (name, email address, phone number)</li>
-                  <li>Payment information (processed securely through third-party payment processors)</li>
-                  <li>Usage data and analytics information</li>
-                  <li>Communication data when you contact us</li>
+                  <li><strong>Information you provide:</strong> Name, email, phone number, payment details, LSAT-related preferences</li>
+                  <li><strong>Automatically collected data:</strong> IP address, browser type, device information, usage analytics (via cookies and similar technologies)</li>
                 </ul>
               </section>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">How We Use Your Information</h2>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We use the information we collect to:
-                </p>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">2. How We Use Your Information</h2>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>Provide, maintain, and improve our services</li>
-                  <li>Process your transactions and send related information</li>
-                  <li>Send you technical notices and support messages</li>
-                  <li>Respond to your comments and questions</li>
-                  <li>Monitor and analyze trends and usage</li>
+                  <li>To deliver, schedule, and manage coaching sessions</li>
+                  <li>To send reminders, updates, and service-related communication</li>
+                  <li>To analyze site usage and improve services</li>
                 </ul>
               </section>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Data Security</h2>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">3. Sharing & Disclosure</h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We implement appropriate technical and organizational security measures to protect 
-                  your personal data against unauthorized access, alteration, disclosure, or destruction. 
-                  However, no method of transmission over the Internet is 100% secure.
-                </p>
-              </section>
-
-              <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Data Sharing</h2>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We do not sell your personal information. We may share your information only in 
-                  the following circumstances:
+                  We do not sell personal information. We may share your data only with:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>With service providers who assist us in operating our services</li>
-                  <li>When required by law or to protect our rights</li>
-                  <li>With your explicit consent</li>
+                  <li>Trusted service providers (payment processors, scheduling tools)</li>
+                  <li>Authorities when required by law</li>
                 </ul>
               </section>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Your Rights</h2>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">4. Data Retention & Security</h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  You have the right to:
-                </p>
-                <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                  <li>Access your personal data</li>
-                  <li>Correct inaccurate or incomplete data</li>
-                  <li>Request deletion of your personal data</li>
-                  <li>Object to processing of your personal data</li>
-                  <li>Request restriction of processing</li>
-                  <li>Data portability</li>
-                </ul>
-              </section>
-
-              <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Cookies</h2>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We use cookies and similar tracking technologies to track activity on our service 
-                  and hold certain information. You can instruct your browser to refuse all cookies 
-                  or to indicate when a cookie is being sent.
+                  We retain your data as long as necessary for service delivery or as required by law. We use encryption, secure servers, and access controls to protect your information.
                 </p>
               </section>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Changes to This Policy</h2>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">5. Your Rights</h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  We may update our Privacy Policy from time to time. We will notify you of any 
-                  changes by posting the new Privacy Policy on this page and updating the 
-                  "Last updated" date.
+                  You may request access, correction, or deletion of your data by emailing{' '}
+                  <a href="mailto:support@betterlsat.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    support@betterlsat.com
+                  </a>.
                 </p>
               </section>
 
               <section className="space-y-4">
-                <h2 className="text-2xl font-semibold mt-8 mb-4">Contact Us</h2>
+                <h2 className="text-2xl font-semibold mt-8 mb-4">6. Children's Privacy</h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  If you have any questions about this Privacy Policy, please contact us through 
-                  our support channels.
+                  Our services are not directed to individuals under 16, and we do not knowingly collect their data.
+                </p>
+              </section>
+
+              <section className="space-y-4">
+                <h2 className="text-2xl font-semibold mt-8 mb-4">7. Changes to This Policy</h2>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  Any updates will be posted with a new "Last Updated" date.
                 </p>
               </section>
 
               <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Last updated: {new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
+                  Last Updated: August 12, 2025
                 </p>
               </div>
             </div>
@@ -129,5 +97,3 @@ const PrivacyPolicy = () => {
 };
 
 export default PrivacyPolicy;
-
-

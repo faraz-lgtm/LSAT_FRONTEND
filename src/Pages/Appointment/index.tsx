@@ -5,7 +5,7 @@ import { addInfo, type InformationState } from "@/redux/informationSlice";
 import type { RootState, AppDispatch } from "@/redux/store";
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateOrderMutation } from "@/redux/apiSlices/Order/orderSlice";
 import { useGetOrCreateCustomerMutation } from "@/redux/apiSlices/User/userSlice";
@@ -772,7 +772,27 @@ const Appointment = () => {
                   style={{ accentColor: 'var(--customer-primary)' }}
                 />
                 <label htmlFor="termsAgreement" className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer">
-                  I agree to the Terms of Service and consent to receive emails, texts, or calls related to my inquiry.
+                  I agree to the{' '}
+                  <Link 
+                    to={buildPathWithUTM('/terms_of_service')} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link 
+                    to={buildPathWithUTM('/privacy_policy')} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Privacy Policy
+                  </Link>
+                  {' '}and consent to receive emails, texts, or calls related to my inquiry.
                 </label>
               </div>
             </div>
