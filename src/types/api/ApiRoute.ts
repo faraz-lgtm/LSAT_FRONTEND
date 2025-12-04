@@ -11,41 +11,73 @@
  */
 
 import {
+  AddParticipantDto,
+  CallStatusCallbackDto,
+  CallsByConversationResponseDto,
+  CancelOrderDto,
   CancelRefundDto,
+  CreateAutomationDto,
+  CreateConversationDto,
   CreateInvoiceDto,
+  CreateOrganizationDto,
   CreateProductInput,
   CreateRefundDto,
+  ForgotPasswordInput,
+  GoogleCalendarConfigInputDto,
   InvoiceOutputDto,
   LoginInput,
-  ModifyOrderDto,
+  MarkAppointmentAttendanceDto,
   OrderInput,
   ProcessRefundDto,
+  RecordingCallbackDto,
   RefreshTokenInput,
   Refund,
   RegisterInput,
+  RequestVoiceTokenDto,
+  ResetPasswordInput,
+  SendEmailDto,
+  SendMessageDto,
   Slot,
   SwaggerBaseApiResponseForClassAuthTokenOutput,
-  SwaggerBaseApiResponseForClassAutomationConfig,
+  SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity,
   SwaggerBaseApiResponseForClassAutomationConfigOutputDto,
   SwaggerBaseApiResponseForClassAutomationLog,
   SwaggerBaseApiResponseForClassBaseUserOutput,
+  SwaggerBaseApiResponseForClassCalendarEventOutputDto,
+  SwaggerBaseApiResponseForClassCalendarListOutputDto,
+  SwaggerBaseApiResponseForClassCalendarVerificationOutputDto,
+  SwaggerBaseApiResponseForClassCancelOrderResultDto,
+  SwaggerBaseApiResponseForClassConversationOutputDto,
   SwaggerBaseApiResponseForClassDashboardOutputDto,
+  SwaggerBaseApiResponseForClassForgotPasswordOutput,
   SwaggerBaseApiResponseForClassLoginOutput,
+  SwaggerBaseApiResponseForClassMessageOutputDto,
   SwaggerBaseApiResponseForClassOrderOutput,
+  SwaggerBaseApiResponseForClassOrganizationOutput,
+  SwaggerBaseApiResponseForClassParticipantOutputDto,
   SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFinancialEntity1BaseOrderRelatedEntity,
   SwaggerBaseApiResponseForClassProductOutput,
   SwaggerBaseApiResponseForClassRegisterOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  SwaggerBaseApiResponseForClassResetPasswordOutput,
   SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto,
   SwaggerBaseApiResponseForClassStripeCheckoutSession,
   SwaggerBaseApiResponseForClassStripePaymentIntent,
+  SwaggerBaseApiResponseForClassSuccessResponseDto,
   SwaggerBaseApiResponseForClassTaskOutputDto,
+  SwaggerBaseApiResponseForClassThreadConversationOutputDto,
   SwaggerBaseApiResponseForClassUserOutputExtendsBaseUserOutputDto1BaseUserOutput,
+  SwaggerBaseApiResponseForClassVerifyOtpOutput,
   TaskInputDto,
-  UpdateAutomationConfigDto,
+  UpdateAppointmentNotesDto,
+  UpdateAutomationDto,
   UpdateInvoiceStatusDto,
+  UpdateOrderNotesDto,
+  UpdateOrderStatusDto,
+  UpdateOrganizationDto,
   UpdateProductInput,
   UpdateUserInput,
   UserInput,
+  VerifyOtpInput,
   VoidInvoiceDto,
 } from "./data-contracts";
 
@@ -74,6 +106,98 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieve a list of all organizations. Only SUPER_ADMIN can access this endpoint.
+   * @tags organizations
+   * @name OrganizationControllerGetAll
+   * @summary Get all organizations
+   * @request GET:/api/v1/organizations
+   * @secure
+   */
+  export namespace OrganizationControllerGetAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * @description Create a new organization with the provided details. Only SUPER_ADMIN can create organizations. Domains array is used for domain-based organization detection in unauthenticated routes.
+   * @tags organizations
+   * @name OrganizationControllerCreate
+   * @summary Create a new organization
+   * @request POST:/api/v1/organizations
+   * @secure
+   */
+  export namespace OrganizationControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateOrganizationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * @description Retrieve the organization associated with the current authenticated user. Organization is determined from JWT token.
+   * @tags organizations
+   * @name OrganizationControllerGetMyOrganization
+   * @summary Get current user's organization
+   * @request GET:/api/v1/organizations/my-organization
+   * @secure
+   */
+  export namespace OrganizationControllerGetMyOrganization {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * @description Retrieve a specific organization by its ID. Only SUPER_ADMIN can access this endpoint.
+   * @tags organizations
+   * @name OrganizationControllerGetById
+   * @summary Get organization by ID
+   * @request GET:/api/v1/organizations/{id}
+   * @secure
+   */
+  export namespace OrganizationControllerGetById {
+    export type RequestParams = {
+      /**
+       * Organization ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * @description Update an existing organization. Only SUPER_ADMIN can update organizations. All fields are optional - only provided fields will be updated.
+   * @tags organizations
+   * @name OrganizationControllerUpdate
+   * @summary Update an organization
+   * @request PATCH:/api/v1/organizations/{id}
+   * @secure
+   */
+  export namespace OrganizationControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Organization ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateOrganizationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
   }
 
   /**
@@ -127,7 +251,7 @@ export namespace Api {
        * Filter users by role
        * @example "USER"
        */
-      role?: "USER" | "ADMIN" | "CUST";
+      role?: "USER" | "ADMIN" | "COMPANY_ADMIN" | "SUPER_ADMIN" | "CUST";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -192,6 +316,155 @@ export namespace Api {
   }
 
   /**
+   * @description Checks if user has valid Google Calendar configuration and OAuth credentials
+   * @tags user-calendar
+   * @name UserCalendarControllerVerify
+   * @summary Verify user calendar configuration
+   * @request GET:/api/v1/users/me/calendar/verify
+   * @secure
+   */
+  export namespace UserCalendarControllerVerify {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarVerificationOutputDto;
+  }
+
+  /**
+   * @description Saves OAuth credentials from frontend after Google OAuth flow completion
+   * @tags user-calendar
+   * @name UserCalendarControllerSaveCredentials
+   * @summary Save Google Calendar OAuth credentials
+   * @request POST:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerSaveCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = GoogleCalendarConfigInputDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Updates OAuth credentials from frontend after Google OAuth flow completion
+   * @tags user-calendar
+   * @name UserCalendarControllerUpdateCredentials
+   * @summary Update Google Calendar OAuth credentials
+   * @request PATCH:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerUpdateCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = GoogleCalendarConfigInputDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Removes all Google Calendar OAuth credentials and disconnects the integration for the current user
+   * @tags user-calendar
+   * @name UserCalendarControllerRemoveCredentials
+   * @summary Remove Google Calendar integration
+   * @request DELETE:/api/v1/users/me/calendar/credentials
+   * @secure
+   */
+  export namespace UserCalendarControllerRemoveCredentials {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Fetches all calendars available to the user from Google Calendar API
+   * @tags user-calendar
+   * @name UserCalendarControllerListCalendars
+   * @summary List all user calendars
+   * @request GET:/api/v1/users/me/calendar/calendars
+   * @secure
+   */
+  export namespace UserCalendarControllerListCalendars {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarListOutputDto;
+  }
+
+  /**
+   * @description Fetches all events from specified calendar within date range
+   * @tags user-calendar
+   * @name UserCalendarControllerGetCalendarEvents
+   * @summary Get events from a specific calendar
+   * @request GET:/api/v1/users/me/calendar/calendars/{calendarId}/events
+   * @secure
+   */
+  export namespace UserCalendarControllerGetCalendarEvents {
+    export type RequestParams = {
+      /**
+       * Calendar ID (e.g., "primary")
+       * @example "primary"
+       */
+      calendarId: string;
+    };
+    export type RequestQuery = {
+      /**
+       * Start date for events query (ISO string)
+       * @example "2025-11-23T19:00:00.000Z"
+       */
+      startDate: string;
+      /**
+       * End date for events query (ISO string)
+       * @example "2025-11-30T19:00:00.000Z"
+       */
+      endDate: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarEventOutputDto;
+  }
+
+  /**
+   * @description Fetches all events from all user calendars (or specific calendar if calendarId provided) within date range
+   * @tags user-calendar
+   * @name UserCalendarControllerGetAllCalendarEvents
+   * @summary Get events from all calendars
+   * @request GET:/api/v1/users/me/calendar/calendars/events
+   * @secure
+   */
+  export namespace UserCalendarControllerGetAllCalendarEvents {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Start date for events query (ISO string)
+       * @example "2025-11-23T19:00:00.000Z"
+       */
+      startDate: string;
+      /**
+       * End date for events query (ISO string)
+       * @example "2025-11-30T19:00:00.000Z"
+       */
+      endDate: string;
+      /**
+       * Optional: Specific calendar ID to fetch from (if not provided, fetches from all calendars)
+       * @example "primary"
+       */
+      calendarId?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCalendarEventOutputDto;
+  }
+
+  /**
    * No description
    * @tags auth
    * @name AuthControllerLogin
@@ -235,6 +508,197 @@ export namespace Api {
     export type RequestBody = RefreshTokenInput;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassAuthTokenOutput;
+  }
+
+  /**
+   * @description Sends a 6-digit OTP code to the user via both SMS (if phone number exists) and Email (if email exists). The OTP expires in 10 minutes. Rate limited to 3 requests per identifier per 15 minutes.
+   * @tags auth
+   * @name AuthControllerForgotPassword
+   * @summary Request password reset - sends OTP via SMS and Email
+   * @request POST:/api/v1/auth/forgot-password
+   */
+  export namespace AuthControllerForgotPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ForgotPasswordInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassForgotPasswordOutput;
+  }
+
+  /**
+   * @description Verifies if the provided OTP code is valid without consuming it. The OTP must be verified again in the reset-password endpoint where it will be consumed.
+   * @tags auth
+   * @name AuthControllerVerifyOtp
+   * @summary Verify OTP code
+   * @request POST:/api/v1/auth/verify-otp
+   */
+  export namespace AuthControllerVerifyOtp {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = VerifyOtpInput;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassVerifyOtpOutput;
+  }
+
+  /**
+   * @description Resets the user password after verifying the OTP code. The OTP is consumed after successful password reset and cannot be reused. Password must be at least 8 characters long.
+   * @tags auth
+   * @name AuthControllerResetPassword
+   * @summary Reset password with verified OTP
+   * @request POST:/api/v1/auth/reset-password
+   */
+  export namespace AuthControllerResetPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ResetPasswordInput;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassResetPasswordOutput;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerUpdateNotes
+   * @summary Update order notes
+   * @request PATCH:/api/v1/order/{id}/notes
+   * @secure
+   */
+  export namespace OrderControllerUpdateNotes {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateOrderNotesDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Updates the business status of an order (PENDING, IN_PROGRESS, COMPLETED). When setting to COMPLETED, automatically sets completedAt timestamp and emits ORDER_COMPLETED event.
+   * @tags order
+   * @name OrderControllerUpdateStatus
+   * @summary Update order business status
+   * @request PATCH:/api/v1/order/{id}/status
+   * @secure
+   */
+  export namespace OrderControllerUpdateStatus {
+    export type RequestParams = {
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateOrderStatusDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassOrderOutput;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerListAppointments
+   * @summary List appointments for an order
+   * @request GET:/api/v1/order/{id}/appointments
+   * @secure
+   */
+  export namespace OrderControllerListAppointments {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerMarkAppointmentAttendance
+   * @summary Mark appointment attendance
+   * @request PATCH:/api/v1/order/appointments/{appointmentId}/attendance
+   * @secure
+   */
+  export namespace OrderControllerMarkAppointmentAttendance {
+    export type RequestParams = {
+      appointmentId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MarkAppointmentAttendanceDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerUpdateAppointmentNotes
+   * @summary Update appointment notes
+   * @request PATCH:/api/v1/order/appointments/{appointmentId}/notes
+   * @secure
+   */
+  export namespace OrderControllerUpdateAppointmentNotes {
+    export type RequestParams = {
+      appointmentId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateAppointmentNotesDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerGenerateRescheduleLink
+   * @summary Generate reschedule link for an appointment
+   * @request POST:/api/v1/order/appointments/{appointmentId}/reschedule/link
+   * @secure
+   */
+  export namespace OrderControllerGenerateRescheduleLink {
+    export type RequestParams = {
+      appointmentId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerRescheduleAppointment
+   * @summary Reschedule an appointment (admin)
+   * @request PATCH:/api/v1/order/appointments/{appointmentId}/reschedule
+   * @secure
+   */
+  export namespace OrderControllerRescheduleAppointment {
+    export type RequestParams = {
+      appointmentId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
+   * @name OrderControllerMarkOrderCompleted
+   * @summary Mark order as completed
+   * @request PATCH:/api/v1/order/{orderId}/complete
+   * @secure
+   */
+  export namespace OrderControllerMarkOrderCompleted {
+    export type RequestParams = {
+      orderId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 
   /**
@@ -414,26 +878,109 @@ export namespace Api {
   }
 
   /**
-   * @description Refunds the original order and creates a new one with different items
+   * @description Cancels an order by refunding it, voiding the invoice, and canceling slot reservations
    * @tags order
-   * @name OrderControllerModifyOrder
-   * @summary Modify an existing order
-   * @request POST:/api/v1/order/modify
+   * @name OrderControllerCancelOrder
+   * @summary Cancel an existing order
+   * @request PATCH:/api/v1/order/{id}/cancel
    * @secure
    */
-  export namespace OrderControllerModifyOrder {
+  export namespace OrderControllerCancelOrder {
+    export type RequestParams = {
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = CancelOrderDto;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassCancelOrderResultDto;
+  }
+
+  /**
+   * No description
+   * @tags public
+   * @name OrderPublicControllerGetSlots
+   * @summary Get available slots for rescheduling (public)
+   * @request GET:/api/v1/public/reschedule/slots
+   */
+  export namespace OrderPublicControllerGetSlots {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      token: string;
+      date: string;
+      graceHours: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags public
+   * @name OrderPublicControllerConfirm
+   * @summary Confirm reschedule (public)
+   * @request POST:/api/v1/public/reschedule/confirm
+   */
+  export namespace OrderPublicControllerConfirm {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = ModifyOrderDto;
+    export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = {
-      data?: {
-        refund?: object;
-        newOrder?: object;
-        newInvoice?: object;
-      };
-      meta?: object;
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order-appointments
+   * @name OrderAppointmentControllerFindAll
+   * @summary Get Order Appointments List
+   * @request GET:/api/v1/order-appointments
+   * @secure
+   */
+  export namespace OrderAppointmentControllerFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Filter by assigned employee ID
+       * @example 1
+       */
+      assignedEmployeeId?: number;
+      /** Filter by task status */
+      status?: "pending" | "in_progress" | "completed" | "cancelled";
+      /** Filter by task priority */
+      priority?: "low" | "medium" | "high";
+      /** Filter by task label */
+      label?: "meeting" | "personal" | "preparation" | "grading";
+      /** Filter by attendance status */
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+      /**
+       * Filter appointments from this date
+       * @example "2024-01-15T00:00:00.000Z"
+       */
+      startDate?: string;
+      /**
+       * Filter appointments to this date
+       * @example "2024-01-31T23:59:59.000Z"
+       */
+      endDate?: string;
+      /**
+       * Number of appointments to return
+       * @min 1
+       * @max 100
+       * @example 10
+       */
+      limit?: number;
+      /**
+       * Number of appointments to skip
+       * @min 0
+       * @example 0
+       */
+      offset?: number;
     };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
   }
 
   /**
@@ -470,7 +1017,7 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve a list of all available products. This endpoint is public and does not require authentication.
+   * @description Retrieve a list of all available products. This endpoint is public and does not require authentication. Products are filtered by organization based on the request origin domain.
    * @tags products
    * @name ProductControllerFindAll
    * @summary Get all products
@@ -501,7 +1048,7 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve a specific product by its ID. This endpoint is public and does not require authentication.
+   * @description Retrieve a specific product by its ID. This endpoint is public and does not require authentication. Product is filtered by organization based on the request origin domain.
    * @tags products
    * @name ProductControllerFindOne
    * @summary Get product by ID
@@ -1547,10 +2094,27 @@ export namespace Api {
   }
 
   /**
-   * @description Returns all available automations with their current configuration. Includes enabled/disabled status and parameters.
-   * @tags automation
+   * @description Create a new automation configuration for the current organization. Super Admin must provide x-organization-id header. Admin creates for their own organization.
+   * @tags Automations
+   * @name AutomationConfigControllerCreate
+   * @summary Create a new automation
+   * @request POST:/api/v1/automation
+   * @secure
+   */
+  export namespace AutomationConfigControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateAutomationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity;
+  }
+
+  /**
+   * @description Returns all available automations with their current configuration for the organization. Includes: id, key, name, description, triggerEvent, toolType, isEnabled, archived, parameters, and defaultParameters. The isEnabled field shows whether the automation is active for your organization.
+   * @tags Automations
    * @name AutomationConfigControllerListAll
-   * @summary List all automations with their configurations
+   * @summary List all automations
    * @request GET:/api/v1/automation
    * @secure
    */
@@ -1564,75 +2128,8 @@ export namespace Api {
   }
 
   /**
-   * @description Retrieve configuration for a specific automation by its key
-   * @tags automation
-   * @name AutomationConfigControllerGetOne
-   * @summary Get specific automation configuration
-   * @request GET:/api/v1/automation/{key}
-   * @secure
-   */
-  export namespace AutomationConfigControllerGetOne {
-    export type RequestParams = {
-      /**
-       * Automation key (e.g., slack-new-order, order-confirmation-email)
-       * @example "slack-new-order"
-       */
-      key: string;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody =
-      SwaggerBaseApiResponseForClassAutomationConfigOutputDto;
-  }
-
-  /**
-   * @description Enable/disable automation or modify its parameters. Use ToolType and TriggerEvent enums for reference.
-   * @tags automation
-   * @name AutomationConfigControllerUpdate
-   * @summary Update automation configuration
-   * @request PATCH:/api/v1/automation/{key}
-   * @secure
-   */
-  export namespace AutomationConfigControllerUpdate {
-    export type RequestParams = {
-      /**
-       * Automation key
-       * @example "slack-new-order"
-       */
-      key: string;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = UpdateAutomationConfigDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationConfig;
-  }
-
-  /**
-   * @description Retrieve execution history for a specific automation. Returns last 100 logs.
-   * @tags automation
-   * @name AutomationConfigControllerGetLogs
-   * @summary Get automation execution logs
-   * @request GET:/api/v1/automation/{key}/logs
-   * @secure
-   */
-  export namespace AutomationConfigControllerGetLogs {
-    export type RequestParams = {
-      /**
-       * Automation key
-       * @example "slack-new-order"
-       */
-      key: string;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationLog;
-  }
-
-  /**
-   * @description Retrieve execution history for all automations. Returns last 100 logs.
-   * @tags automation
+   * @description Retrieve execution history for all automations. Returns last 100 logs sorted by execution time (newest first). **Access Control:** - USER role: Only logs for orders assigned to the user - ADMIN role: Only logs for orders assigned to the admin - COMPANY_ADMIN/SUPER_ADMIN role: All logs for the organization
+   * @tags Automations
    * @name AutomationConfigControllerGetAllLogs
    * @summary Get all automation execution logs
    * @request GET:/api/v1/automation/logs
@@ -1647,8 +2144,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in customMessage and customBlockMessage parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in Slack automation customMessage and customBlockMessage parameters. Use {{placeholder}} format in your message templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetSlackPlaceholders
    * @summary Get available placeholders for Slack automations
    * @request GET:/api/v1/automation/placeholders/slack
@@ -1664,8 +2161,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in subject and message parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in Email automation subject and message parameters. Use {{placeholder}} format in your templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetEmailPlaceholders
    * @summary Get available placeholders for Email automations
    * @request GET:/api/v1/automation/placeholders/email
@@ -1681,8 +2178,8 @@ export namespace Api {
   }
 
   /**
-   * @description Returns list of available placeholders that can be used in message parameters. Use {{placeholder}} format in messages.
-   * @tags automation
+   * @description Returns list of available placeholders that can be used in SMS automation message parameters. Use {{placeholder}} format in your message templates. These placeholders are dynamically replaced with actual values when the automation executes.
+   * @tags Automations
    * @name AutomationConfigControllerGetSmsPlaceholders
    * @summary Get available placeholders for SMS automations
    * @request GET:/api/v1/automation/placeholders/sms
@@ -1695,5 +2192,545 @@ export namespace Api {
     export type RequestHeaders = {};
     export type ResponseBody =
       SwaggerBaseApiResponseForClassSlackPlaceholdersResponseDto;
+  }
+
+  /**
+   * @description Retrieve detailed configuration for a specific automation by its key. Returns: id, key, name, description, triggerEvent, toolType, isEnabled, archived, parameters (merged org+default), and defaultParameters.
+   * @tags Automations
+   * @name AutomationConfigControllerGetOne
+   * @summary Get specific automation configuration
+   * @request GET:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetOne {
+    export type RequestParams = {
+      /**
+       * Automation key identifier (e.g., slack-new-order, order-confirmation-email)
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassAutomationConfigOutputDto;
+  }
+
+  /**
+   * @description Update automation configuration for the current organization. Super Admin must provide x-organization-id header. Admin can only update automations for their own organization. Available trigger events: order.created, order.paid, order.completed Available tool types: email, sms, slack
+   * @tags Automations
+   * @name AutomationConfigControllerUpdate
+   * @summary Update automation configuration
+   * @request PATCH:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerUpdate {
+    export type RequestParams = {
+      /**
+       * Automation key identifier
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpdateAutomationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+   * @description Soft delete (archive) an automation for the current organization. Super Admin must provide x-organization-id header. Admin can only delete automations for their own organization.
+   * @tags Automations
+   * @name AutomationConfigControllerDelete
+   * @summary Delete automation
+   * @request DELETE:/api/v1/automation/{key}
+   * @secure
+   */
+  export namespace AutomationConfigControllerDelete {
+    export type RequestParams = {
+      /**
+       * Automation key identifier
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieve execution history for a specific automation. Returns last 100 logs sorted by execution time (newest first). **Access Control:** - USER role: Only logs for orders assigned to the user - ADMIN role: Only logs for orders assigned to the admin - COMPANY_ADMIN/SUPER_ADMIN role: All logs for the organization
+   * @tags Automations
+   * @name AutomationConfigControllerGetLogs
+   * @summary Get execution logs for specific automation
+   * @request GET:/api/v1/automation/{key}/logs
+   * @secure
+   */
+  export namespace AutomationConfigControllerGetLogs {
+    export type RequestParams = {
+      /**
+       * Automation key identifier
+       * @example "slack-new-order"
+       */
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassAutomationLog;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerGetAll
+   * @summary Get all message templates
+   * @request GET:/api/v1/message-templates
+   * @secure
+   */
+  export namespace MessageTemplateControllerGetAll {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerCreate
+   * @summary Create a new message template
+   * @request POST:/api/v1/message-templates
+   * @secure
+   */
+  export namespace MessageTemplateControllerCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerGetByKey
+   * @summary Get message template by key
+   * @request GET:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerGetByKey {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerUpdate
+   * @summary Update a message template
+   * @request PUT:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerUpdate {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags message-templates
+   * @name MessageTemplateControllerDelete
+   * @summary Delete a message template
+   * @request DELETE:/api/v1/message-templates/{key}
+   * @secure
+   */
+  export namespace MessageTemplateControllerDelete {
+    export type RequestParams = {
+      key: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerListConversations
+   * @summary List all conversations
+   * @request GET:/api/v1/chat/conversations
+   * @secure
+   */
+  export namespace ChatControllerListConversations {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Maximum number of conversations to return
+       * @example 50
+       */
+      limit?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerCreateConversation
+   * @summary Create a new conversation
+   * @request POST:/api/v1/chat/conversations
+   * @secure
+   */
+  export namespace ChatControllerCreateConversation {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateConversationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassThreadConversationOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerGetConversation
+   * @summary Get conversation details
+   * @request GET:/api/v1/chat/conversations/{sid}
+   * @secure
+   */
+  export namespace ChatControllerGetConversation {
+    export type RequestParams = {
+      /**
+       * Conversation SID
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassConversationOutputDto;
+  }
+
+  /**
+   * @description Deletes all channels (SMS, EMAIL, WhatsApp) in the thread. Accepts: numeric ID (e.g., "14"), DB ID format (e.g., "db_14"), or Twilio SID (e.g., "CHxxx"). For channels with Twilio SID, also deletes from Twilio.
+   * @tags SMS Conversations
+   * @name ChatControllerDeleteConversation
+   * @summary Delete a conversation and all its channels
+   * @request DELETE:/api/v1/chat/conversations/{sid}
+   * @secure
+   */
+  export namespace ChatControllerDeleteConversation {
+    export type RequestParams = {
+      /**
+       * Conversation identifier. Can be: numeric ID (e.g., "14"), DB ID format for EMAIL (e.g., "db_14"), or Twilio SID (e.g., "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+       * @example "14"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassSuccessResponseDto;
+  }
+
+  /**
+   * @description Returns messages for SMS, EMAIL, or WHATSAPP channels. When channel=CALL is specified, returns calls instead of messages. Calls and messages are loaded separately and not merged.
+   * @tags SMS Conversations
+   * @name ChatControllerGetConversationHistory
+   * @summary Get conversation message history, optionally filtered by channel
+   * @request GET:/api/v1/chat/conversations/{sid}/messages
+   * @secure
+   */
+  export namespace ChatControllerGetConversationHistory {
+    export type RequestParams = {
+      /**
+       * Conversation SID or DB conversation ID (e.g., db_8 for EMAIL conversations)
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {
+      /**
+       * Maximum number of items to return
+       * @example 50
+       */
+      limit?: number;
+      /** Sort order */
+      order?: "asc" | "desc";
+      /** Filter by channel. SMS, EMAIL, WHATSAPP return messages. CALL returns calls (separate from messages). If not specified, returns all messages (no calls). */
+      channel?: "SMS" | "WHATSAPP" | "EMAIL";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassMessageOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerSendMessage
+   * @summary Send a message in a conversation
+   * @request POST:/api/v1/chat/conversations/{sid}/messages
+   * @secure
+   */
+  export namespace ChatControllerSendMessage {
+    export type RequestParams = {
+      /**
+       * Conversation SID
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = SendMessageDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassMessageOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerAddParticipant
+   * @summary Add a participant to a conversation
+   * @request POST:/api/v1/chat/conversations/{sid}/participants
+   * @secure
+   */
+  export namespace ChatControllerAddParticipant {
+    export type RequestParams = {
+      /**
+       * Conversation SID
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = AddParticipantDto;
+    export type RequestHeaders = {};
+    export type ResponseBody =
+      SwaggerBaseApiResponseForClassParticipantOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerRemoveParticipant
+   * @summary Remove a participant from a conversation
+   * @request DELETE:/api/v1/chat/conversations/{sid}/participants/{participantSid}
+   * @secure
+   */
+  export namespace ChatControllerRemoveParticipant {
+    export type RequestParams = {
+      /**
+       * Conversation SID
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+      /**
+       * Participant SID
+       * @example "MBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      participantSid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassSuccessResponseDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Conversations
+   * @name ChatControllerSendEmail
+   * @summary Send an email in conversation context
+   * @request POST:/api/v1/chat/conversations/{sid}/emails
+   * @secure
+   */
+  export namespace ChatControllerSendEmail {
+    export type RequestParams = {
+      /**
+       * Conversation SID
+       * @example "CHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+       */
+      sid: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = SendEmailDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassSuccessResponseDto;
+  }
+
+  /**
+   * No description
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerHandleTwilioWebhook
+   * @summary Handle Twilio webhook events
+   * @request POST:/api/v1/chat/webhooks/twilio
+   */
+  export namespace TwilioWebhookControllerHandleTwilioWebhook {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {
+      "x-twilio-signature": string;
+    };
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Use this endpoint to test email receiving without SendGrid Inbound Parse. Requires domain authentication.
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerHandleManualEmailReceive
+   * @summary Manually add a received email to a conversation (testing endpoint)
+   * @request POST:/api/v1/chat/webhooks/sendgrid/inbound/manual
+   */
+  export namespace TwilioWebhookControllerHandleManualEmailReceive {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerTestSendGridInboundGet
+   * @summary Test if SendGrid inbound webhook endpoint is accessible (GET)
+   * @request GET:/api/v1/chat/webhooks/sendgrid/inbound/test
+   */
+  export namespace TwilioWebhookControllerTestSendGridInboundGet {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerTestSendGridInbound
+   * @summary Test if SendGrid inbound webhook endpoint is accessible
+   * @request POST:/api/v1/chat/webhooks/sendgrid/inbound/test
+   */
+  export namespace TwilioWebhookControllerTestSendGridInbound {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Requires SendGrid domain authentication. See: https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-inbound-parse
+   * @tags SMS Webhooks
+   * @name TwilioWebhookControllerHandleSendGridInbound
+   * @summary Handle SendGrid inbound email webhook
+   * @request POST:/api/v1/chat/webhooks/sendgrid/inbound
+   */
+  export namespace TwilioWebhookControllerHandleSendGridInbound {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerGetToken
+   * @request POST:/api/v1/voice/token
+   */
+  export namespace VoiceControllerGetToken {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RequestVoiceTokenDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerMakeCall
+   * @request POST:/api/v1/voice/make-call
+   */
+  export namespace VoiceControllerMakeCall {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerRecordingCallback
+   * @request POST:/api/v1/voice/recording-callback
+   */
+  export namespace VoiceControllerRecordingCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RecordingCallbackDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags voice
+   * @name VoiceControllerCallStatusCallback
+   * @request POST:/api/v1/voice/call-status-callback
+   */
+  export namespace VoiceControllerCallStatusCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CallStatusCallbackDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Retrieves all calls associated with a specific conversation ID, including their respective call logs (recordings). Each call object contains complete call metadata and an array of associated call recordings.
+   * @tags voice
+   * @name VoiceControllerGetCallsByConversationId
+   * @summary Get all calls for a conversation
+   * @request GET:/api/v1/voice/conversations/{id}/calls
+   */
+  export namespace VoiceControllerGetCallsByConversationId {
+    export type RequestParams = {
+      /**
+       * Conversation ID to retrieve calls for
+       * @example 11
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = CallsByConversationResponseDto;
   }
 }

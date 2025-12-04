@@ -30,8 +30,11 @@ export function getTrackingConfig(): TrackingConfig {
   const ga4MeasurementId = import.meta.env.VITE_GA4_MEASUREMENT_ID;
   const fbPixelId = import.meta.env.VITE_FB_PIXEL_ID;
   const gtmContainerId = import.meta.env.VITE_GTM_CONTAINER_ID;
-  const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
-  const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com';
+  // Support both VITE_POSTHOG_KEY and VITE_PUBLIC_POSTHOG_KEY
+  const posthogKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY || import.meta.env.VITE_POSTHOG_KEY;
+  const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST || import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com';
+
+
 
   return {
     ga4: {

@@ -70,6 +70,7 @@
     "input-otp": "^1.4.2",
     "lightningcss-darwin-arm64": "^1.30.2",
     "lucide-react": "^0.544.0",
+    "posthog-js": "^1.301.1",
     "react": "^19.1.1",
     "react-colorful": "^5.6.1",
     "react-day-picker": "^8.10.1",

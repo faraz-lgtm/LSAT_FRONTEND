@@ -37,7 +37,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library']
+    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library','posthog-js']
   },
   build: {
     rollupOptions: {
