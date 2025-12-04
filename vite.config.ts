@@ -37,7 +37,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    exclude: ['@tanstack/router-devtools'],
+    exclude: ['@tanstack/router-devtools', 'googleapis', 'google-auth-library','posthog-js'],
     include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   build: {

@@ -3,6 +3,7 @@ import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOr
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
+import { getCurrentUTMParams } from "@/utils/utmTracker";
 
 // Order interfaces based on API structure
 // export interface ItemOutput {
@@ -197,11 +198,30 @@ export const ordersApi = api.injectEndpoints({
       BaseApiResponse<StripeCheckoutSession>, // 👈 replace `any` with your API response type
       { items: CartItem[]; user: InformationState,currency: string | undefined } // 👈 request body type
     >({
-      query: (orderData) => ({
-        url: "order", // relative to baseUrl in your api.ts
-        method: "POST", // since we're creating
-        body: orderData, // request payload
-      }),
+      query: (orderData) => {
+        // Get UTM parameters
+        const utmParams = getCurrentUTMParams();
+        
+        // Add UTM parameters as a nested utm object if they exist
+        const orderPayload = {
+          ...orderData,
+          ...(Object.keys(utmParams).length > 0 && {
+            utm: {
+              utm_source: utmParams.utm_source,
+              utm_medium: utmParams.utm_medium,
+              utm_campaign: utmParams.utm_campaign,
+              utm_content: utmParams.utm_content,
+              utm_term: utmParams.utm_term,
+            },
+          }),
+        };
+
+        return {
+          url: "order", // relative to baseUrl in your api.ts
+          method: "POST", // since we're creating
+          body: orderPayload, // request payload
+        };
+      },
       invalidatesTags: ["Orders", "Invoices", "AvailableSlots"], // auto-refetch orders, invoices, and slots
     }),
 

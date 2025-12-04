@@ -8,6 +8,7 @@ import { DirectionProvider } from "./context/direction-provider";
 import { FontProvider } from "./context/font-provider";
 import { ThemeProvider } from "./context/theme-provider";
 import { CurrencyProvider } from "./context/currency-provider";
+import { TrackingProvider } from "./context/tracking-provider";
 import { store } from "./redux/store";
 import "./index.css";
 import "./styles/dashboard-related/index.css";
@@ -18,11 +19,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <FontProvider>
         <Provider store={store}>
           <BrowserRouter>
-            <CurrencyProvider>
-              <DirectionProvider>
-                <App />
-              </DirectionProvider>
-            </CurrencyProvider>
+            <TrackingProvider>
+              <CurrencyProvider>
+                <DirectionProvider>
+                  <App />
+                </DirectionProvider>
+              </CurrencyProvider>
+            </TrackingProvider>
           </BrowserRouter>
         </Provider>
       </FontProvider>
