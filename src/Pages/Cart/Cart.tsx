@@ -9,6 +9,7 @@ import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
 import { useCurrencyFormatter } from "../../utils/currency";
 import { useGetProductsQuery } from "../../redux/apiSlices/Product/productSlice";
 import { getOrganizationSlugFromUrl } from "../../utils/organization";
+import { buildPathWithUTM } from "@/utils/utmTracker";
 
 const Cart = () => {
   const { items: allItems } = useSelector((state: RootState) => state.cart);
@@ -40,7 +41,7 @@ const Cart = () => {
 
   const handleBackToHome = () => {
     const homePath = currentSlug ? `/${currentSlug}` : "/";
-    navigate(homePath);
+    navigate(buildPathWithUTM(homePath));
   };
 
   return (
@@ -142,7 +143,7 @@ const Cart = () => {
                 style={{ backgroundColor: 'var(--customer-button-orange)' }} 
                 onClick={() => {
                   const appointmentPath = currentSlug ? `/${currentSlug}/Appointment` : "/Appointment";
-                  navigate(appointmentPath);
+                  navigate(buildPathWithUTM(appointmentPath));
                 }}
               >
                 Continue to Checkout

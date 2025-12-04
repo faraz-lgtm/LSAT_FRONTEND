@@ -146,3 +146,28 @@ export function getReferrer(): { referrer: string; referrer_domain?: string } {
   };
 }
 
+/**
+ * Build a URL path with UTM parameters preserved
+ * @param path - The path to navigate to (e.g., "/betterlsat/cart" or "/cart")
+ * @returns Path with UTM query parameters appended
+ */
+export function buildPathWithUTM(path: string): string {
+  const utmParams = getCurrentUTMParams();
+  
+  // If no UTM params, return path as-is
+  if (Object.keys(utmParams).length === 0) {
+    return path;
+  }
+  
+  // Build query string from UTM params
+  const queryParams = new URLSearchParams();
+  Object.entries(utmParams).forEach(([key, value]) => {
+    if (value) {
+      queryParams.append(key, value);
+    }
+  });
+  
+  const queryString = queryParams.toString();
+  return queryString ? `${path}?${queryString}` : path;
+}
+

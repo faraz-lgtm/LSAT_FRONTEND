@@ -21,6 +21,7 @@ import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
 import { addToCartAsync } from "@/redux/cartSlice";
 import type { ItemInput } from "@/types/api/data-contracts";
 import { getOrganizationSlugFromUrl } from "../../utils/organization";
+import { buildPathWithUTM } from "@/utils/utmTracker";
 
 /**
  * Detect user's country code based on browser locale and timezone
@@ -258,10 +259,10 @@ const Appointment = () => {
     if (selected === "information") {
       if (isFreePurchase) {
         const homePath = currentSlug ? `/${currentSlug}` : "/";
-        navigate(homePath);
+        navigate(buildPathWithUTM(homePath));
       } else {
         const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
-        navigate(cartPath);
+        navigate(buildPathWithUTM(cartPath));
       }
     } else if (selected === "appointments") {
       setSelected("information");
@@ -271,10 +272,10 @@ const Appointment = () => {
   const handleNavigateBack = () => {
     if (isFreePurchase) {
       const homePath = currentSlug ? `/${currentSlug}` : "/";
-      navigate(homePath);
+      navigate(buildPathWithUTM(homePath));
     } else {
       const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
-      navigate(cartPath);
+      navigate(buildPathWithUTM(cartPath));
     }
   };
   const handleError = (str: string) => {

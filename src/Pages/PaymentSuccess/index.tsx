@@ -11,9 +11,12 @@ import {
 } from "@/components/ui/card";
 // import { Badge } from '@/components/dashboard/ui/badge'
 import { Separator } from "@/components/dashboard/ui/separator";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { clearCart } from "@/redux/cartSlice";
 import { clearInfo } from "@/redux/informationSlice";
+import { buildPathWithUTM } from "@/utils/utmTracker";
+import { getOrganizationSlugFromUrl } from "@/utils/organization";
+import type { RootState } from "@/redux/rootReducer";
 
 interface PaymentDetails {
   sessionId?: string;
@@ -26,6 +29,10 @@ export default function PaymentSuccess() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({});
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
+
+  const { organizationSlug } = useSelector((state: RootState) => state.auth);
+const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
+const homePath = currentSlug ? `/${currentSlug}` : "/"
 
   // Determine if this is a free session variant
   const isFreeSession = searchParams.get("type") === "free_session";
@@ -227,7 +234,7 @@ export default function PaymentSuccess() {
           {/* Action Buttons */}
           <div className="flex justify-center gap-4">
             <Button asChild variant="outline" className="px-8">
-              <Link to="/">
+              <Link to={buildPathWithUTM(homePath)}>
                 <Home className="w-4 h-4 mr-2" />
                 Back to Home
               </Link>

@@ -171,7 +171,7 @@ export function AutomationsCreateDialog({
     try {
       // Build parameters object from dynamic fields
       const parameters: Record<string, any> = {}
-      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink']
+      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters']
       
       Object.keys(dynamicFields).forEach(key => {
         const value = dynamicFields[key]
@@ -671,6 +671,28 @@ export function AutomationsCreateDialog({
                   </Card>
                 </>
               )}
+
+              {/* UTM Parameters - Common for all tool types */}
+              <FormField
+                control={form.control}
+                name="toolType"
+                render={() => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm">Include UTM Parameters</FormLabel>
+                      <FormDescription className="text-xs">
+                        Include UTM tracking parameters (utm_source, utm_medium, utm_campaign, etc.) in automation links
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={dynamicFields.includeUtmParameters === 'true'}
+                        onCheckedChange={(checked) => updateDynamicField('includeUtmParameters', String(checked))}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
               {/* Delay parameter for all types */}
               <FormField

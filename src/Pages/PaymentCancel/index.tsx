@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Separator } from '@/components/dashboard/ui/separator'
+import { getOrganizationSlugFromUrl } from '@/utils/organization'
+import { useSelector } from 'react-redux'
+import { buildPathWithUTM } from '@/utils/utmTracker'
 
 interface CancelDetails {
   sessionId?: string
@@ -17,6 +20,12 @@ export default function PaymentCancel() {
   const [searchParams] = useSearchParams()
   const [cancelDetails, setCancelDetails] = useState<CancelDetails>({})
   const [isLoading, setIsLoading] = useState(true)
+
+  // Inside component, add:
+const { organizationSlug } = useSelector((state: RootState) => state.auth);
+const currentSlug = getOrganizationSlugFromUrl(organizationSlug);
+const homePath = currentSlug ? `/${currentSlug}` : "/";
+const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
 
   useEffect(() => {
     // Extract cancel details from URL parameters
@@ -186,14 +195,14 @@ export default function PaymentCancel() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Link to="/cart">
+              <Link to={buildPathWithUTM(cartPath)}>
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Link>
             </Button>
             
             <Button asChild variant="outline">
-              <Link to="/">
+              <Link to={buildPathWithUTM(homePath)}>
                 <Home className="w-4 h-4 mr-2" />
                 Back to Home
               </Link>

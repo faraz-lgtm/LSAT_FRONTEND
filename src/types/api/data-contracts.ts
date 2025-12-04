@@ -762,6 +762,29 @@ export interface ItemOutput {
   quantity: number;
 }
 
+export interface UtmOutput {
+  /**
+   * UTM source parameter for tracking the source of traffic
+   * @example "google"
+   */
+  utm_source?: object | null;
+  /**
+   * UTM medium parameter for tracking the marketing medium
+   * @example "cpc"
+   */
+  utm_medium?: object | null;
+  /**
+   * UTM campaign parameter for tracking the campaign name
+   * @example "winter_sale"
+   */
+  utm_campaign?: object | null;
+  /**
+   * UTM content parameter for tracking ad variant or content identifier
+   * @example "ad_variant_1"
+   */
+  utm_content?: object | null;
+}
+
 export interface OrderOutput {
   /**
    * Order ID
@@ -810,6 +833,8 @@ export interface OrderOutput {
    * @format date-time
    */
   completedAt?: string | null;
+  /** UTM tracking parameters for marketing attribution */
+  utm?: UtmOutput | null;
 }
 
 export interface SwaggerBaseApiResponseForClassOrderOutput {
@@ -877,11 +902,35 @@ export interface ItemInput {
   assignedEmployeeIds?: string[];
 }
 
+export interface UtmInput {
+  /**
+   * UTM source parameter for tracking the source of traffic
+   * @example "google"
+   */
+  utm_source?: string;
+  /**
+   * UTM medium parameter for tracking the marketing medium
+   * @example "cpc"
+   */
+  utm_medium?: string;
+  /**
+   * UTM campaign parameter for tracking the campaign name
+   * @example "winter_sale"
+   */
+  utm_campaign?: string;
+  /**
+   * UTM content parameter for tracking ad variant or content identifier
+   * @example "ad_variant_1"
+   */
+  utm_content?: string;
+}
+
 export interface OrderInput {
   items: ItemInput[];
   user: UserInput;
   /** @example "CAD" */
   currency: string;
+  utm?: UtmInput;
 }
 
 export interface StripeCheckoutSession {
@@ -2250,6 +2299,12 @@ export interface SlackAutomationParameters {
    * @example true
    */
   includeMeetingLink?: boolean;
+  /**
+   * Whether to include UTM parameters (source, medium, campaign, content) in the Slack message
+   * @default true
+   * @example true
+   */
+  includeUtmParameters?: boolean;
 }
 
 export interface EmailAutomationParameters {

@@ -15,6 +15,7 @@ import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import GlobalProgressBar from "../../components/GlobalProgressBar";
 import { useCheckoutProgress } from "../../hooks/useCheckoutProgress";
 import { getOrganizationSlugFromUrl } from "../../utils/organization";
+import { buildPathWithUTM } from "@/utils/utmTracker";
 
 type HomeProps = {
   showFree?: boolean;
@@ -93,7 +94,8 @@ const Home = ({ showFree = false }: HomeProps) => {
   const handleGoToCart = () => {
     console.log("Go to Cart clicked, navigating to cart");
     const cartPath = currentSlug ? `/${currentSlug}/cart` : "/cart";
-    navigate(cartPath);
+    console.log("building path with UTM:", buildPathWithUTM(cartPath));
+    navigate(buildPathWithUTM(cartPath));
   };
 
   const handleAddSelectedToCart = async () => {
@@ -116,7 +118,7 @@ const Home = ({ showFree = false }: HomeProps) => {
 
     if (itemsToAdd.length === 0) {
       // All selected items are already in cart, just navigate
-      navigate(cartPath);
+      navigate(buildPathWithUTM(cartPath));
       return;
     }
 
@@ -139,11 +141,11 @@ const Home = ({ showFree = false }: HomeProps) => {
       // Wait for all items to be added
       await Promise.all(addPromises);
       // Navigate to cart page after successful addition
-      navigate(cartPath);
+      navigate(buildPathWithUTM(cartPath));
     } catch (error) {
       console.error("Error adding items to cart:", error);
       // Still navigate even if there's an error (items might have been partially added)
-      navigate(cartPath);
+      navigate(buildPathWithUTM(cartPath));
     }
 
     // Selections will be synced automatically by the useEffect that watches cartItems
