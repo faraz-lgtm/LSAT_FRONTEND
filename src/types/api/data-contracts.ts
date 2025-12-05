@@ -1681,6 +1681,60 @@ export interface SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFina
   data: PaymentTransaction;
 }
 
+export interface CustomerInfoDto {
+  /**
+   * First name
+   * @example "John"
+   */
+  firstName: string;
+  /**
+   * Last name
+   * @example "Doe"
+   */
+  lastName: string;
+  /**
+   * Email
+   * @example "john.doe@example.com"
+   */
+  email: string;
+  /**
+   * Phone number
+   * @example "+1234567890"
+   */
+  phone: string;
+  /**
+   * Optional customer ID if selecting existing customer
+   * @example 123
+   */
+  id?: number;
+}
+
+export interface CreatePaymentLinkDto {
+  /**
+   * Currency code
+   * @example "CAD"
+   */
+  currency: string;
+  /**
+   * Amount in the currency (not cents)
+   * @example 100
+   */
+  amount: number;
+  customerInfo: CustomerInfoDto;
+  /**
+   * Optional description for the payment link
+   * @example "Consultation Fee"
+   */
+  description?: string;
+}
+
+export interface PaymentLinkResponseDto {
+  /** Stripe session ID */
+  sessionId: string;
+  /** Checkout URL for the customer */
+  checkoutUrl: string;
+}
+
 export interface InvoiceItemDto {
   /**
    * Description of the invoice item
