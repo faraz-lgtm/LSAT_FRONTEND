@@ -177,7 +177,7 @@ export function AutomationsEditDialog({
       // Initialize dynamic fields from parameters
       const params = (currentRow.parameters as Record<string, any>) || {}
       const fields: Record<string, string> = {}
-      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters']
+      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters', 'includeInvoice']
       
       Object.keys(params).forEach(key => {
         const value = params[key]
@@ -215,7 +215,7 @@ export function AutomationsEditDialog({
 
       // Build parameters object from dynamic fields
       const parameters: Record<string, any> = {}
-      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters']
+      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters', 'includeInvoice']
       
       Object.keys(dynamicFields).forEach(key => {
         const value = dynamicFields[key]
@@ -252,7 +252,9 @@ export function AutomationsEditDialog({
 
   if (!currentRow) return null
 
-  const toolType = currentRow.toolType.toLowerCase()
+  const toolTypeValue = form.watch('toolType') || currentRow.toolType
+  const toolType = typeof toolTypeValue === 'string' ? toolTypeValue.toLowerCase() : toolTypeValue
+  const triggerEvent = form.watch('triggerEvent') || currentRow.triggerEvent
   const isSlack = toolType === 'slack'
   const isEmail = toolType === 'email'
   const isSms = toolType === 'sms'
@@ -435,6 +437,30 @@ export function AutomationsEditDialog({
                   </FormItem>
                 )}
               />
+
+              {/* Include Invoice - Only for email + order.paid */}
+              {isEmail && triggerEvent === 'order.paid' && (
+                <FormField
+                  control={form.control}
+                  name="parameters"
+                  render={() => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Include Invoice</FormLabel>
+                        <FormDescription>
+                          Include invoice attachment in the email
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={dynamicFields.includeInvoice === 'true'}
+                          onCheckedChange={(checked) => updateDynamicField('includeInvoice', String(checked))}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             {/* Parameters Section */}

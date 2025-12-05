@@ -59,18 +59,32 @@ export function AppointmentsViewDialog({
   
   // Get appointmentId - for order appointments, the id field is the appointment ID
   const getAppointmentId = (): number | undefined => {
-    if (!isAppointment) return undefined
+    console.log('🔍 getAppointmentId called')
+    console.log('📋 isAppointment:', isAppointment)
+    console.log('📋 currentRow:', currentRow)
+    
+    if (!isAppointment) {
+      console.log('⚠️ Not an appointment, returning undefined')
+      return undefined
+    }
+    
     // First check if appointmentId is explicitly available in the task object
     const anyTask = currentRow as unknown as { appointmentId?: number }
+    console.log('🔍 anyTask.appointmentId:', anyTask.appointmentId)
+    
     if (anyTask.appointmentId) {
+      console.log('✅ Found appointmentId on object:', anyTask.appointmentId)
       return anyTask.appointmentId
     }
+    
     // For order appointments, the id field should be the appointment ID
     // This is the ID shown in the dialog as "Appointment ID"
+    console.log('📝 Using currentRow.id as appointmentId:', currentRow.id)
     return currentRow.id
   }
   
   const appointmentId = getAppointmentId()
+  console.log('🎯 Final appointmentId:', appointmentId)
   
   // Handle notes - it's typed as object but should be string
   const getNotesString = (notes: unknown): string => {
@@ -83,9 +97,17 @@ export function AppointmentsViewDialog({
   
   useEffect(() => {
     if (open) {
+      console.log('🚪 AppointmentsViewDialog opened')
+      console.log('📋 currentRow on open:', currentRow)
+      console.log('🆔 appointmentId on open:', appointmentId)
+      console.log('📝 currentRow.id:', currentRow.id)
+      console.log('📦 currentRow.type:', currentRow.type)
+      console.log('🛒 currentRow.orderId:', currentRow.orderId)
+      console.log('🎫 rescheduleToken:', (currentRow as unknown as { rescheduleToken?: string })?.rescheduleToken)
+      console.log('📅 googleCalendarEventId:', currentRow.googleCalendarEventId)
       setNotes(getNotesString(currentRow.notes))
     }
-  }, [open, currentRow.notes])
+  }, [open, currentRow.notes, currentRow, appointmentId])
 
   const tutor = currentRow.tutorId && userIdToUser ? userIdToUser[currentRow.tutorId] : undefined
   const customerInvitee = currentRow.invitees?.find((i) => i.name === 'Customer')
@@ -115,7 +137,11 @@ export function AppointmentsViewDialog({
 
   // Handler for copy reschedule link
   const handleCopyRescheduleLink = async () => {
+    console.log('📋 handleCopyRescheduleLink called')
+    console.log('🆔 appointmentId:', appointmentId)
+    
     if (!appointmentId) {
+      console.error('❌ Appointment ID not found')
       toast.error('Appointment ID not found')
       return
     }
@@ -125,20 +151,29 @@ export function AppointmentsViewDialog({
     setCopyingApptId(appointmentId)
     
     try {
+      console.log('📞 Calling generateRescheduleLink API with appointmentId:', appointmentId)
       const resp = await generateLink({ appointmentId }).unwrap()
+      console.log('📥 API Response:', resp)
+      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const url = (resp as any)?.data?.url ?? (resp as any)?.url
+      console.log('🔗 Generated URL:', url)
+      console.log('🔗 URL type:', typeof url)
+      
       if (url) {
+        console.log('✅ Copying URL to clipboard:', url)
         await navigator.clipboard.writeText(url)
         setCopiedApptId(appointmentId)
         setTimeout(() => setCopiedApptId(null), 1500)
         toast.success('Reschedule link copied to clipboard')
       } else {
+        console.error('❌ No URL in response. Full response:', resp)
         setCopyErrorApptId(appointmentId)
         toast.error('Could not generate reschedule link')
       }
     } catch (error) {
-      console.error('Error generating reschedule link:', error)
+      console.error('❌ Error generating reschedule link:', error)
+      console.error('❌ Error details:', JSON.stringify(error, null, 2))
       setCopyErrorApptId(appointmentId)
       toast.error('Failed to generate reschedule link')
     } finally {
@@ -169,23 +204,50 @@ export function AppointmentsViewDialog({
   }
 
   const handleReschedule = async () => {
+    console.log('🔄 handleReschedule called')
+    console.log('📋 currentRow:', currentRow)
+    console.log('🆔 appointmentId from getAppointmentId():', appointmentId)
+    console.log('📝 currentRow.id:', currentRow.id)
+    console.log('📦 currentRow.type:', currentRow.type)
+    console.log('🛒 currentRow.orderId:', currentRow.orderId)
+    
     setIsRescheduling(true)
     try {
       const anyTask = currentRow as unknown as { rescheduleToken?: string; appointmentId?: number; }
+      console.log('🔍 anyTask.appointmentId (direct):', anyTask.appointmentId)
+      console.log('🎫 anyTask.rescheduleToken:', anyTask.rescheduleToken)
+      console.log('📅 currentRow.googleCalendarEventId:', currentRow.googleCalendarEventId)
+      
       const token = anyTask.rescheduleToken || currentRow.googleCalendarEventId
+      console.log('🎟️ Calculated token:', token)
+      
+      // Use the appointmentId from getAppointmentId() which handles the fallback correctly
+      const appointmentIdToUse = appointmentId || anyTask.appointmentId
+      console.log('✅ Using appointmentId:', appointmentIdToUse)
       
       // Prefer generating a fresh reschedule link when appointmentId is available
-      if (anyTask.appointmentId) {
+      if (appointmentIdToUse) {
+        console.log('📞 Calling generateRescheduleLink API with appointmentId:', appointmentIdToUse)
         try {
-          const resp = await generateLink({ appointmentId: anyTask.appointmentId }).unwrap()
+          const resp = await generateLink({ appointmentId: appointmentIdToUse }).unwrap()
+          console.log('📥 API Response:', resp)
+          
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const url = (resp as any)?.data?.url ?? (resp as any)?.url
+          console.log('🔗 Generated URL:', url)
+          console.log('🔗 URL type:', typeof url)
+          console.log('🔗 URL length:', url?.length)
+          
           if (url) {
+            console.log('✅ Opening reschedule URL:', url)
             window.open(url, '_blank', 'noopener')
           } else {
+            console.error('❌ No URL in response. Full response:', resp)
             window.alert('Could not generate reschedule link')
           }
-        } catch {
+        } catch (error) {
+          console.error('❌ Error calling generateRescheduleLink:', error)
+          console.error('❌ Error details:', JSON.stringify(error, null, 2))
           window.alert('Failed to generate reschedule link')
         }
         setIsRescheduling(false)
@@ -194,15 +256,23 @@ export function AppointmentsViewDialog({
       
       // Fallback to token-based link if no appointmentId is present
       if (token) {
-        window.open(`/reschedule?token=${encodeURIComponent(String(token))}`, '_blank', 'noopener')
+        const tokenUrl = `/reschedule?token=${encodeURIComponent(String(token))}`
+        console.log('🔄 Using fallback token-based URL:', tokenUrl)
+        console.log('🎟️ Token value:', token)
+        console.log('🎟️ Encoded token:', encodeURIComponent(String(token)))
+        window.open(tokenUrl, '_blank', 'noopener')
         setIsRescheduling(false)
         return
       }
       
+      console.error('❌ No appointmentId or token available')
+      console.error('❌ appointmentId:', appointmentIdToUse)
+      console.error('❌ token:', token)
       window.alert('Reschedule not available for this appointment')
       setIsRescheduling(false)
     } catch (error) {
-      console.error('Error rescheduling:', error)
+      console.error('❌ Unexpected error in handleReschedule:', error)
+      console.error('❌ Error stack:', (error as Error)?.stack)
       setIsRescheduling(false)
     }
   }

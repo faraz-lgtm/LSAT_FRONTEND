@@ -38,6 +38,7 @@ import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff }
 import type { DateRange } from 'react-day-picker'
 import { ROLE } from '@/constants/roles'
 import { SelectDropdown } from '@/components/dashboard/select-dropdown'
+import { isTask } from '@/utils/task-helpers'
 
 const route = getRouteApi('/_authenticated/tasks/')
 
@@ -403,8 +404,14 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
-                        className={onView ? 'cursor-pointer' : ''}
-                        onDoubleClick={onView ? () => onView(row.original) : undefined}
+                        className={onView || onEdit ? 'cursor-pointer' : ''}
+                        onDoubleClick={() => {
+                          if (isTask(row.original) && onEdit) {
+                            onEdit(row.original)
+                          } else if (onView) {
+                            onView(row.original)
+                          }
+                        }}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
@@ -422,8 +429,14 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
-                        className={`bg-muted/20 hover:bg-muted/30 border-l-4 border-l-muted-foreground/40 ${onView ? 'cursor-pointer' : ''}`}
-                        onDoubleClick={onView ? () => onView(row.original) : undefined}
+                        className={`bg-muted/20 hover:bg-muted/30 border-l-4 border-l-muted-foreground/40 ${onView || onEdit ? 'cursor-pointer' : ''}`}
+                        onDoubleClick={() => {
+                          if (isTask(row.original) && onEdit) {
+                            onEdit(row.original)
+                          } else if (onView) {
+                            onView(row.original)
+                          }
+                        }}
                       >
                         {row.getVisibleCells().map((cell, index) => (
                           <TableCell 

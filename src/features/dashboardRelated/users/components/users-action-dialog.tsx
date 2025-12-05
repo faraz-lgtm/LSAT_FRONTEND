@@ -65,12 +65,12 @@ const formSchema = z.object({
 }).refine((data) => {
   // Password is required only for new users (not edit mode) and not for CUSTOMER role
   const isCustomerOnly = data.roles.length === 1 && data.roles.includes(ROLE.CUSTOMER);
-  if (!data.isEdit && !isCustomerOnly && (!data.password || data.password.length < 6)) {
+  if (!data.isEdit && !isCustomerOnly && (!data.password || data.password.length < 7)) {
     return false;
   }
   return true;
 }, {
-  message: "Password must be at least 6 characters.",
+  message: "Password must be at least 7 characters long",
   path: ["password"],
 })
 

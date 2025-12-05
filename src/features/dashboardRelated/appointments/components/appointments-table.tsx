@@ -245,6 +245,8 @@ export function AppointmentsTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className={onView ? 'cursor-pointer' : ''}
+                  onDoubleClick={onView ? () => onView(row.original) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

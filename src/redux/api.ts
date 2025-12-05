@@ -117,134 +117,163 @@ const baseQueryWithReauth: BaseQueryFn<
     
     if (isAuthEndpoint) {
       console.log("🚫 Skipping token refresh for auth endpoint:", url);
-      return result; // Return the 401 error as-is for auth endpoints
-    }
+      // Don't return early - let error fall through to error handling section to show toast
+      // The error handling section below will handle showing the toast for auth endpoints
+    } else {
+      // Only attempt token refresh for non-auth endpoints
+      const state = api.getState() as any;
+      const { refreshToken } = state.auth;
 
-    const state = api.getState() as any;
-    const { refreshToken } = state.auth;
+      console.log("🔄 Token refresh triggered:", {
+        hasRefreshToken: !!refreshToken,
+        originalUrl: url,
+        errorStatus: result.error?.status,
+      });
 
-    console.log("🔄 Token refresh triggered:", {
-      hasRefreshToken: !!refreshToken,
-      originalUrl: url,
-      errorStatus: result.error?.status,
-    });
-
-    if (refreshToken) {
-      // Prevent multiple simultaneous refresh calls
-      if (isRefreshing && refreshPromise) {
-        console.log("⏳ Waiting for existing refresh to complete...");
-        try {
-          await refreshPromise;
-          // Retry original request with new token
-          return await baseQuery(args, api, extraOptions);
-        } catch (error) {
-          console.error("❌ Error waiting for existing refresh:", error);
-          return result; // Return original error if refresh failed
-        }
-      }
-
-      isRefreshing = true;
-      refreshPromise = performTokenRefresh(refreshToken);
-
-      try {
-        const refreshResult = await refreshPromise;
-
-        console.log("✅ Token refresh successful:", {
-          newAccessToken: refreshResult?.data?.accessToken ? "present" : "missing",
-          newRefreshToken: refreshResult?.data?.refreshToken ? "present" : "missing",
-        });
-
-        // Update tokens in store
-        api.dispatch(
-          setTokens({
-            accessToken: refreshResult.data.accessToken,
-            refreshToken: refreshResult.data.refreshToken,
-          })
-        );
-
-        // Decode and update user data from new access token
-        console.log("Decoding token", refreshResult.data.accessToken);
-        const decodedToken = decodeJWT(refreshResult.data.accessToken);
-        console.log("Decoded token", decodedToken);
-        
-        if (decodedToken) {
-          const user = {
-            id: decodedToken.sub?.toString() || "",
-            username: decodedToken.username || "",
-            roles: decodedToken.roles || [],
-          };
-          api.dispatch(setUser(user));
-          
-          // Extract and store organizationId from token if present
-          if (decodedToken.organizationId) {
-            const organizationId = Number(decodedToken.organizationId);
-            // Keep existing organizationSlug if available, or set to null
-            const currentOrgSlug = state.auth?.organizationSlug || null;
-            api.dispatch(setOrganization({
-              organizationId,
-              organizationSlug: currentOrgSlug,
-            }));
-            console.log("🏢 Organization ID updated from token:", organizationId);
-          }
-          
-          console.log("👤 User data updated from new token");
-        }
-
-        // Retry the original request with new token
-        result = await baseQuery(args, api, extraOptions);
-
-        console.log("🔄 Original request retried successfully");
-      } catch (refreshError: any) {
-        console.error("❌ Token refresh failed:", refreshError);
-
-        if (refreshError?.status === 401 || refreshError?.status === 403) {
-          console.log("🚪 Refresh token invalid (401/403), logging out user...");
-          console.log("📝 Refresh error details:", {
-            status: refreshError?.status,
-            message: refreshError?.message,
-            errorName: refreshError?.name || 'Unknown'
-          });
-          
-          // Clear main app auth state
-          api.dispatch(reset());
-          
-          // Clear Google Calendar tokens
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.removeItem('google_calendar_tokens');
-          }
-          
-          // Redirect to sign-in (only in browser environment)
-          if (typeof window !== 'undefined') {
-            window.location.href = "/dashboard/sign-in";
+      if (refreshToken) {
+        // Prevent multiple simultaneous refresh calls
+        if (isRefreshing && refreshPromise) {
+          console.log("⏳ Waiting for existing refresh to complete...");
+          try {
+            await refreshPromise;
+            // Retry original request with new token
+            const retryResult = await baseQuery(args, api, extraOptions);
+            // If retry succeeds, return early (no error, no toast)
+            if (!retryResult.error) {
+              return retryResult;
+            }
+            // If retry still fails, continue to error handling
+            result = retryResult;
+          } catch (error) {
+            console.error("❌ Error waiting for existing refresh:", error);
+            // Continue to error handling
           }
         } else {
-          console.warn("⚠️ Token refresh failed due to network error");
-          // Don't throw, just return the original 401 error
+          isRefreshing = true;
+          refreshPromise = performTokenRefresh(refreshToken);
+
+          try {
+            const refreshResult = await refreshPromise;
+
+            console.log("✅ Token refresh successful:", {
+              newAccessToken: refreshResult?.data?.accessToken ? "present" : "missing",
+              newRefreshToken: refreshResult?.data?.refreshToken ? "present" : "missing",
+            });
+
+            // Update tokens in store
+            api.dispatch(
+              setTokens({
+                accessToken: refreshResult.data.accessToken,
+                refreshToken: refreshResult.data.refreshToken,
+              })
+            );
+
+            // Decode and update user data from new access token
+            console.log("Decoding token", refreshResult.data.accessToken);
+            const decodedToken = decodeJWT(refreshResult.data.accessToken);
+            console.log("Decoded token", decodedToken);
+            
+            if (decodedToken) {
+              const user = {
+                id: decodedToken.sub?.toString() || "",
+                username: decodedToken.username || "",
+                roles: decodedToken.roles || [],
+              };
+              api.dispatch(setUser(user));
+              
+              // Extract and store organizationId from token if present
+              if (decodedToken.organizationId) {
+                const organizationId = Number(decodedToken.organizationId);
+                // Keep existing organizationSlug if available, or set to null
+                const currentOrgSlug = state.auth?.organizationSlug || null;
+                api.dispatch(setOrganization({
+                  organizationId,
+                  organizationSlug: currentOrgSlug,
+                }));
+                console.log("🏢 Organization ID updated from token:", organizationId);
+              }
+              
+              console.log("👤 User data updated from new token");
+            }
+
+            // Retry the original request with new token
+            const retryResult = await baseQuery(args, api, extraOptions);
+            
+            // If retry succeeds, return early (no error, no toast)
+            if (!retryResult.error) {
+              console.log("🔄 Original request retried successfully");
+              isRefreshing = false;
+              refreshPromise = null;
+              return retryResult;
+            }
+            
+            // If retry still fails, continue to error handling
+            console.log("⚠️ Retry after refresh still failed");
+            result = retryResult;
+          } catch (refreshError: any) {
+            console.error("❌ Token refresh failed:", refreshError);
+
+            if (refreshError?.status === 401 || refreshError?.status === 403) {
+              console.log("🚪 Refresh token invalid (401/403), logging out user...");
+              console.log("📝 Refresh error details:", {
+                status: refreshError?.status,
+                message: refreshError?.message,
+                errorName: refreshError?.name || 'Unknown'
+              });
+              
+              // Clear main app auth state
+              api.dispatch(reset());
+              
+              // Clear Google Calendar tokens
+              if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.removeItem('google_calendar_tokens');
+              }
+              
+              // Redirect to sign-in (only in browser environment)
+              // NO TOAST - we're logging out
+              if (typeof window !== 'undefined') {
+                window.location.href = "/dashboard/sign-in";
+              }
+              
+              // Return early to prevent toast
+              isRefreshing = false;
+              refreshPromise = null;
+              return result;
+            } else {
+              console.warn("⚠️ Token refresh failed due to network error");
+              // Continue to error handling
+            }
+          } finally {
+            isRefreshing = false;
+            refreshPromise = null;
+          }
         }
-      } finally {
-        isRefreshing = false;
-        refreshPromise = null;
-      }
-    } else {
-      console.log("🚪 No refresh token available, logging out...");
-      
-      // Clear main app auth state
-      api.dispatch(reset());
-      
-      // Clear Google Calendar tokens
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem('google_calendar_tokens');
-      }
-      
-      // Redirect to sign-in (only in browser environment)
-      if (typeof window !== 'undefined') {
-        window.location.href = "/dashboard/sign-in";
+      } else {
+        console.log("🚪 No refresh token available, logging out...");
+        
+        // Clear main app auth state
+        api.dispatch(reset());
+        
+        // Clear Google Calendar tokens
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('google_calendar_tokens');
+        }
+        
+        // Redirect to sign-in (only in browser environment)
+        // NO TOAST - we're logging out
+        if (typeof window !== 'undefined') {
+          window.location.href = "/dashboard/sign-in";
+        }
+        
+        // Return early to prevent toast
+        return result;
       }
     }
   }
 
   // Handle different error types (after 401 handling)
   if (result.error) {
+    console.log("🔄 Error:", result.error);
     const error = result.error as FetchBaseQueryError & { data?: any };
     
     // Extract error message from nested structure: { error: { message: "..." } }
@@ -273,6 +302,28 @@ const baseQueryWithReauth: BaseQueryFn<
         } as any
       } as FetchBaseQueryError;
     };
+
+        // Handle 401 Unauthorized - only show toast for auth endpoints or other non-logout scenarios
+        if (error.status === 401) {
+          console.log("❌ Unauthorized (401):", error.data);
+          const url = typeof args === 'string' ? args : args.url;
+          const isAuthEndpoint = 
+            url.includes('auth/login') || 
+            url.includes('auth/register') ||
+            url.includes('auth/forgot-password') ||
+            url.includes('auth/verify-otp') ||
+            url.includes('auth/reset-password');
+          
+          // Only show toast for auth endpoints (wrong credentials) or other 401 errors
+          // Don't show toast if we're logging out (handled above)
+          if (isAuthEndpoint || errorMessage) {
+            console.error("❌ Unauthorized (401):", error.data);
+            result.error = enhanceError(401, "Authentication failed. Please check your credentials.");
+            toast.error(errorMessage || "Authentication failed. Please check your credentials.");
+          }
+          // If no error message and not auth endpoint, silently fail (likely logout scenario)
+          return result;
+        }
 
     // Handle 400 Bad Request
     if (error.status === 400) {

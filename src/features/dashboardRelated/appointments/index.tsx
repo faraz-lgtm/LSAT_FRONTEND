@@ -101,7 +101,7 @@ export function Appointments() {
         open={open}
         setOpen={setOpen}
         currentRow={currentRow}
-        setCurrentRow={(row) => setCurrentRow(row ?? undefined)}
+        setCurrentRow={setCurrentRow}
         userIdToUser={(usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
           acc[u.id] = u
           return acc

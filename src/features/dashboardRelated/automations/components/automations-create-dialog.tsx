@@ -159,6 +159,7 @@ export function AutomationsCreateDialog({
   })
 
   const toolType = form.watch('toolType')
+  const triggerEvent = form.watch('triggerEvent')
   const isSlack = toolType === 'slack'
   const isEmail = toolType === 'email'
   const isSms = toolType === 'sms'
@@ -171,7 +172,7 @@ export function AutomationsCreateDialog({
     try {
       // Build parameters object from dynamic fields
       const parameters: Record<string, any> = {}
-      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters']
+      const booleanFields = ['includeOrderDetails', 'includeAppointments', 'includeItems', 'includeCustomerInfo', 'includeMeetingLink', 'includeUtmParameters', 'includeInvoice']
       
       Object.keys(dynamicFields).forEach(key => {
         const value = dynamicFields[key]
@@ -395,6 +396,30 @@ export function AutomationsCreateDialog({
                   </FormItem>
                 )}
               />
+
+              {/* Include Invoice - Only for email + order.paid */}
+              {isEmail && triggerEvent === 'order.paid' && (
+                <FormField
+                  control={form.control}
+                  name="toolType"
+                  render={() => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Include Invoice</FormLabel>
+                        <FormDescription>
+                          Include invoice attachment in the email
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={dynamicFields.includeInvoice === 'true'}
+                          onCheckedChange={(checked) => updateDynamicField('includeInvoice', String(checked))}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             {/* Parameters Section */}

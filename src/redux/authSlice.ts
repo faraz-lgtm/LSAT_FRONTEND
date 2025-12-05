@@ -21,18 +21,6 @@ function decodeJWT(token: string): any {
   }
 }
 
-// Utility function to check if token is expired
-function isTokenExpired(token: string): boolean {
-  try {
-    const decoded = decodeJWT(token)
-    if (!decoded || !decoded.exp) return true
-    // exp is in seconds, convert to milliseconds
-    return Date.now() >= decoded.exp * 1000
-  } catch {
-    return true
-  }
-}
-
 const ACCESS_TOKEN = 'accessToken'
 const REFRESH_TOKEN = 'refreshToken'
 const ORGANIZATION_ID = 'organizationId'
@@ -59,11 +47,10 @@ const refreshToken = getCookie(REFRESH_TOKEN) ? JSON.parse(getCookie(REFRESH_TOK
 const organizationId = getCookie(ORGANIZATION_ID) ? Number(JSON.parse(getCookie(ORGANIZATION_ID)!)) : null
 const organizationSlug = getCookie(ORGANIZATION_SLUG) ? JSON.parse(getCookie(ORGANIZATION_SLUG)!) : null
 
-// Decode user info from access token if available AND not expired
-// If token is expired, user will be populated after first API call triggers refresh
+// Decode user info from access token if available
 let user: AuthUser | null = null
 let decodedOrganizationId: number | null = null
-if (accessToken && !isTokenExpired(accessToken)) {
+if (accessToken) {
   const decodedToken = decodeJWT(accessToken)
   if (decodedToken) {
     user = {
@@ -85,9 +72,7 @@ const initialState: AuthState = {
   refreshToken,
   organizationId: finalOrganizationId,
   organizationSlug,
-  // Allow authentication if we have refreshToken (even if accessToken is expired)
-  // User info will be populated after first API call triggers token refresh
-  isAuthenticated: !!refreshToken,
+  isAuthenticated: !!(accessToken && refreshToken && user), // Set to true if all exist
 }
 
 const authSlice = createSlice({
@@ -96,11 +81,7 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<AuthUser | null>) => {
       state.user = action.payload
-      // Don't override isAuthenticated here - it should be based on refreshToken
-      // If user is set, we're still authenticated as long as refreshToken exists
-      if (!action.payload && !state.refreshToken) {
-        state.isAuthenticated = false
-      }
+      state.isAuthenticated = !!action.payload
     },
     setAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload
@@ -108,11 +89,13 @@ const authSlice = createSlice({
     },
     setRefreshToken: (state, action: PayloadAction<string>) => {
       state.refreshToken = action.payload
+      state.isAuthenticated = !!action.payload
       setCookie(REFRESH_TOKEN, JSON.stringify(action.payload))
     },
     setTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
+      state.isAuthenticated = !!action.payload.refreshToken
       setCookie(ACCESS_TOKEN, JSON.stringify(action.payload.accessToken))
       setCookie(REFRESH_TOKEN, JSON.stringify(action.payload.refreshToken))
     },
