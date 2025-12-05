@@ -29,11 +29,26 @@ import { Button } from '@/components/dashboard/ui/button'
 import { Calendar } from '@/components/dashboard/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/dashboard/ui/popover'
 import { CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Circle, CheckCircle, Timer, CircleOff } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import type { OrderAppointmentQueryDto } from '@/redux/apiSlices/OrderAppointment/orderAppointmentSlice'
+
+// Helper function to get date label
+function getDateLabel(dateStr: string): string {
+  const date = parseISO(dateStr)
+  if (isToday(date)) return 'Today'
+  if (isTomorrow(date)) return 'Tomorrow'
+  if (isYesterday(date)) return 'Yesterday'
+  return format(date, 'MMMM d, yyyy')
+}
+
+// Helper function to get date key for grouping
+function getDateKey(dateStr: string): string {
+  return format(parseISO(dateStr), 'yyyy-MM-dd')
+}
+
 
 const statuses = [
   { label: 'Pending', value: 'pending' as const, icon: Circle },
@@ -222,13 +237,13 @@ export function AppointmentsTable({
         </div>
         <DataTableViewOptions table={table} />
       </div>
-      <div className='rounded-md border'>
+      <div className='rounded-md border bg-white'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className='bg-gray-50/80'>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
+                  <TableHead key={header.id} colSpan={header.colSpan} className='text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -242,26 +257,51 @@ export function AppointmentsTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+              (() => {
+                let currentDateKey = ''
+                return table.getRowModel().rows.map((row) => {
+                  const appointment = row.original as TaskOutputDto
+                  const dateKey = appointment.startDateTime ? getDateKey(appointment.startDateTime) : ''
+                  const showDateHeader = dateKey !== currentDateKey
+                  currentDateKey = dateKey
+                  
+                  return (
+                    <>
+                      {showDateHeader && appointment.startDateTime && (
+                        <TableRow key={`date-${dateKey}`} className='bg-gray-50/50 hover:bg-gray-50/50'>
+                          <TableCell colSpan={columns.length} className='py-2 px-4'>
+                            <div className='flex items-center gap-2'>
+                              <div className='h-2 w-2 rounded-full bg-blue-500'></div>
+                              <span className='text-sm font-semibold text-gray-700'>
+                                {getDateLabel(appointment.startDateTime)}
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                        className='group hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all'
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className='py-3'>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </>
+                  )
+                })
+              })()
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'
+                  className='h-24 text-center text-gray-500'
                 >
                   No appointments found.
                 </TableCell>

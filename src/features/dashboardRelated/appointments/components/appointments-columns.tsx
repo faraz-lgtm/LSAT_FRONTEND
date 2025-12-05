@@ -8,6 +8,15 @@ import type { UserOutput } from '@/types/api/data-contracts'
 import { Circle, CheckCircle, Timer, CircleOff, Eye, ExternalLink } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/dashboard/ui/button'
+import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
+
+// Helper to get initials from name
+function getInitials(name: string): string {
+  if (!name) return '?'
+  const parts = name.trim().split(' ')
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
 
 const statuses = [
   { label: 'Pending', value: 'pending' as const, icon: Circle },
@@ -94,9 +103,29 @@ export const createAppointmentsColumns = (
       const task = row.original as TaskOutputDto
       const tutorId = task.tutorId
       const user = tutorId && userIdToUser ? userIdToUser[tutorId] : undefined
+      const name = user?.name || ''
+      
+      if (!name) {
+        return <div className='w-[180px]'>—</div>
+      }
+      
       return (
-        <div className='w-[150px] truncate'>
-          {user?.name || '—'}
+        <div className='flex items-center gap-2 w-[180px]'>
+          <Avatar className='h-8 w-8 bg-emerald-500'>
+            <AvatarFallback className='bg-emerald-500 text-white text-xs font-medium'>
+              {getInitials(name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className='flex flex-col'>
+            <span className='text-sm font-medium text-gray-900 truncate max-w-[120px]'>
+              {name}
+            </span>
+            {user?.username && (
+              <span className='text-xs text-emerald-600 font-medium'>
+                @{user.username}
+              </span>
+            )}
+          </div>
         </div>
       )
     },
@@ -116,16 +145,31 @@ export const createAppointmentsColumns = (
       const customerInvitee = task.invitees?.find((i) => i.name === 'Customer')
       
       if (!customerInvitee) {
-        return <div className='w-[150px] truncate'>—</div>
+        return <div className='w-[180px]'>—</div>
       }
       
       const customerEmail = customerInvitee.email
       const customer = customerEmail && emailToUser ? emailToUser[customerEmail.toLowerCase()] : undefined
-      const displayValue = customer?.name || customerInvitee.name || customerEmail || '—'
+      const displayName = customer?.name || customerInvitee.name || 'Customer'
+      const displayEmail = customerEmail || ''
       
       return (
-        <div className='w-[150px] truncate' title={customerEmail}>
-          {displayValue}
+        <div className='flex items-center gap-2 w-[180px]'>
+          <Avatar className='h-8 w-8 bg-blue-500'>
+            <AvatarFallback className='bg-blue-500 text-white text-xs font-medium'>
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className='flex flex-col'>
+            <span className='text-sm font-medium text-gray-900 truncate max-w-[120px]'>
+              {displayName}
+            </span>
+            {displayEmail && (
+              <span className='text-xs text-gray-500 truncate max-w-[120px]'>
+                {displayEmail}
+              </span>
+            )}
+          </div>
         </div>
       )
     },
