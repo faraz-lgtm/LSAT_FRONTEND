@@ -43,9 +43,10 @@ const statuses = [
 ]
 
 const attendanceStatuses = [
-  { label: 'Unknown', value: 'UNKNOWN' as const },
-  { label: 'Showed', value: 'SHOWED' as const },
+  { label: 'Pending', value: 'UNKNOWN' as const },
+  { label: 'Completed', value: 'SHOWED' as const },
   { label: 'No Show', value: 'NO_SHOW' as const },
+  { label: 'Rescheduled', value: 'RESCHEDULED' as const },
 ]
 
 type DataTableProps = {

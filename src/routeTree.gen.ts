@@ -31,6 +31,7 @@ import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRefundsIndexRouteImport } from './routes/_authenticated/refunds/index'
+import { Route as AuthenticatedPaymentsIndexRouteImport } from './routes/_authenticated/payments/index'
 import { Route as AuthenticatedPackagesIndexRouteImport } from './routes/_authenticated/packages/index'
 import { Route as AuthenticatedOrganizationsIndexRouteImport } from './routes/_authenticated/organizations/index'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders/index'
@@ -164,6 +165,12 @@ const AuthenticatedRefundsIndexRoute =
   AuthenticatedRefundsIndexRouteImport.update({
     id: '/refunds/',
     path: '/refunds/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentsIndexRoute =
+  AuthenticatedPaymentsIndexRouteImport.update({
+    id: '/payments/',
+    path: '/payments/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPackagesIndexRoute =
@@ -338,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/organizations': typeof AuthenticatedOrganizationsIndexRoute
   '/packages': typeof AuthenticatedPackagesIndexRoute
+  '/payments': typeof AuthenticatedPaymentsIndexRoute
   '/refunds': typeof AuthenticatedRefundsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -381,6 +389,7 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/organizations': typeof AuthenticatedOrganizationsIndexRoute
   '/packages': typeof AuthenticatedPackagesIndexRoute
+  '/payments': typeof AuthenticatedPaymentsIndexRoute
   '/refunds': typeof AuthenticatedRefundsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -429,6 +438,7 @@ export interface FileRoutesById {
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/organizations/': typeof AuthenticatedOrganizationsIndexRoute
   '/_authenticated/packages/': typeof AuthenticatedPackagesIndexRoute
+  '/_authenticated/payments/': typeof AuthenticatedPaymentsIndexRoute
   '/_authenticated/refunds/': typeof AuthenticatedRefundsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/organizations'
     | '/packages'
+    | '/payments'
     | '/refunds'
     | '/settings/'
     | '/tasks'
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/organizations'
     | '/packages'
+    | '/payments'
     | '/refunds'
     | '/settings'
     | '/tasks'
@@ -565,6 +577,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders/'
     | '/_authenticated/organizations/'
     | '/_authenticated/packages/'
+    | '/_authenticated/payments/'
     | '/_authenticated/refunds/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
@@ -743,6 +756,13 @@ declare module '@tanstack/react-router' {
       path: '/refunds'
       fullPath: '/refunds'
       preLoaderRoute: typeof AuthenticatedRefundsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payments/': {
+      id: '/_authenticated/payments/'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/packages/': {
@@ -951,6 +971,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
   AuthenticatedOrganizationsIndexRoute: typeof AuthenticatedOrganizationsIndexRoute
   AuthenticatedPackagesIndexRoute: typeof AuthenticatedPackagesIndexRoute
+  AuthenticatedPaymentsIndexRoute: typeof AuthenticatedPaymentsIndexRoute
   AuthenticatedRefundsIndexRoute: typeof AuthenticatedRefundsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
@@ -977,6 +998,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
   AuthenticatedOrganizationsIndexRoute: AuthenticatedOrganizationsIndexRoute,
   AuthenticatedPackagesIndexRoute: AuthenticatedPackagesIndexRoute,
+  AuthenticatedPaymentsIndexRoute: AuthenticatedPaymentsIndexRoute,
   AuthenticatedRefundsIndexRoute: AuthenticatedRefundsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,

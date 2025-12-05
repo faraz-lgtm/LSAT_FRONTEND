@@ -17,9 +17,10 @@ const statuses = [
 ]
 
 const attendanceStatuses = [
-  { label: 'Unknown', value: 'UNKNOWN' as const, color: 'bg-gray-100 text-gray-800' },
-  { label: 'Showed', value: 'SHOWED' as const, color: 'bg-green-100 text-green-800' },
+  { label: 'Pending', value: 'UNKNOWN' as const, color: 'bg-gray-100 text-gray-800' },
+  { label: 'Completed', value: 'SHOWED' as const, color: 'bg-green-100 text-green-800' },
   { label: 'No Show', value: 'NO_SHOW' as const, color: 'bg-red-100 text-red-800' },
+  { label: 'Rescheduled', value: 'RESCHEDULED' as const, color: 'bg-blue-100 text-blue-800' },
 ]
 
 export const createAppointmentsColumns = (
@@ -185,7 +186,7 @@ export const createAppointmentsColumns = (
       )
 
       if (!attendanceStatus) {
-        return <Badge variant='outline'>Unknown</Badge>
+        return <Badge variant='outline'>Pending</Badge>
       }
 
       return (

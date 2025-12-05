@@ -20,6 +20,7 @@ import {
   CreateConversationDto,
   CreateInvoiceDto,
   CreateOrganizationDto,
+  CreatePaymentLinkDto,
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
@@ -28,6 +29,7 @@ import {
   LoginInput,
   MarkAppointmentAttendanceDto,
   OrderInput,
+  PaymentLinkResponseDto,
   ProcessRefundDto,
   RecordingCallbackDto,
   RefreshTokenInput,
@@ -953,7 +955,7 @@ export namespace Api {
       /** Filter by task label */
       label?: "meeting" | "personal" | "preparation" | "grading";
       /** Filter by attendance status */
-      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
       /**
        * Filter appointments from this date
        * @example "2024-01-15T00:00:00.000Z"
@@ -1569,6 +1571,22 @@ export namespace Api {
       /** @example 100 */
       originalAmount?: number;
     };
+  }
+
+  /**
+   * @description Creates a Stripe checkout session for a direct payment without an order
+   * @tags Payment Links
+   * @name PaymentLinkControllerCreatePaymentLink
+   * @summary Create a direct payment link
+   * @request POST:/api/v1/payment-links
+   * @secure
+   */
+  export namespace PaymentLinkControllerCreatePaymentLink {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreatePaymentLinkDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PaymentLinkResponseDto;
   }
 
   /**
