@@ -69,7 +69,7 @@ export function OrdersViewDialog({
     // handle either wrapped BaseApiResponse or raw array
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = (apptsData as any)?.data ?? apptsData
-    return (payload ?? []) as Array<{ id: number; orderId: number; itemId: number; slotDateTime: string; assignedEmployeeId?: number | null; attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW' }>
+    return (payload ?? []) as Array<{ id: number; orderId: number; itemId: number; slotDateTime: string; assignedEmployeeId?: number | null; attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW' | 'RESCHEDULED' }>
   }, [apptsData])
 
   return (
@@ -252,11 +252,15 @@ export function OrdersViewDialog({
                       <div className='text-sm font-medium'>{new Date(appt.slotDateTime).toLocaleString()}</div>
                       <div className='text-xs text-muted-foreground'>Item #{appt.itemId} • Employee: {appt.assignedEmployeeId ?? 'Unassigned'}</div>
                       <div>
-                        <Badge variant='outline' className='uppercase'>{appt.attendanceStatus}</Badge>
+                        <Badge variant='outline' className='uppercase'>
+                          {appt.attendanceStatus === 'SHOWED' ? 'Completed' : 
+                           appt.attendanceStatus === 'NO_SHOW' ? 'No Show' : 
+                           appt.attendanceStatus === 'RESCHEDULED' ? 'Rescheduled' : 'Pending'}
+                        </Badge>
                       </div>
                     </div>
                     <div className='flex flex-wrap items-center gap-2 sm:justify-end'>
-                      <Button size='sm' variant='secondary' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'SHOWED' } })}>Showed</Button>
+                      <Button size='sm' variant='secondary' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'SHOWED' } })}>Completed</Button>
                       <Button size='sm' variant='secondary' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'NO_SHOW' } })}>No Show</Button>
                       <Button size='sm' variant='outline' disabled={isMarking} onClick={() => markAttendance({ appointmentId: appt.id, body: { status: 'UNKNOWN' } })}>Reset</Button>
                       <Button

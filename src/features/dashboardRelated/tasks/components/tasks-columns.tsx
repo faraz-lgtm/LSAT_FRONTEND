@@ -10,7 +10,6 @@ import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff }
 import { ClickableTutorCell } from './clickable-tutor-cell'
 import { ClickableCustomerCell } from './clickable-customer-cell'
 import { isOrderAppointment } from '@/utils/task-helpers'
-import { useNavigate } from '@tanstack/react-router'
 
 // Filter options for the columns
 const labels = [
@@ -21,16 +20,16 @@ const labels = [
 ]
 
 const statuses = [
-  { label: 'Pending', value: 'pending' as const, icon: Circle },
-  { label: 'In Progress', value: 'in_progress' as const, icon: Timer },
-  { label: 'Completed', value: 'completed' as const, icon: CheckCircle },
-  { label: 'Cancelled', value: 'cancelled' as const, icon: CircleOff },
+  { label: 'Pending', value: 'pending' as const, icon: Circle, color: 'bg-yellow-100 text-yellow-800 border-yellow-200', dotColor: 'bg-yellow-500' },
+  { label: 'In Progress', value: 'in_progress' as const, icon: Timer, color: 'bg-blue-100 text-blue-800 border-blue-200', dotColor: 'bg-blue-500' },
+  { label: 'Completed', value: 'completed' as const, icon: CheckCircle, color: 'bg-green-100 text-green-800 border-green-200', dotColor: 'bg-green-500' },
+  { label: 'Cancelled', value: 'cancelled' as const, icon: CircleOff, color: 'bg-red-100 text-red-800 border-red-200', dotColor: 'bg-red-500' },
 ]
 
 const priorities = [
-  { label: 'Low', value: 'low' as const, icon: ArrowDown },
-  { label: 'Medium', value: 'medium' as const, icon: ArrowRight },
-  { label: 'High', value: 'high' as const, icon: ArrowUp },
+  { label: 'Low', value: 'low' as const, icon: ArrowDown, color: 'bg-gray-100 text-gray-700 border-gray-200', dotColor: 'bg-gray-400' },
+  { label: 'Medium', value: 'medium' as const, icon: ArrowRight, color: 'bg-orange-100 text-orange-800 border-orange-200', dotColor: 'bg-orange-500' },
+  { label: 'High', value: 'high' as const, icon: ArrowUp, color: 'bg-red-100 text-red-800 border-red-200', dotColor: 'bg-red-500' },
 ]
 
 export const createTasksColumns = (
@@ -94,37 +93,6 @@ export const createTasksColumns = (
       const typeA = isOrderAppointment(rowA.original) ? 'Order Appointment' : 'Personal Task'
       const typeB = isOrderAppointment(rowB.original) ? 'Order Appointment' : 'Personal Task'
       return typeA.localeCompare(typeB)
-    },
-  },
-  {
-    id: 'orderId',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Order ID' />
-    ),
-    cell: ({ row }) => {
-      const task = row.original as TaskOutputDto
-      
-      if (!isOrderAppointment(task) || !task.orderId) {
-        return <div className='w-[100px]'>—</div>
-      }
-      
-      return (
-        <OrderIdCell orderId={task.orderId} />
-      )
-    },
-    accessorFn: (row) => {
-      const task = row as TaskOutputDto
-      if (!isOrderAppointment(task) || !task.orderId) {
-        return -1
-      }
-      return task.orderId
-    },
-    sortingFn: (rowA, rowB) => {
-      const taskA = rowA.original as TaskOutputDto
-      const taskB = rowB.original as TaskOutputDto
-      const orderIdA = (isOrderAppointment(taskA) && taskA.orderId) ? taskA.orderId : -1
-      const orderIdB = (isOrderAppointment(taskB) && taskB.orderId) ? taskB.orderId : -1
-      return orderIdA - orderIdB
     },
   },
   {
@@ -359,11 +327,11 @@ export const createTasksColumns = (
       }
 
       return (
-        <div className='flex w-[100px] items-center gap-2'>
-          {status.icon && (
-            <status.icon className='text-muted-foreground size-4' />
-          )}
-          <span>{status.label}</span>
+        <div className='flex w-[130px] items-center'>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.color}`}>
+            <span className={`w-2 h-2 rounded-full ${status.dotColor}`}></span>
+            {status.label}
+          </span>
         </div>
       )
     },
@@ -393,11 +361,11 @@ export const createTasksColumns = (
       }
 
       return (
-        <div className='flex items-center gap-2'>
-          {priority.icon && (
-            <priority.icon className='text-muted-foreground size-4' />
-          )}
-          <span>{priority.label}</span>
+        <div className='flex w-[100px] items-center'>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${priority.color}`}>
+            <span className={`w-2 h-2 rounded-full ${priority.dotColor}`}></span>
+            {priority.label}
+          </span>
         </div>
       )
     },
@@ -416,24 +384,3 @@ export const createTasksColumns = (
   },
 ]
 
-// Component for clickable Order ID cell
-function OrderIdCell({ orderId }: { orderId: number }) {
-  const navigate = useNavigate()
-  
-  return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation()
-        navigate({
-          to: '/orders',
-          search: {
-            orderId: orderId,
-          },
-        })
-      }}
-      className='w-[100px] font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left'
-    >
-      #{orderId}
-    </button>
-  )
-}
