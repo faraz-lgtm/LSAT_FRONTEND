@@ -10,7 +10,6 @@ import { ArrowDown, ArrowRight, ArrowUp, Circle, CheckCircle, Timer, CircleOff }
 import { ClickableTutorCell } from './clickable-tutor-cell'
 import { ClickableCustomerCell } from './clickable-customer-cell'
 import { isOrderAppointment } from '@/utils/task-helpers'
-import { useNavigate } from '@tanstack/react-router'
 
 // Filter options for the columns
 const labels = [
@@ -94,37 +93,6 @@ export const createTasksColumns = (
       const typeA = isOrderAppointment(rowA.original) ? 'Order Appointment' : 'Personal Task'
       const typeB = isOrderAppointment(rowB.original) ? 'Order Appointment' : 'Personal Task'
       return typeA.localeCompare(typeB)
-    },
-  },
-  {
-    id: 'orderId',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Order ID' />
-    ),
-    cell: ({ row }) => {
-      const task = row.original as TaskOutputDto
-      
-      if (!isOrderAppointment(task) || !task.orderId) {
-        return <div className='w-[100px]'>—</div>
-      }
-      
-      return (
-        <OrderIdCell orderId={task.orderId} />
-      )
-    },
-    accessorFn: (row) => {
-      const task = row as TaskOutputDto
-      if (!isOrderAppointment(task) || !task.orderId) {
-        return -1
-      }
-      return task.orderId
-    },
-    sortingFn: (rowA, rowB) => {
-      const taskA = rowA.original as TaskOutputDto
-      const taskB = rowB.original as TaskOutputDto
-      const orderIdA = (isOrderAppointment(taskA) && taskA.orderId) ? taskA.orderId : -1
-      const orderIdB = (isOrderAppointment(taskB) && taskB.orderId) ? taskB.orderId : -1
-      return orderIdA - orderIdB
     },
   },
   {
@@ -416,24 +384,3 @@ export const createTasksColumns = (
   },
 ]
 
-// Component for clickable Order ID cell
-function OrderIdCell({ orderId }: { orderId: number }) {
-  const navigate = useNavigate()
-  
-  return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation()
-        navigate({
-          to: '/orders',
-          search: {
-            orderId: orderId,
-          },
-        })
-      }}
-      className='w-[100px] font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left'
-    >
-      #{orderId}
-    </button>
-  )
-}

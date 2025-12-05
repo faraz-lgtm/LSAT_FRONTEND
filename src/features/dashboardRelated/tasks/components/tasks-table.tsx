@@ -144,11 +144,11 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
     if (hasDateRangeChanged) {
       const newFilters = { ...filters }
       
-      // Always ensure we have startDate and endDate since API requires them
       if (dateRange?.from) {
+        // Use selected start date
         newFilters.startDate = dateRange.from.toISOString()
-      } else if (!newFilters.startDate) {
-        // Default to start of current month if no date range selected
+      } else {
+        // When cleared, default to start of current month
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         newFilters.startDate = startOfMonth.toISOString()
       }
@@ -158,8 +158,8 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
         const endOfDay = new Date(dateRange.to)
         endOfDay.setHours(23, 59, 59, 999)
         newFilters.endDate = endOfDay.toISOString()
-      } else if (!newFilters.endDate) {
-        // Default to end of current month if no date range selected
+      } else {
+        // When cleared, default to end of current month
         const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
         endOfMonth.setHours(23, 59, 59, 999)
         newFilters.endDate = endOfMonth.toISOString()

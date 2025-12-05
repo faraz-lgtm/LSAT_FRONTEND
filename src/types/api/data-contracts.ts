@@ -2374,7 +2374,7 @@ export interface EmailAutomationParameters {
   ccRecipients?: string[];
   /**
    * Email subject line with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
-   * @example "Order #{{orderNumber}} Confirmed - Better LSAT MCAT"
+   * @example "Order #{{orderNumber}} Confirmed - BetterLSAT"
    */
   subject?: string;
   /**
@@ -2387,6 +2387,18 @@ export interface EmailAutomationParameters {
    * @example "order-confirmation"
    */
   template?: string;
+  /**
+   * Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events). Also accepts "includeInvoice" as an alias.
+   * @default false
+   * @example false
+   */
+  sendAttachment?: boolean;
+  /**
+   * Alias for sendAttachment. Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events).
+   * @default false
+   * @example false
+   */
+  includeInvoice?: boolean;
 }
 
 export interface CreateAutomationDto {
