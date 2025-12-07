@@ -12,8 +12,8 @@ import type { UserOutput } from '@/types/api/data-contracts'
 export function isAdminOrSuperAdmin(userRoles: string[] | undefined | null): boolean {
   if (!userRoles) return false
   return userRoles.includes(ROLE.ADMIN) || 
-         (userRoles as string[]).includes('COMPANY_ADMIN') ||
-         (userRoles as string[]).includes('SUPER_ADMIN')
+         userRoles.includes(ROLE.COMPANY_ADMIN) ||
+         userRoles.includes(ROLE.SUPER_ADMIN)
 }
 
 /**
@@ -26,8 +26,8 @@ export function isAdminOrSuperAdmin(userRoles: string[] | undefined | null): boo
  */
 export function isCompanyAdminOrSuperAdmin(userRoles: string[] | undefined | null): boolean {
   if (!userRoles) return false
-  return (userRoles as string[]).includes('COMPANY_ADMIN') ||
-         (userRoles as string[]).includes('SUPER_ADMIN')
+  return userRoles.includes(ROLE.COMPANY_ADMIN) ||
+         userRoles.includes(ROLE.SUPER_ADMIN)
 }
 
 /**
