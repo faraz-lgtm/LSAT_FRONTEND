@@ -11,6 +11,10 @@ import { AutomationsDialogs } from "./components/automations-dialogs";
 import { AutomationsPrimaryButtons } from "./components/automations-primary-buttons";
 import { AutomationsProvider, useAutomations } from "./components/automations-provider";
 import { AutomationsTable } from "./components/automations-table";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { isCompanyAdminOrSuperAdmin } from "@/utils/rbac";
+import { useEffect } from "react";
 
 const route = getRouteApi("/_authenticated/automations/");
 
@@ -19,6 +23,16 @@ function AutomationsContent() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
   const { setOpen } = useAutomations();
+  const { user } = useSelector((state: RootState) => state.auth);
+  // Only COMPANY_ADMIN and SUPER_ADMIN can access Automations
+  const isCompanyAdmin = isCompanyAdminOrSuperAdmin(user?.roles) || false;
+
+  // Redirect non-company-admin users
+  useEffect(() => {
+    if (user && !isCompanyAdmin) {
+      navigate({ to: '/' });
+    }
+  }, [user, isCompanyAdmin, navigate]);
 
   console.log("automationsData", automationsData);
   console.log("isSuccess:", isSuccess);
@@ -43,6 +57,15 @@ function AutomationsContent() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-red-500">Error loading automations</div>
+      </div>
+    );
+  }
+
+  // Don't render for non-company-admin users
+  if (user && !isCompanyAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-500">Access denied. Company admin access required.</div>
       </div>
     );
   }

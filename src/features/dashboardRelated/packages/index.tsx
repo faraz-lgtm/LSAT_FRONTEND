@@ -12,7 +12,7 @@ import { PackagesPrimaryButtons } from "./components/packages-primary-buttons";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import { isAdminOrSuperAdmin } from "@/utils/rbac";
+import { isCompanyAdminOrSuperAdmin } from "@/utils/rbac";
 import { useEffect } from "react";
 import type { ProductOutput } from "@/types/api/data-contracts";
 
@@ -23,14 +23,15 @@ export function Packages() {
   const search = route.useSearch();
   const navigate = route.useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
-  const isAdmin = isAdminOrSuperAdmin(user?.roles) || false;
+  // Only COMPANY_ADMIN and SUPER_ADMIN can access Packages
+  const isCompanyAdmin = isCompanyAdminOrSuperAdmin(user?.roles) || false;
 
-  // Redirect non-admin users
+  // Redirect non-company-admin users
   useEffect(() => {
-    if (user && !isAdmin) {
+    if (user && !isCompanyAdmin) {
       navigate({ to: '/' });
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, isCompanyAdmin, navigate]);
 
   console.log("productsData", productsData);
   console.log("isSuccess:", isSuccess);
@@ -69,11 +70,11 @@ export function Packages() {
     );
   }
 
-  // Don't render for non-admin users
-  if (user && !isAdmin) {
+  // Don't render for non-company-admin users
+  if (user && !isCompanyAdmin) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Access denied. Admin access required.</div>
+        <div className="text-lg text-red-500">Access denied. Company admin access required.</div>
       </div>
     );
   }

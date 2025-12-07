@@ -13,7 +13,7 @@ import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
-import { isAdminOrSuperAdmin } from '@/utils/rbac'
+import { isAdminOrSuperAdmin, isCompanyAdminOrSuperAdmin } from '@/utils/rbac'
 import { ROLE } from '@/constants/roles'
 import { useMemo } from 'react'
 
@@ -25,6 +25,8 @@ export function AppSidebar() {
   const isSuperAdmin = user?.roles?.some(role => 
     role === ROLE.SUPER_ADMIN
   ) || false
+  // Check for COMPANY_ADMIN or SUPER_ADMIN (for Packages and Automations)
+  const isCompanyAdmin = isCompanyAdminOrSuperAdmin(user?.roles) || false
 
   // Filter sidebar items based on user role
   const filteredNavGroups = useMemo(() => {
@@ -32,12 +34,13 @@ export function AppSidebar() {
       return {
         ...group,
         items: group.items.filter((item) => {
-          // Hide Packages for non-admin users
-          if (item.title === 'Packages' && !isAdmin) {
+          // Hide Packages for non-company-admin users (only COMPANY_ADMIN and SUPER_ADMIN can see)
+          if (item.title === 'Packages' && !isCompanyAdmin) {
             return false
           }
-          // Hide "Automations" item (but keep "Automation Logs") for non-admin users
-          if (group.title === 'Automations' && item.title === 'Automations' && !isAdmin) {
+          // Hide "Automations" item (but keep "Automation Logs") for non-company-admin users
+          // Only COMPANY_ADMIN and SUPER_ADMIN can see Automations
+          if (group.title === 'Automations' && item.title === 'Automations' && !isCompanyAdmin) {
             return false
           }
           // Hide items marked as superAdminOnly for non-super-admin users
@@ -48,7 +51,7 @@ export function AppSidebar() {
         }),
       }
     }).filter((group) => group.items.length > 0) // Remove empty groups
-  }, [isAdmin, isSuperAdmin])
+  }, [isAdmin, isSuperAdmin, isCompanyAdmin])
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>

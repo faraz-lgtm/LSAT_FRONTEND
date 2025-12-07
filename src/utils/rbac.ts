@@ -2,15 +2,32 @@ import { ROLE } from '@/constants/roles'
 import type { UserOutput } from '@/types/api/data-contracts'
 
 /**
- * Check if user has ADMIN or SUPER_ADMIN role
+ * Check if user has ADMIN, COMPANY_ADMIN, or SUPER_ADMIN role
  * Helper function to check if user has admin-level permissions
+ * COMPANY_ADMIN has the same access as ADMIN
  * 
  * @param userRoles - Array of user roles
- * @returns boolean indicating if user is admin or super admin
+ * @returns boolean indicating if user is admin, company admin, or super admin
  */
 export function isAdminOrSuperAdmin(userRoles: string[] | undefined | null): boolean {
   if (!userRoles) return false
-  return userRoles.includes(ROLE.ADMIN) || (userRoles as string[]).includes('SUPER_ADMIN')
+  return userRoles.includes(ROLE.ADMIN) || 
+         (userRoles as string[]).includes('COMPANY_ADMIN') ||
+         (userRoles as string[]).includes('SUPER_ADMIN')
+}
+
+/**
+ * Check if user has COMPANY_ADMIN or SUPER_ADMIN role
+ * Used for features that only COMPANY_ADMIN and SUPER_ADMIN can access (Packages, Automations)
+ * Regular ADMIN cannot access these features
+ * 
+ * @param userRoles - Array of user roles
+ * @returns boolean indicating if user is company admin or super admin
+ */
+export function isCompanyAdminOrSuperAdmin(userRoles: string[] | undefined | null): boolean {
+  if (!userRoles) return false
+  return (userRoles as string[]).includes('COMPANY_ADMIN') ||
+         (userRoles as string[]).includes('SUPER_ADMIN')
 }
 
 /**
