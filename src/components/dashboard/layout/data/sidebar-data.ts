@@ -24,7 +24,6 @@ import {
   Activity,
   Building2,
   MessagesSquare,
-  Link,
 } from "lucide-react";
 import { ClerkLogo } from "@/assets/clerk-logo";
 import { type SidebarData } from "../types";
@@ -129,11 +128,6 @@ const sidebarData: SidebarData = {
     {
       title: "Financial",
       items: [
-        {
-          title: "Payments",
-          url: "/payments",
-          icon: Link,
-        },
         {
           title: "Invoices",
           url: "/invoices",
@@ -260,7 +254,6 @@ if (ENV !== "DEVELOPMENT") {
           "/tasks",
           "/appointments",
           "/chats",
-          "/payments",
           "/invoices",
           "/refunds",
           "/transactions",

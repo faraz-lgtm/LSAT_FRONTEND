@@ -11,22 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns'
 import { cn } from '@/lib/dashboardRelated/utils'
-
-// Helper function to get date label
-function getDateLabel(dateStr: string): string {
-  const date = parseISO(dateStr)
-  if (isToday(date)) return 'Today'
-  if (isTomorrow(date)) return 'Tomorrow'
-  if (isYesterday(date)) return 'Yesterday'
-  return format(date, 'MMMM d, yyyy')
-}
-
-// Helper function to get date key for grouping
-function getDateKey(dateStr: string): string {
-  return format(parseISO(dateStr), 'yyyy-MM-dd')
-}
 import { type NavigateFn, useTableUrlState } from '@/hooks/dashboardRelated/use-table-url-state'
 import {
   Table,
@@ -177,56 +162,32 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              (() => {
-                let currentDateKey = ''
-                return table.getRowModel().rows.map((row) => {
-                  const order = row.original as OrderOutput
-                  const dateKey = order.createdAt ? getDateKey(order.createdAt) : ''
-                  const showDateHeader = dateKey !== currentDateKey
-                  currentDateKey = dateKey
-                  
-                  return (
-                    <>
-                      {showDateHeader && order.createdAt && (
-                        <TableRow key={`date-${dateKey}`} className='bg-gray-50/50 hover:bg-gray-50/50'>
-                          <TableCell colSpan={columns.length} className='py-2 px-4'>
-                            <div className='flex items-center gap-2'>
-                              <div className='h-2 w-2 rounded-full bg-blue-500'></div>
-                              <span className='text-sm font-semibold text-gray-700'>
-                                {getDateLabel(order.createdAt)}
-                              </span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className='group/row cursor-pointer hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all'
+                  onDoubleClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('view')
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        'py-3 group-data-[state=selected]/row:bg-blue-50',
+                        cell.column.columnDef.meta?.className ?? ''
                       )}
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                        className='group/row cursor-pointer hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all'
-                        onDoubleClick={() => {
-                          setCurrentRow(row.original)
-                          setOpen('view')
-                        }}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            className={cn(
-                              'py-3 group-data-[state=selected]/row:bg-blue-50',
-                              cell.column.columnDef.meta?.className ?? ''
-                            )}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </>
-                  )
-                })
-              })()
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell
