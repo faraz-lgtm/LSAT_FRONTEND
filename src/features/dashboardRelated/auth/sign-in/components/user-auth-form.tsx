@@ -103,9 +103,9 @@ export function UserAuthForm({
       const organizationSlug = getOrganizationSlugFromSubdomain()
 
       // Set user and tokens from API response
-      // Filter roles to only include those in ROLE enum (exclude COMPANY_ADMIN)
+      // Filter roles to only include those in ROLE enum
       const validRoles = (result.data.user.roles || []).filter((role): role is ROLE => 
-        role === 'USER' || role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
+        role === 'USER' || role === 'ADMIN' || role === 'COMPANY_ADMIN' || role === 'SUPER_ADMIN' || role === 'CUST'
       )
       dispatch(setUser({
         id: result.data.user.id,
