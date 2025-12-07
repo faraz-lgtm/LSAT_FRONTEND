@@ -124,7 +124,7 @@ export interface CreateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -152,7 +152,7 @@ export interface UpdateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -1158,6 +1158,11 @@ export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   data: TaskOutputDto[];
 }
 
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto;
+}
+
 export interface SlotsQueryDto {
   /**
    * Date in ISO 8601 format (UTC timezone)
@@ -2074,11 +2079,6 @@ export interface TaskQueryDto {
    * @example 0
    */
   offset?: number;
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto;
 }
 
 export interface TopCustomerDto {

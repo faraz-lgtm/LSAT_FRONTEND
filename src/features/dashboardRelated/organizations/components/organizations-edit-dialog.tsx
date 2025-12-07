@@ -57,6 +57,7 @@ const settingsSchema = z.object({
       sendgridApiKey: z.string().optional(),
       webhookUrl: z.string().url().optional().or(z.literal('')),
       emailHostName: z.string().optional().or(z.literal('')),
+      twimlAppSid: z.string().optional().or(z.literal('')),
     }).optional(),
     email: z.object({
       smtpHost: z.string().optional(),
@@ -604,6 +605,23 @@ export function OrganizationsEditDialog({
                         <Input type="url" placeholder='https://...' {...field} />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='settings.integrations.twilio.twimlAppSid'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>TwiML App SID</FormLabel>
+                      <FormControl>
+                        <Input placeholder='APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      <FormDescription>
+                        TwiML App SID for voice calls (starts with AP...)
+                      </FormDescription>
                     </FormItem>
                   )}
                 />

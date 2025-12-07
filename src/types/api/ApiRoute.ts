@@ -986,6 +986,28 @@ export namespace Api {
   }
 
   /**
+   * No description
+   * @tags order-appointments
+   * @name OrderAppointmentControllerFindOne
+   * @summary Get Order Appointment by ID
+   * @request GET:/api/v1/order-appointments/{id}
+   * @secure
+   */
+  export namespace OrderAppointmentControllerFindOne {
+    export type RequestParams = {
+      /**
+       * Order Appointment ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
    * @description Returns available and booked slots for the specified date and package. Used by Orders, Tasks, and Appointments.
    * @tags slots
    * @name SlotControllerGetAvailableSlots
