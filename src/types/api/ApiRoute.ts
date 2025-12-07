@@ -204,6 +204,19 @@ export namespace Api {
 
   /**
    * No description
+   * @name MetricsControllerGetMetrics
+   * @request GET:/api/v1/metrics
+   */
+  export namespace MetricsControllerGetMetrics {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
    * @tags users
    * @name UserControllerGetMyProfile
    * @summary Get user me API
