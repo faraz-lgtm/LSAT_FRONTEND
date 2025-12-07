@@ -13,7 +13,7 @@ import { Textarea } from '@/components/dashboard/ui/textarea'
 import { Badge } from '@/components/dashboard/ui/badge'
 import type { TaskOutputDto, UserOutput } from '@/types/api/data-contracts'
 import { format } from 'date-fns'
-import { ExternalLink, CalendarClock, Clipboard, Check } from 'lucide-react'
+import { ExternalLink, CalendarClock, Clipboard, Check, CheckCircle } from 'lucide-react'
 import { 
   useGenerateRescheduleLinkMutation, 
   useUpdateAppointmentNotesMutation,
@@ -474,6 +474,29 @@ export function AppointmentsViewDialog({
                     {isSavingNotes ? 'Saving...' : 'Save Notes'}
                   </Button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Attendance Marked Info */}
+          {currentRow.attendanceMarkedAt && (
+            <div className='flex items-center gap-3 text-sm border-t pt-4'>
+              <CheckCircle className='size-4 text-muted-foreground' />
+              <div>
+                <p className='text-muted-foreground'>Attendance marked</p>
+                <p className='text-xs'>
+                  {(() => {
+                    const dateValue = currentRow.attendanceMarkedAt
+                    if (typeof dateValue === 'string') {
+                      return format(new Date(dateValue), 'MMM d, yyyy h:mm a')
+                    } else if (dateValue instanceof Date) {
+                      return format(dateValue, 'MMM d, yyyy h:mm a')
+                    } else if (dateValue && typeof dateValue === 'object' && 'toString' in dateValue) {
+                      return format(new Date(dateValue.toString()), 'MMM d, yyyy h:mm a')
+                    }
+                    return 'Unknown date'
+                  })()}
+                </p>
               </div>
             </div>
           )}

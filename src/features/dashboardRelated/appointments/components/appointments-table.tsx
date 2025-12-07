@@ -282,7 +282,8 @@ export function AppointmentsTable({
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
-                        className='group hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all'
+                        className={`group hover:bg-blue-50/50 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all ${onView ? 'cursor-pointer' : ''}`}
+                        onDoubleClick={onView ? () => onView(row.original) : undefined}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id} className='py-3'>

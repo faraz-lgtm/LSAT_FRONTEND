@@ -3,7 +3,7 @@ import useDialogState from '@/hooks/dashboardRelated/use-dialog-state'
 import { type UserOutput } from '@/types/api/data-contracts'
 
 type UsersDialogType = 'invite' | 'add' | 'edit' | 'delete'
-type PageType = 'customers' | 'employees' | 'all'
+type PageType = 'customers' | 'employees' | 'all' | 'leads' | 'contacts'
 
 type UsersContextType = {
   open: UsersDialogType | null

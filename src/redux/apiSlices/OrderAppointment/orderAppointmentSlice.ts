@@ -52,10 +52,23 @@ export const orderAppointmentApi = api.injectEndpoints({
       },
       providesTags: ['Orders'],
     }),
+
+    // Get order appointment by ID
+    getOrderAppointmentById: builder.query<
+      BaseApiResponse<TaskOutputDto>,
+      number
+    >({
+      query: (id) => ({
+        url: `/order-appointments/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (_result, _error, id) => [{ type: 'Orders', id: `appointment-${id}` }],
+    }),
   }),
 });
 
 export const {
   useGetOrderAppointmentsQuery,
+  useGetOrderAppointmentByIdQuery,
 } = orderAppointmentApi;
 

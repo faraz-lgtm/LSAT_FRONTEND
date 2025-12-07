@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
 import { isAdminOrSuperAdmin } from '@/utils/rbac'
-import { AppointmentsDialogs } from './components/appointments-dialogs'
+import { AppointmentsViewDialog } from '@/features/dashboardRelated/tasks/components/appointments-view-dialog'
 
 export function Appointments() {
   const user = useSelector((state: RootState) => state.auth.user)
@@ -97,22 +97,32 @@ export function Appointments() {
         </div>
       </Main>
 
-      <AppointmentsDialogs 
-        open={open}
-        setOpen={setOpen}
-        currentRow={currentRow}
-        setCurrentRow={setCurrentRow}
-        userIdToUser={(usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
-          acc[u.id] = u
-          return acc
-        }, {})}
-        emailToUser={(usersData?.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
-          if (u.email) {
-            acc[u.email.toLowerCase()] = u
-          }
-          return acc
-        }, {})}
-      />
+      {currentRow && (
+        <AppointmentsViewDialog
+          currentRow={currentRow}
+          open={open === 'view'}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setTimeout(() => {
+                setCurrentRow(undefined)
+              }, 500)
+            } else {
+              setOpen('view')
+            }
+          }}
+          userIdToUser={(usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
+            acc[u.id] = u
+            return acc
+          }, {})}
+          emailToUser={(usersData?.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
+            if (u.email) {
+              acc[u.email.toLowerCase()] = u
+            }
+            return acc
+          }, {})}
+        />
+      )}
     </>
   )
 }

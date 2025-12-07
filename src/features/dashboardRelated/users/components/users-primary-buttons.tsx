@@ -23,8 +23,17 @@ export function UsersPrimaryButtons() {
     return null
   }
   
-  const addButtonText = pageType === 'customers' ? 'Add Customer' : 'Add User'
-  const showInviteButton = pageType !== 'employees' && pageType !== 'customers'
+  // Hide add button for contacts and customers pages
+  const hideAddButton = pageType === 'contacts' || pageType === 'customers'
+  
+  // Show add button only for leads page with "Add Lead" text
+  const addButtonText = pageType === 'leads' ? 'Add Lead' : pageType === 'customers' ? 'Add Customer' : 'Add User'
+  const showInviteButton = pageType !== 'employees' && pageType !== 'customers' && pageType !== 'contacts' && pageType !== 'leads'
+  
+  // Don't render anything if add button should be hidden
+  if (hideAddButton) {
+    return null
+  }
   
   return (
     <div className='flex gap-2'>

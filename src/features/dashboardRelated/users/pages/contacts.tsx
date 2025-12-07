@@ -33,7 +33,7 @@ export function ContactsPage() {
   }, [isSuccess, usersData?.data]);
 
   return (
-    <UsersProvider pageType="customers">
+    <UsersProvider pageType="contacts">
       <Header fixed>
         <Search />
         <div className="ms-auto flex items-center space-x-4">

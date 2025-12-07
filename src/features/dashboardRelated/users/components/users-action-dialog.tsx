@@ -109,8 +109,8 @@ export function UsersActionDialog({
   // Check if editing a customer (customer-only user)
   const isEditingCustomer = isEdit && currentRow && currentRow.roles.length === 1 && currentRow.roles.includes(ROLE.CUSTOMER)
   
-  // Check if adding a customer (on customers page and not editing)
-  const isAddingCustomer = !isEdit && pageType === 'customers'
+  // Check if adding a customer (on customers or leads page and not editing)
+  const isAddingCustomer = !isEdit && (pageType === 'customers' || pageType === 'leads')
   
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
@@ -347,7 +347,9 @@ export function UsersActionDialog({
           <DialogTitle>
             {isEdit 
               ? 'Edit User' 
-              : (pageType === 'customers' ? 'Add New Customer' : 'Add New User')
+              : (pageType === 'customers' ? 'Add New Customer' 
+                : pageType === 'leads' ? 'Add New Lead' 
+                : 'Add New User')
             }
           </DialogTitle>
           <DialogDescription>

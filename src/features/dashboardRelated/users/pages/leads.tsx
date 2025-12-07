@@ -30,7 +30,7 @@ export function LeadsPage() {
   }, [isSuccess, usersData?.data]);
 
   return (
-    <UsersProvider pageType="customers">
+    <UsersProvider pageType="leads">
       <Header fixed>
         <Search />
         <div className="ms-auto flex items-center space-x-4">

@@ -42,6 +42,12 @@ import {
 } from "@/redux/apiSlices/Calendar";
 import { useGoogleCalendarContext } from "@/services/google-calendar/GoogleCalendarProvider";
 import { GOOGLE_CALENDAR_CONFIG, EVENT_COLORS } from "@/services/google-calendar/config";
+import { AppointmentsViewDialog } from "@/features/dashboardRelated/tasks/components/appointments-view-dialog";
+import { TasksMutateDrawer } from "@/features/dashboardRelated/tasks/components/tasks-mutate-drawer";
+import { useGetTaskByIdQuery } from "@/redux/apiSlices/Task/taskSlice";
+import { useGetOrderAppointmentByIdQuery } from "@/redux/apiSlices/OrderAppointment/orderAppointmentSlice";
+import { useGetUsersQuery } from "@/redux/apiSlices/User/userSlice";
+import type { TaskOutputDto, UserOutput } from "@/types/api/data-contracts";
 
 type EventItemProps = {
   info: EventContentArg;
@@ -68,6 +74,48 @@ export default function Calendar() {
   });
 
   const [selectedCalendarId, setSelectedCalendarId] = useState<string>("");
+  
+  // Dialog state management
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [taskEditDialogOpen, setTaskEditDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskOutputDto | undefined>(undefined);
+  const [taskIdToFetch, setTaskIdToFetch] = useState<number | null>(null);
+  const [orderAppointmentIdToFetch, setOrderAppointmentIdToFetch] = useState<number | null>(null);
+  
+  // Fetch users for appointment dialog
+  const { data: usersData } = useGetUsersQuery({});
+  
+  // Fetch task by ID when taskIdToFetch is set
+  const { data: taskData } = useGetTaskByIdQuery(taskIdToFetch!, {
+    skip: !taskIdToFetch,
+  });
+  
+  // Fetch order appointment by ID when orderAppointmentIdToFetch is set
+  const { data: appointmentData } = useGetOrderAppointmentByIdQuery(orderAppointmentIdToFetch!, {
+    skip: !orderAppointmentIdToFetch,
+  });
+  
+  // Update selectedTask when taskData is fetched and open task edit dialog
+  useEffect(() => {
+    if (taskData?.data && taskIdToFetch) {
+      const fetchedTask = taskData.data;
+      console.log("✅ Task fetched, opening task edit dialog for:", fetchedTask.id);
+      setSelectedTask(fetchedTask);
+      setTaskEditDialogOpen(true);
+      setTaskIdToFetch(null); // Reset after fetching
+    }
+  }, [taskData, taskIdToFetch]);
+  
+  // Update selectedTask when appointmentData is fetched and open appointment view dialog
+  useEffect(() => {
+    if (appointmentData?.data && orderAppointmentIdToFetch) {
+      const fetchedAppointment = appointmentData.data;
+      console.log("✅ Appointment fetched, opening appointment view dialog for:", fetchedAppointment.id);
+      setSelectedTask(fetchedAppointment);
+      setAppointmentDialogOpen(true);
+      setOrderAppointmentIdToFetch(null); // Reset after fetching
+    }
+  }, [appointmentData, orderAppointmentIdToFetch]);
 
   const {
     data: verificationData,
@@ -250,13 +298,84 @@ export default function Calendar() {
   const calendarEarliestTime = "00:00";
   const calendarLatestTime = "23:59";
 
+  // Track last click for double-click detection
+  const lastClickRef = useRef<{ eventId: string; timestamp: number } | null>(null);
+  const DOUBLE_CLICK_DELAY = 300; // milliseconds
+
   const handleEventClick = (info: EventClickArg) => {
-    // For v2, read-only view for now
-    console.log("CalendarV2 event clicked", info.event.id);
+    const now = Date.now();
+    const eventId = info.event.id;
+    
+    // Check if this is a double-click
+    if (
+      lastClickRef.current &&
+      lastClickRef.current.eventId === eventId &&
+      now - lastClickRef.current.timestamp < DOUBLE_CLICK_DELAY
+    ) {
+      // Double-click detected
+      handleEventDoubleClick(info);
+      lastClickRef.current = null; // Reset
+    } else {
+      // Single click - store for potential double-click
+      lastClickRef.current = { eventId, timestamp: now };
+      setTimeout(() => {
+        if (lastClickRef.current?.eventId === eventId) {
+          lastClickRef.current = null; // Clear if no second click
+        }
+      }, DOUBLE_CLICK_DELAY);
+    }
   };
 
+  const handleEventDoubleClick = async (info: EventClickArg) => {
+    const googleEvent = info.event.extendedProps?.googleEvent as CalendarEventOutputDto | undefined;
+    if (!googleEvent) {
+      console.log("No googleEvent found in calendar event");
+      return;
+    }
+
+    // Check for extendedProperties.private.taskId and orderAppointmentId
+    const extendedProperties = (googleEvent as any).extendedProperties;
+    const privateProps = extendedProperties?.private || {};
+    
+    const taskId = privateProps.taskId 
+      ? (typeof privateProps.taskId === 'string' 
+          ? parseInt(privateProps.taskId, 10) 
+          : privateProps.taskId)
+      : undefined;
+    
+    const orderAppointmentId = privateProps.orderAppointmentId 
+      ? (typeof privateProps.orderAppointmentId === 'string' 
+          ? parseInt(privateProps.orderAppointmentId, 10) 
+          : privateProps.orderAppointmentId)
+      : undefined;
+    
+    console.log("🔍 Calendar event double-clicked:", {
+      googleCalendarEventId: googleEvent.id,
+      taskId,
+      orderAppointmentId,
+      privateProps,
+      extendedProperties,
+    });
+
+    // If we have an orderAppointmentId, fetch using order appointments API
+    if (orderAppointmentId) {
+      console.log("📅 Setting appointment ID to fetch via order-appointments API:", orderAppointmentId);
+      setOrderAppointmentIdToFetch(orderAppointmentId);
+      // The useEffect will handle setting selectedTask and opening appointment dialog
+    } 
+    // If we have a taskId, fetch using tasks API
+    else if (taskId) {
+      console.log("📝 Setting task ID to fetch via tasks API:", taskId);
+      setTaskIdToFetch(taskId);
+      // The useEffect will handle setting selectedTask and opening task edit dialog
+    } else {
+      console.log("⚠️ No taskId or orderAppointmentId found in extendedProperties.private");
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleEventChange = (_info: EventChangeArg) => {
-    // Read-only for now
+    // Read-only for now - parameter required by FullCalendar but unused
   };
 
   const EventItem = ({ info }: EventItemProps) => {
@@ -515,6 +634,48 @@ export default function Calendar() {
           )}
         </div>
       </div>
+
+      {/* Appointment View Dialog */}
+      {selectedTask && (
+        <AppointmentsViewDialog
+          currentRow={selectedTask}
+          open={appointmentDialogOpen}
+          onOpenChange={(isOpen) => {
+            setAppointmentDialogOpen(isOpen);
+            if (!isOpen) {
+              setTimeout(() => {
+                setSelectedTask(undefined);
+              }, 500);
+            }
+          }}
+          userIdToUser={(usersData?.data || []).reduce<Record<number, UserOutput>>((acc, u) => {
+            acc[u.id] = u;
+            return acc;
+          }, {})}
+          emailToUser={(usersData?.data || []).reduce<Record<string, UserOutput>>((acc, u) => {
+            if (u.email) {
+              acc[u.email.toLowerCase()] = u;
+            }
+            return acc;
+          }, {})}
+        />
+      )}
+
+      {/* Task Edit Dialog */}
+      {selectedTask && (
+        <TasksMutateDrawer
+          open={taskEditDialogOpen}
+          onOpenChange={(isOpen) => {
+            setTaskEditDialogOpen(isOpen);
+            if (!isOpen) {
+              setTimeout(() => {
+                setSelectedTask(undefined);
+              }, 500);
+            }
+          }}
+          currentRow={selectedTask}
+        />
+      )}
     </div>
   );
 }
