@@ -6,7 +6,6 @@ import {
 } from '@/redux/apiSlices/Order/orderSlice'
 import { ArrowLeft, Check, AlertCircle, Terminal } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import GlobalProgressBar from '@/components/GlobalProgressBar'
 
 function useTimezoneLabel() {
   const tz = React.useMemo(() => {
@@ -223,12 +222,9 @@ export function OrderReschedulePage() {
                 className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md text-xs"
               >
                 <ArrowLeft size={16} />
-                <span className="font-medium">Back to Information</span>
+                <span className="font-medium">Back</span>
               </button>
             </div>
-
-            {/* Progress Bar */}
-            <GlobalProgressBar currentStep={4} />
           </div>
 
           {/* Main Content */}
