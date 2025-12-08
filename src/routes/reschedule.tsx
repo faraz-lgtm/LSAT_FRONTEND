@@ -54,10 +54,11 @@ export function ReschedulePage() {
     }
   }, [selectedSlotISO, token, confirmReschedule])
 
-  // DateTimePicker returns a Date with exact time; update selectedSlotISO
-  const handleDateTimeChange = (dt: Date) => {
+  // DateTimePicker returns a SlotInput; extract dateTime and update selectedSlotISO
+  const handleDateTimeChange = (slotInput: { dateTime: string; availableEmployeeIds: number[] }) => {
+    const dt = new Date(slotInput.dateTime)
     setDate(dt)
-    setSelectedSlotISO(dt.toISOString())
+    setSelectedSlotISO(slotInput.dateTime)
   }
 
   if (state === 'loading') {

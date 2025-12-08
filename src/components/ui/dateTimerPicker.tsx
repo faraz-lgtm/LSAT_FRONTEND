@@ -47,10 +47,11 @@ export function DateTimePicker(props: DateTimePickerProps) {
 
   const { items } = useSelector((state: RootState) => state.cart);
 
-  const { value, onChange } = props as any;
-  const excludedSlots: Date[] = Array.isArray((props as any).excludedSlots)
-    ? (props as any).excludedSlots
-    : [];
+  const { value, onChange, excludedSlots: excludedSlotsProp } = props as any;
+  const excludedSlots: Date[] = React.useMemo(() => 
+    Array.isArray(excludedSlotsProp) ? excludedSlotsProp : [],
+    [excludedSlotsProp]
+  );
   
   // Helper function to validate and normalize date
   const normalizeDate = (dateValue: any): Date | undefined => {
@@ -198,7 +199,49 @@ export function DateTimePicker(props: DateTimePickerProps) {
     return generateSlots(effectiveData);
   }, [effectiveData, generateSlots]);
 
-
+  // Sync selectedSlot when value or availableSlots change
+  // This ensures the time is displayed when a value prop is passed
+  React.useEffect(() => {
+    if (date && date instanceof Date && availableSlots.length > 0) {
+      // Find the slot that matches the time in the date
+      const matchingSlot = availableSlots.find((slot) => {
+        const slotTime = slot.start.getTime();
+        const dateTime = new Date(date);
+        dateTime.setHours(slot.start.getHours(), slot.start.getMinutes(), 0, 0);
+        return dateTime.getTime() === slotTime;
+      });
+      
+      if (matchingSlot) {
+        setSelectedSlot(matchingSlot);
+      } else {
+        // If no exact match, find the closest slot by time
+        const dateHours = date.getHours();
+        const dateMinutes = date.getMinutes();
+        const closestSlot = availableSlots.reduce((prev, curr) => {
+          const prevDiff = Math.abs(
+            (prev.start.getHours() * 60 + prev.start.getMinutes()) - 
+            (dateHours * 60 + dateMinutes)
+          );
+          const currDiff = Math.abs(
+            (curr.start.getHours() * 60 + curr.start.getMinutes()) - 
+            (dateHours * 60 + dateMinutes)
+          );
+          return currDiff < prevDiff ? curr : prev;
+        });
+        
+        // Only set if the difference is small (within 30 minutes)
+        const diffMinutes = Math.abs(
+          (closestSlot.start.getHours() * 60 + closestSlot.start.getMinutes()) - 
+          (dateHours * 60 + dateMinutes)
+        );
+        if (diffMinutes <= 30) {
+          setSelectedSlot(closestSlot);
+        }
+      }
+    } else if (!date) {
+      setSelectedSlot(undefined);
+    }
+  }, [date, availableSlots]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     const normalizedDate = normalizeDate(selectedDate);
