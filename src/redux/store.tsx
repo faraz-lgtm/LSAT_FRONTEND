@@ -7,74 +7,119 @@ import authReducer, { reset } from "./authSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "@/redux/api";
 
-// Helper function to validate if cart state has correct SlotInput[] format
-const isValidCartState = (state: any): boolean => {
-  if (!state?.cart?.items || !Array.isArray(state.cart.items)) {
-    return true; // Empty or invalid structure is fine, will be reset
+// Helper function to validate cart items from parsed data
+const validateCartItems = (items: any[]): boolean => {
+  if (!Array.isArray(items) || items.length === 0) {
+    return true; // Empty is fine
   }
   
-  return state.cart.items.every((item: any) => {
-    if (!item.DateTime) return true; // Items without DateTime are fine
+  return items.every((item: any) => {
+    if (!item.DateTime) {
+      return true; // Items without DateTime are fine
+    }
     
-    // DateTime must be an array
-    if (!Array.isArray(item.DateTime)) return false;
+    if (!Array.isArray(item.DateTime)) {
+      console.log('❌ DateTime is not an array for item:', item.id, item.DateTime);
+      return false;
+    }
     
-    // Each slot must be a SlotInput object with dateTime and availableEmployeeIds
     return item.DateTime.every((slot: any) => {
-      return (
-        slot &&
-        typeof slot === 'object' &&
-        'dateTime' in slot &&
-        'availableEmployeeIds' in slot &&
-        typeof slot.dateTime === 'string' &&
-        Array.isArray(slot.availableEmployeeIds)
-      );
+      // Slot must be an object (not a string, not null, etc.)
+      if (!slot || typeof slot !== 'object' || Array.isArray(slot)) {
+        console.log('❌ Slot is not an object. Slot:', slot, 'Type:', typeof slot);
+        return false;
+      }
+      
+      // Slot must have dateTime property (string)
+      if (!('dateTime' in slot) || typeof slot.dateTime !== 'string') {
+        console.log('❌ Slot missing dateTime or dateTime is not a string. Slot:', slot);
+        return false;
+      }
+      
+      // Slot must have availableEmployeeIds property (array)
+      if (!('availableEmployeeIds' in slot) || !Array.isArray(slot.availableEmployeeIds)) {
+        console.log('❌ Slot missing availableEmployeeIds or it is not an array. Slot:', slot);
+        return false;
+      }
+      
+      return true;
     });
   });
+};
+
+// Helper function to validate if cart state has correct SlotInput[] format
+const isValidCartState = (state: any): boolean => {
+  if (!state?.cart) {
+    return true;
+  }
+  
+  if (!state.cart.items || !Array.isArray(state.cart.items)) {
+    return true;
+  }
+  
+  return validateCartItems(state.cart.items);
 };
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "auth", "info"], // 👈 choose which slices to persist
+  whitelist: ["cart", "auth", "info"],
   transforms: [
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       in: (state: any) => {
-        // Transform state before saving to storage
-        // SlotInput objects are already serializable, so no transformation needed
         return state;
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       out: (state: any) => {
-        // Validate cart state format - if invalid, clear cart
-        if (!isValidCartState(state)) {
-          console.warn('⚠️ Cart state format mismatch detected. Clearing cart for fresh start.');
-          if (state?.cart) {
-            state.cart = {
-              items: [],
-              isLoading: false,
-              error: null,
-            };
-          }
-          // Also clear localStorage cart data
-          try {
-            const persistData = localStorage.getItem('persist:root');
-            if (persistData) {
-              const parsed = JSON.parse(persistData);
-              if (parsed.cart) {
+        // Validate directly from localStorage since state might not be rehydrated yet
+        try {
+          const persistData = localStorage.getItem('persist:root');
+          if (persistData) {
+            const parsed = JSON.parse(persistData);
+            if (parsed.cart) {
+              const cartData = JSON.parse(parsed.cart);
+              console.log('🔍 Validating cart from localStorage...', {
+                hasItems: !!cartData?.items,
+                itemsLength: cartData?.items?.length,
+                firstItemDateTime: cartData?.items?.[0]?.DateTime
+              });
+              
+              if (!validateCartItems(cartData?.items || [])) {
+                console.warn('⚠️ Cart state format mismatch detected in localStorage. Clearing cart...');
                 parsed.cart = JSON.stringify({
                   items: [],
                   isLoading: false,
                   error: null,
                 });
                 localStorage.setItem('persist:root', JSON.stringify(parsed));
+                
+                // Also clear from state if it exists
+                if (state?.cart) {
+                  state.cart = {
+                    items: [],
+                    isLoading: false,
+                    error: null,
+                  };
+                }
+                return state;
               }
             }
-          } catch (e) {
-            console.error('Error clearing localStorage:', e);
           }
+        } catch (e) {
+          console.error('Error validating cart from localStorage:', e);
         }
+        
+        // Also validate state if it exists
+        if (state?.cart && !isValidCartState(state)) {
+          console.warn('⚠️ Cart state format mismatch detected in state. Clearing cart...');
+          state.cart = {
+            items: [],
+            isLoading: false,
+            error: null,
+          };
+        }
+        
         return state;
       }
     }
@@ -167,6 +212,47 @@ export const store = configureStore({
 setupListeners(store.dispatch);
 
 export const persistor = persistStore(store);
+
+// Validate after rehydration completes using a listener
+listenerMiddleware.startListening({
+  predicate: (action) => {
+    return action.type === 'persist/REHYDRATE';
+  },
+  effect: async (_action, listenerApi) => {
+    // Check immediately - REHYDRATE means state is ready
+    const state = listenerApi.getState() as RootState;
+    
+    // Early exit if no cart items
+    if (!state?.cart?.items || state.cart.items.length === 0) {
+      return;
+    }
+    
+    if (!isValidCartState(state)) {
+      console.warn('⚠️ Invalid cart state detected after rehydration. Clearing cart...');
+      listenerApi.dispatch({ type: 'cart/clearCart' });
+      
+      // Clear localStorage asynchronously to not block
+      setTimeout(() => {
+        try {
+          const persistData = localStorage.getItem('persist:root');
+          if (persistData) {
+            const parsed = JSON.parse(persistData);
+            if (parsed.cart) {
+              parsed.cart = JSON.stringify({
+                items: [],
+                isLoading: false,
+                error: null,
+              });
+              localStorage.setItem('persist:root', JSON.stringify(parsed));
+            }
+          }
+        } catch (e) {
+          console.error('Error clearing localStorage after rehydration:', e);
+        }
+      }, 0); // Run on next tick, non-blocking
+    }
+  },
+});
 
 // Types
 export type AppDispatch = typeof store.dispatch;
