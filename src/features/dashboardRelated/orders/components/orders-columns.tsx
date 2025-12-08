@@ -1,4 +1,4 @@
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, type Column, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
@@ -149,10 +149,10 @@ export const createOrdersColumns = (
   },
   ...(userIdToUser ? [{
     id: 'assignedTutors',
-    header: ({ column }) => (
+    header: ({ column }: { column: Column<OrderOutput> }) => (
       <DataTableColumnHeader column={column} title='Assigned Tutors' />
     ),
-    cell: ({ row }) => {
+    cell: ({ row }: { row: Row<OrderOutput> }) => {
       return <AssignedTutorsCell orderId={row.original.id} userIdToUser={userIdToUser} />
     },
     enableSorting: false,

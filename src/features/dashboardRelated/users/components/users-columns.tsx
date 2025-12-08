@@ -1,4 +1,4 @@
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, type Column, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
@@ -120,12 +120,12 @@ export const createUsersColumns = (pageType?: PageType): ColumnDef<UserOutput>[]
   },
   ...(pageType === 'employees' ? [{
     accessorKey: 'orderAppointmentCount',
-    header: ({ column }) => (
+    header: ({ column }: { column: Column<UserOutput> }) => (
       <div className="flex items-center justify-start">
         <DataTableColumnHeader column={column} title='Appointments' />
       </div>
     ),
-    cell: ({ row }) => {
+    cell: ({ row }: { row: Row<UserOutput> }) => {
       const appointmentCount = row.getValue('orderAppointmentCount') as number
       const user = row.original
       

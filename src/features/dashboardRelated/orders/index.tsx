@@ -9,7 +9,7 @@ import { OrdersDialogs } from "./components/orders-dialogs";
 import { OrdersProvider } from "./components/orders-provider";
 import { OrdersTable } from "./components/orders-table";
 import { OrdersPrimaryButtons } from "./components/orders-primary-buttons";
-import { useGetOrdersQuery, useListOrderAppointmentsQuery } from "@/redux/apiSlices/Order/orderSlice";
+import { useGetOrdersQuery } from "@/redux/apiSlices/Order/orderSlice";
 import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
 import { useState, useMemo } from "react";
 import type { OrderOutput } from "@/types/api/data-contracts";

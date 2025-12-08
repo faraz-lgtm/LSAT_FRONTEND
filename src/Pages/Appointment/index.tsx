@@ -18,6 +18,7 @@ import { fetchSlotsForPackage } from "@/utils/slotFetcher";
 import { useCurrencyFormatter } from "@/utils/currency";
 import { useCurrency } from "@/context/currency-provider";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
+import type { SlotInput } from "@/types/api/data-contracts";
 import { addToCartAsync } from "@/redux/cartSlice";
 import type { ItemInput } from "@/types/api/data-contracts";
 import { getOrganizationSlugFromUrl } from "../../utils/organization";
