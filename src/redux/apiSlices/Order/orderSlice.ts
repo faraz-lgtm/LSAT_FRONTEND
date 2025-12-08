@@ -141,6 +141,17 @@ export const ordersApi = api.injectEndpoints({
       }),
     }),
 
+    // Generate a reschedule link for entire order (all appointments)
+    generateOrderRescheduleLink: builder.mutation<
+      BaseApiResponse<{ url: string }> | { data: { url: string }; meta: unknown },
+      { orderId: number }
+    >({
+      query: ({ orderId }) => ({
+        url: `order/${orderId}/reschedule/link`,
+        method: 'POST',
+      }),
+    }),
+
     // Directly reschedule an appointment (staff-driven)
     rescheduleAppointment: builder.mutation<
       BaseApiResponse<OrderAppointmentOutput> | OrderAppointmentOutput | void,
@@ -255,6 +266,51 @@ export const ordersApi = api.injectEndpoints({
         body,
       }),
     }),
+
+    // Public order reschedule - get all appointments for an order
+    getPublicOrderRescheduleInfo: builder.query<
+      BaseApiResponse<{
+        orderId: number;
+        customerName: string;
+        customerEmail: string;
+        appointments: Array<{
+          id: number;
+          slotDateTime: string;
+          packageName: string;
+          duration: number;
+          assignedEmployeeName?: string;
+        }>;
+      }>,
+      { token: string }
+    >({
+      query: ({ token }) => ({
+        url: `public/order-reschedule/info`,
+        params: { token },
+      }),
+    }),
+
+    // Public order reschedule - get available slots for a specific appointment
+    getPublicOrderRescheduleSlots: builder.query<
+      BaseApiResponse<{ availableSlots: { slot: string; availableEmployees: { id: number; name: string; email: string }[] }[]; slotDurationMinutes: number }>,
+      { token: string; appointmentId: number; dateISO?: string }
+    >({
+      query: ({ token, appointmentId, dateISO }) => ({
+        url: `public/order-reschedule/slots`,
+        params: dateISO ? { token, appointmentId, date: dateISO } : { token, appointmentId },
+      }),
+    }),
+
+    // Public order reschedule - confirm reschedule for a specific appointment
+    confirmPublicOrderReschedule: builder.mutation<
+      BaseApiResponse<{ appointmentId: number }>,
+      { token: string; appointmentId: number; newDateTimeISO: string }
+    >({
+      query: (body) => ({
+        url: `public/order-reschedule/confirm`,
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
@@ -266,6 +322,7 @@ export const {
   useListOrderAppointmentsQuery,
   useMarkAppointmentAttendanceMutation,
   useGenerateRescheduleLinkMutation,
+  useGenerateOrderRescheduleLinkMutation,
   useRescheduleAppointmentMutation,
   useCreateOrderMutation,
   useDeleteOrderMutation,
@@ -273,6 +330,9 @@ export const {
   useCancelOrderMutation,
   useGetPublicRescheduleSlotsQuery,
   useConfirmPublicRescheduleMutation,
+  useGetPublicOrderRescheduleInfoQuery,
+  useGetPublicOrderRescheduleSlotsQuery,
+  useConfirmPublicOrderRescheduleMutation,
 } = ordersApi;
 
 // Local DTO until swagger adds explicit type

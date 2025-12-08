@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Edit } from "lucide-react";
 import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Slot"; 
-import { useGetPublicRescheduleSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
+import { useGetPublicRescheduleSlotsQuery, useGetPublicOrderRescheduleSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
 import type { RootState } from "../../redux/store";
 
 import { useSelector } from "react-redux";
@@ -32,6 +32,7 @@ type DateTimePickerProps =
       onChange: (date: Date) => void;
       excludedSlots?: Date[];
       token?: undefined;
+      appointmentId?: undefined;
     }
   | {
       value?: Date | undefined;
@@ -39,6 +40,7 @@ type DateTimePickerProps =
       token: string; // reschedule mode
       onChange: (date: Date) => void;
       excludedSlots?: Date[];
+      appointmentId?: number; // for order-level reschedule
     };
 
 export function DateTimePicker(props: DateTimePickerProps) {
@@ -57,8 +59,10 @@ export function DateTimePicker(props: DateTimePickerProps) {
   }:undefined);
 
 
-  // Fetch available slots from API (package mode or reschedule mode)
+  // Fetch available slots from API (package mode, single appointment reschedule, or order-level reschedule)
   const isRescheduleMode = (props as any).token !== undefined;
+  const isOrderRescheduleMode = isRescheduleMode && (props as any).appointmentId !== undefined;
+  
   const { data: packageSlotsData, isLoading: pkgLoading,isFetching: pkgFetching, error: pkgError } = useGetAvailableSlotsQuery(
     {
       packageId: (props as any).packageId as number,
@@ -68,9 +72,21 @@ export function DateTimePicker(props: DateTimePickerProps) {
       skip: !date || !(date instanceof Date) || isRescheduleMode,
     }
   );
+  
+  // Single appointment reschedule
   const { data: rescheduleSlotsData, isLoading: resLoading,isFetching: resFetching, error: resError } = useGetPublicRescheduleSlotsQuery(
     { token: (props as any).token as string, dateISO: date && date instanceof Date ? new Date(date).toISOString() : undefined },
-    { skip: !isRescheduleMode || !date || !(date instanceof Date) }
+    { skip: !isRescheduleMode || isOrderRescheduleMode || !date || !(date instanceof Date) }
+  );
+  
+  // Order-level reschedule (with appointmentId)
+  const { data: orderRescheduleSlotsData, isLoading: orderResLoading, isFetching: orderResFetching, error: orderResError } = useGetPublicOrderRescheduleSlotsQuery(
+    { 
+      token: (props as any).token as string, 
+      appointmentId: (props as any).appointmentId as number,
+      dateISO: date && date instanceof Date ? new Date(date).toISOString() : undefined 
+    },
+    { skip: !isOrderRescheduleMode || !date || !(date instanceof Date) }
   );
   /**
    * Checks if the date passed to it is within next 12 hours
@@ -156,12 +172,24 @@ export function DateTimePicker(props: DateTimePickerProps) {
     });
   }
 
-  const slotsLoading = isRescheduleMode ? resLoading || resFetching : pkgLoading || pkgFetching;
+  const slotsLoading = isOrderRescheduleMode 
+    ? orderResLoading || orderResFetching 
+    : isRescheduleMode 
+      ? resLoading || resFetching 
+      : pkgLoading || pkgFetching;
   console.log('slotsLoading', slotsLoading);
   console.log('resLoading', resLoading);
   console.log('pkgLoading', pkgLoading);
-  const slotsError = isRescheduleMode ? resError : pkgError;
-  const effectiveData = isRescheduleMode ? (rescheduleSlotsData as any)?.data : (packageSlotsData as any)?.data;
+  const slotsError = isOrderRescheduleMode 
+    ? orderResError 
+    : isRescheduleMode 
+      ? resError 
+      : pkgError;
+  const effectiveData = isOrderRescheduleMode 
+    ? (orderRescheduleSlotsData as any)?.data 
+    : isRescheduleMode 
+      ? (rescheduleSlotsData as any)?.data 
+      : (packageSlotsData as any)?.data;
   const availableSlots: Slot[] = React.useMemo(() => {
     if (!effectiveData) return [];
     return generateSlots(effectiveData);

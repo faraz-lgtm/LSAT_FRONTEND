@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RescheduleRouteImport } from './routes/reschedule'
+import { Route as OrderRescheduleRouteImport } from './routes/order-reschedule'
 import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
@@ -59,6 +60,11 @@ import { Route as AuthenticatedAuthGoogleCallbackRouteImport } from './routes/_a
 const RescheduleRoute = RescheduleRouteImport.update({
   id: '/reschedule',
   path: '/reschedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderRescheduleRoute = OrderRescheduleRouteImport.update({
+  id: '/order-reschedule',
+  path: '/order-reschedule',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
@@ -310,6 +316,7 @@ const AuthenticatedAuthGoogleCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/order-reschedule': typeof OrderRescheduleRoute
   '/reschedule': typeof RescheduleRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/order-reschedule': typeof OrderRescheduleRoute
   '/reschedule': typeof RescheduleRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/clerk': typeof ClerkRouteRouteWithChildren
+  '/order-reschedule': typeof OrderRescheduleRoute
   '/reschedule': typeof RescheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/clerk'
+    | '/order-reschedule'
     | '/reschedule'
     | '/settings'
     | '/forgot-password'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
+    | '/order-reschedule'
     | '/reschedule'
     | '/forgot-password'
     | '/otp'
@@ -540,6 +551,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/clerk'
+    | '/order-reschedule'
     | '/reschedule'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
@@ -589,6 +601,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
+  OrderRescheduleRoute: typeof OrderRescheduleRoute
   RescheduleRoute: typeof RescheduleRoute
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
@@ -609,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/reschedule'
       fullPath: '/reschedule'
       preLoaderRoute: typeof RescheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order-reschedule': {
+      id: '/order-reschedule'
+      path: '/order-reschedule'
+      fullPath: '/order-reschedule'
+      preLoaderRoute: typeof OrderRescheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clerk': {
@@ -1053,6 +1073,7 @@ const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ClerkRouteRoute: ClerkRouteRouteWithChildren,
+  OrderRescheduleRoute: OrderRescheduleRoute,
   RescheduleRoute: RescheduleRoute,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
