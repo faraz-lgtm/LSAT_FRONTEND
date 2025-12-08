@@ -27,26 +27,10 @@ export async function validateCartItemSlots(item: ItemInput): Promise<SlotValida
     console.log(`🔍 Validating ${item.DateTime.length} slots for package ${item.id}`);
     
     // Get all unique dates from the selected slots
-    // Handle backward compatibility: old format was string[] or Date[], new format is SlotInput[]
     const selectedDates = new Set(
       item.DateTime
-        .filter((slot: any) => {
-          if (!slot) return false;
-          // Handle old format: slot is a string
-          if (typeof slot === 'string') return slot.trim() !== '';
-          // Handle old format: slot is a Date
-          if (slot instanceof Date) return !isNaN(slot.getTime());
-          // Handle new format: slot is SlotInput
-          return slot.dateTime && slot.dateTime.trim() !== '';
-        })
-        .map((slot: any) => {
-          // Handle old format: slot is a string
-          if (typeof slot === 'string') return new Date(slot).toISOString();
-          // Handle old format: slot is a Date
-          if (slot instanceof Date) return slot.toISOString();
-          // Handle new format: slot is SlotInput
-          return new Date(slot.dateTime).toISOString();
-        })
+        .filter((slot: SlotInput) => slot && slot.dateTime)
+        .map((slot: SlotInput) => new Date(slot.dateTime).toISOString())
     );
     
     // Fetch available slots for all dates
@@ -84,43 +68,10 @@ export async function validateCartItemSlots(item: ItemInput): Promise<SlotValida
     }
     
     // Check which selected slots are no longer available
-    // Handle backward compatibility when filtering unavailable slots
     const unavailableSlots = item.DateTime
-      .filter((slot: any) => {
-        if (!slot) return false;
-        // Handle old format: slot is a string
-        if (typeof slot === 'string') return slot.trim() !== '';
-        // Handle old format: slot is a Date
-        if (slot instanceof Date) return !isNaN(slot.getTime());
-        // Handle new format: slot is SlotInput
-        return slot.dateTime && slot.dateTime.trim() !== '';
-      })
-      .filter((selectedSlot: any) => {
-        let slotDateTime: string;
-        
-        // Handle old format: slot is a string
-        if (typeof selectedSlot === 'string') {
-          slotDateTime = selectedSlot;
-        }
-        // Handle old format: slot is a Date
-        else if (selectedSlot instanceof Date) {
-          slotDateTime = selectedSlot.toISOString();
-        }
-        // Handle new format: slot is SlotInput
-        else {
-          slotDateTime = selectedSlot.dateTime;
-        }
-        
-        return !allAvailableSlots.includes(slotDateTime);
-      })
-      .map((slot: any) => {
-        // Handle old format: slot is a string
-        if (typeof slot === 'string') return slot;
-        // Handle old format: slot is a Date
-        if (slot instanceof Date) return slot.toISOString();
-        // Handle new format: slot is SlotInput
-        return slot.dateTime;
-      });
+      .filter((slot: SlotInput) => slot && slot.dateTime)
+      .filter((slot: SlotInput) => !allAvailableSlots.includes(slot.dateTime))
+      .map((slot: SlotInput) => slot.dateTime);
     
     const isValid = unavailableSlots.length === 0;
     

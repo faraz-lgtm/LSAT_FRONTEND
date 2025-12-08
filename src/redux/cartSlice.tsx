@@ -122,43 +122,12 @@ export const increaseQuantityAsync = createAsyncThunk(
   }
 );
 
-// Migration function to convert old DateTime format to new SlotInput format
-const migrateCartState = (state: CartState): CartState => {
-  return {
-    ...state,
-    items: state.items.map(item => ({
-      ...item,
-      DateTime: (item.DateTime || []).map(slot => {
-        // If slot is already SlotInput, return as-is
-        if (slot && typeof slot === 'object' && 'dateTime' in slot && !(slot instanceof Date)) {
-          return slot;
-        }
-        // Convert old string format to SlotInput
-        if (typeof slot === 'string') {
-          return { dateTime: slot, availableEmployeeIds: [] };
-        }
-        // Convert old Date format to SlotInput
-        if (slot instanceof Date) {
-          return { dateTime: slot.toISOString(), availableEmployeeIds: [] };
-        }
-        // Fallback for any other format
-        return { dateTime: '', availableEmployeeIds: [] };
-      })
-    }))
-  };
-};
-
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
     updateBookingDate: (state, action) => {
       console.log(action.payload);
-      
-      // Migrate state before processing
-      const migratedState = migrateCartState(state);
-      Object.assign(state, migratedState);
-      
       const { id, slotInput, index } = action.payload;
       const item = state.items.find((item) => item.id === id);
       if (
@@ -172,10 +141,6 @@ const cartSlice = createSlice({
     },
 
     decreaseQuantity: (state, action: PayloadAction<number>) => {
-      // Migrate state before processing
-      const migratedState = migrateCartState(state);
-      Object.assign(state, migratedState);
-      
       const item = state.items.find((i) => i.id === action.payload);
       if (item) {
         item.quantity -= 1;
@@ -236,10 +201,6 @@ const cartSlice = createSlice({
       state.error = null;
     },
     updateItemSlots: (state, action: PayloadAction<{itemId: number, newSlots: SlotInput[]}>) => {
-      // Migrate state before processing
-      const migratedState = migrateCartState(state);
-      Object.assign(state, migratedState);
-      
       const item = state.items.find(i => i.id === action.payload.itemId);
       if (item) {
         item.DateTime = action.payload.newSlots;
@@ -280,10 +241,6 @@ const cartSlice = createSlice({
       .addCase(increaseQuantityAsync.fulfilled, (state, action) => {
         state.isLoading = false;
         state.error = null;
-        
-        // Migrate state before processing
-        const migratedState = migrateCartState(state);
-        Object.assign(state, migratedState);
         
         const { itemId, newQuantity, additionalSlots } = action.payload;
         const item = state.items.find((i) => i.id === itemId);

@@ -139,27 +139,11 @@ export function DateTimePicker(props: DateTimePickerProps) {
     });
 
     // remove slots that are already booked
-    // Handle backward compatibility: old format was string[] or Date[], new format is SlotInput[]
     const bookedSlots = items
       .flatMap((item) => item.DateTime || [])
-      .filter((slot: any) => {
-        if (!slot) return false;
-        // Handle old format: slot is a string
-        if (typeof slot === 'string') return slot.trim() !== '';
-        // Handle old format: slot is a Date
-        if (slot instanceof Date) return !isNaN(slot.getTime());
-        // Handle new format: slot is SlotInput
-        return slot.dateTime && typeof slot.dateTime === 'string' && slot.dateTime.trim() !== '';
-      })
-      .map((slot: any) => {
-        // Convert old string format to Date
-        if (typeof slot === 'string') return new Date(slot);
-        // Convert old Date format
-        if (slot instanceof Date) return slot;
-        // Convert new SlotInput format
-        return new Date(slot.dateTime);
-      })
-      .filter((date) => !isNaN(date.getTime())); // Filter out invalid dates
+      .filter((slot: SlotInput) => slot && slot.dateTime && slot.dateTime.trim() !== '')
+      .map((slot: SlotInput) => new Date(slot.dateTime))
+      .filter((date) => !isNaN(date.getTime()));
 
     // Combine booked slots with excluded slots
     const allExcludedSlots = [...bookedSlots, ...excludedSlots];

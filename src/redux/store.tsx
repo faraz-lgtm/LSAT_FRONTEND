@@ -7,6 +7,32 @@ import authReducer, { reset } from "./authSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "@/redux/api";
 
+// Helper function to validate if cart state has correct SlotInput[] format
+const isValidCartState = (state: any): boolean => {
+  if (!state?.cart?.items || !Array.isArray(state.cart.items)) {
+    return true; // Empty or invalid structure is fine, will be reset
+  }
+  
+  return state.cart.items.every((item: any) => {
+    if (!item.DateTime) return true; // Items without DateTime are fine
+    
+    // DateTime must be an array
+    if (!Array.isArray(item.DateTime)) return false;
+    
+    // Each slot must be a SlotInput object with dateTime and availableEmployeeIds
+    return item.DateTime.every((slot: any) => {
+      return (
+        slot &&
+        typeof slot === 'object' &&
+        'dateTime' in slot &&
+        'availableEmployeeIds' in slot &&
+        typeof slot.dateTime === 'string' &&
+        Array.isArray(slot.availableEmployeeIds)
+      );
+    });
+  });
+};
+
 const persistConfig = {
   key: "root",
   storage,
@@ -21,34 +47,33 @@ const persistConfig = {
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       out: (state: any) => {
-        // Transform state after loading from storage
-        // Migrate old DateTime format (string[] or Date[]) to new SlotInput[] format
-        if (state?.cart?.items) {
-          state.cart.items = state.cart.items.map((item: any) => {
-            if (!item.DateTime || !Array.isArray(item.DateTime)) {
-              return item;
-            }
-            
-            return {
-              ...item,
-              DateTime: item.DateTime.map((slot: any) => {
-                // If slot is already SlotInput format, return as-is
-                if (slot && typeof slot === 'object' && 'dateTime' in slot && !(slot instanceof Date)) {
-                  return slot;
-                }
-                // Convert old string format to SlotInput
-                if (typeof slot === 'string') {
-                  return { dateTime: slot, availableEmployeeIds: [] };
-                }
-                // Convert old Date format (if somehow persisted) to SlotInput
-                if (slot && typeof slot === 'object' && slot instanceof Date) {
-                  return { dateTime: slot.toISOString(), availableEmployeeIds: [] };
-                }
-                // Fallback for any other format
-                return { dateTime: '', availableEmployeeIds: [] };
-              })
+        // Validate cart state format - if invalid, clear cart
+        if (!isValidCartState(state)) {
+          console.warn('⚠️ Cart state format mismatch detected. Clearing cart for fresh start.');
+          if (state?.cart) {
+            state.cart = {
+              items: [],
+              isLoading: false,
+              error: null,
             };
-          });
+          }
+          // Also clear localStorage cart data
+          try {
+            const persistData = localStorage.getItem('persist:root');
+            if (persistData) {
+              const parsed = JSON.parse(persistData);
+              if (parsed.cart) {
+                parsed.cart = JSON.stringify({
+                  items: [],
+                  isLoading: false,
+                  error: null,
+                });
+                localStorage.setItem('persist:root', JSON.stringify(parsed));
+              }
+            }
+          } catch (e) {
+            console.error('Error clearing localStorage:', e);
+          }
         }
         return state;
       }
