@@ -16,36 +16,39 @@ const persistConfig = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       in: (state: any) => {
         // Transform state before saving to storage
-        if (state.cart?.items) {
-          return {
-            ...state,
-            cart: {
-              ...state.cart,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              items: state.cart.items.map((item: any) => ({
-                ...item,
-                DateTime: item.DateTime?.map((date: Date) => date.toISOString())
-              }))
-            }
-          };
-        }
+        // SlotInput objects are already serializable, so no transformation needed
         return state;
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       out: (state: any) => {
         // Transform state after loading from storage
-        if (state.cart?.items) {
-          return {
-            ...state,
-            cart: {
-              ...state.cart,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              items: state.cart.items.map((item: any) => ({
-                ...item,
-                DateTime: item.DateTime?.map((dateString: string) => new Date(dateString))
-              }))
+        // Migrate old DateTime format (string[] or Date[]) to new SlotInput[] format
+        if (state?.cart?.items) {
+          state.cart.items = state.cart.items.map((item: any) => {
+            if (!item.DateTime || !Array.isArray(item.DateTime)) {
+              return item;
             }
-          };
+            
+            return {
+              ...item,
+              DateTime: item.DateTime.map((slot: any) => {
+                // If slot is already SlotInput format, return as-is
+                if (slot && typeof slot === 'object' && 'dateTime' in slot && !(slot instanceof Date)) {
+                  return slot;
+                }
+                // Convert old string format to SlotInput
+                if (typeof slot === 'string') {
+                  return { dateTime: slot, availableEmployeeIds: [] };
+                }
+                // Convert old Date format (if somehow persisted) to SlotInput
+                if (slot && typeof slot === 'object' && slot instanceof Date) {
+                  return { dateTime: slot.toISOString(), availableEmployeeIds: [] };
+                }
+                // Fallback for any other format
+                return { dateTime: '', availableEmployeeIds: [] };
+              })
+            };
+          });
         }
         return state;
       }

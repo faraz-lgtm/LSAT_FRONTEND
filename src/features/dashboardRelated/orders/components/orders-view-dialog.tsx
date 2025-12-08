@@ -224,9 +224,11 @@ export function OrdersViewDialog({
                         <span className='text-sm font-medium'>Scheduled Sessions ({item.DateTime.length})</span>
                       </div>
                       <div className='space-y-1 max-h-32 overflow-y-auto'>
-                        {item.DateTime.map((dateTime:any, idx:number) => (
+                        {item.DateTime.map((slotInput:any, idx:number) => (
                           <div key={idx} className='text-sm text-muted-foreground bg-background/50 rounded px-2 py-1'>
-                            {new Date(dateTime).toLocaleString()}
+                            {slotInput && slotInput.dateTime 
+                              ? new Date(slotInput.dateTime).toLocaleString()
+                              : 'Invalid slot'}
                           </div>
                         ))}
                       </div>

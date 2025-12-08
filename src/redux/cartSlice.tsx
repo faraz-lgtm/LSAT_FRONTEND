@@ -1,6 +1,6 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { ItemInput } from "@/types/api/data-contracts";
+import type { ItemInput, SlotInput } from "@/types/api/data-contracts";
 import { fetchSlotsForPackage } from "@/utils/slotFetcher";
 import type { RootState } from "./store";
 
@@ -37,7 +37,8 @@ export const addToCartAsync = createAsyncThunk(
       // Extract all already booked slots from existing cart items
       const bookedSlots = cartItems.flatMap((cartItem: ItemInput) => 
         cartItem.DateTime || []
-      ).filter((slot: string) => slot && slot.trim() !== '');
+      ).filter((slot: SlotInput) => slot && slot.dateTime && slot.dateTime.trim() !== '')
+        .map((slot: SlotInput) => slot.dateTime);
       
       console.log(`📋 Found ${bookedSlots.length} already booked slots in cart:`, bookedSlots);
       
@@ -90,7 +91,8 @@ export const increaseQuantityAsync = createAsyncThunk(
         const cartItems = state.cart.items || [];
         const bookedSlots = cartItems.flatMap((cartItem: ItemInput) => 
           cartItem.DateTime || []
-        ).filter((slot: string) => slot && slot.trim() !== '');
+        ).filter((slot: SlotInput) => slot && slot.dateTime && slot.dateTime.trim() !== '')
+          .map((slot: SlotInput) => slot.dateTime);
         
         console.log(`📋 Found ${bookedSlots.length} already booked slots in cart`);
         
@@ -120,13 +122,44 @@ export const increaseQuantityAsync = createAsyncThunk(
   }
 );
 
+// Migration function to convert old DateTime format to new SlotInput format
+const migrateCartState = (state: CartState): CartState => {
+  return {
+    ...state,
+    items: state.items.map(item => ({
+      ...item,
+      DateTime: (item.DateTime || []).map(slot => {
+        // If slot is already SlotInput, return as-is
+        if (slot && typeof slot === 'object' && 'dateTime' in slot && !(slot instanceof Date)) {
+          return slot;
+        }
+        // Convert old string format to SlotInput
+        if (typeof slot === 'string') {
+          return { dateTime: slot, availableEmployeeIds: [] };
+        }
+        // Convert old Date format to SlotInput
+        if (slot instanceof Date) {
+          return { dateTime: slot.toISOString(), availableEmployeeIds: [] };
+        }
+        // Fallback for any other format
+        return { dateTime: '', availableEmployeeIds: [] };
+      })
+    }))
+  };
+};
+
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
     updateBookingDate: (state, action) => {
       console.log(action.payload);
-      const { id, bookingDate, index } = action.payload;
+      
+      // Migrate state before processing
+      const migratedState = migrateCartState(state);
+      Object.assign(state, migratedState);
+      
+      const { id, slotInput, index } = action.payload;
       const item = state.items.find((item) => item.id === id);
       if (
         item &&
@@ -134,11 +167,15 @@ const cartSlice = createSlice({
         index >= 0 &&
         index < item.DateTime.length
       ) {
-        item.DateTime[index] = new Date(bookingDate).toString(); // update just one slot
+        item.DateTime[index] = slotInput; // Store the SlotInput object
       }
     },
 
     decreaseQuantity: (state, action: PayloadAction<number>) => {
+      // Migrate state before processing
+      const migratedState = migrateCartState(state);
+      Object.assign(state, migratedState);
+      
       const item = state.items.find((i) => i.id === action.payload);
       if (item) {
         item.quantity -= 1;
@@ -159,13 +196,15 @@ const cartSlice = createSlice({
             );
           } else if (item.DateTime && item.DateTime.length < totalSlotsNeeded) {
             // Add more slots
-            // const currentLength = item.DateTime.length;
-            // const newSlots = Array.from({ length: totalSlotsNeeded - currentLength }, () => undefined);
-            // item.DateTime = [...item.DateTime, ...newSlots];
             const currentLength = item.DateTime.length;
             const slotsToAdd = totalSlotsNeeded - currentLength;
             if (slotsToAdd > 0) {
-              item.DateTime = [...item.DateTime, ...Array(slotsToAdd).fill("")];
+              // Create empty SlotInput objects instead of empty strings
+              const emptySlots: SlotInput[] = Array(slotsToAdd).fill(null).map(() => ({
+                dateTime: "",
+                availableEmployeeIds: [],
+              }));
+              item.DateTime = [...item.DateTime, ...emptySlots];
             }
             console.log(
               `Added ${slotsToAdd} new slots. New DateTime length: ${item.DateTime?.length}`
@@ -196,7 +235,11 @@ const cartSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    updateItemSlots: (state, action: PayloadAction<{itemId: number, newSlots: string[]}>) => {
+    updateItemSlots: (state, action: PayloadAction<{itemId: number, newSlots: SlotInput[]}>) => {
+      // Migrate state before processing
+      const migratedState = migrateCartState(state);
+      Object.assign(state, migratedState);
+      
       const item = state.items.find(i => i.id === action.payload.itemId);
       if (item) {
         item.DateTime = action.payload.newSlots;
@@ -237,6 +280,10 @@ const cartSlice = createSlice({
       .addCase(increaseQuantityAsync.fulfilled, (state, action) => {
         state.isLoading = false;
         state.error = null;
+        
+        // Migrate state before processing
+        const migratedState = migrateCartState(state);
+        Object.assign(state, migratedState);
         
         const { itemId, newQuantity, additionalSlots } = action.payload;
         const item = state.items.find((i) => i.id === itemId);

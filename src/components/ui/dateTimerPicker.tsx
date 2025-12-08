@@ -17,19 +17,21 @@ import { CalendarIcon, Edit } from "lucide-react";
 import { useGetAvailableSlotsQuery } from "@/redux/apiSlices/Slot"; 
 import { useGetPublicRescheduleSlotsQuery } from "@/redux/apiSlices/Order/orderSlice";
 import type { RootState } from "../../redux/store";
+import type { AvailableSlot, SlotInput } from "@/types/api/data-contracts";
 
 import { useSelector } from "react-redux";
 
 type Slot = {
   start: Date;
   label: string;
+  apiSlot: AvailableSlot; // Store the original API slot to access availableEmployees
 };
 
 type DateTimePickerProps =
   | {
       value?: Date | undefined;
       packageId: number;
-      onChange: (date: Date) => void;
+      onChange: (slotInput: SlotInput) => void;
       excludedSlots?: Date[];
       token?: undefined;
     }
@@ -37,7 +39,7 @@ type DateTimePickerProps =
       value?: Date | undefined;
       packageId?: undefined;
       token: string; // reschedule mode
-      onChange: (date: Date) => void;
+      onChange: (slotInput: SlotInput) => void;
       excludedSlots?: Date[];
     };
 
@@ -49,27 +51,54 @@ export function DateTimePicker(props: DateTimePickerProps) {
   const excludedSlots: Date[] = Array.isArray((props as any).excludedSlots)
     ? (props as any).excludedSlots
     : [];
-  const [date, setDate] = React.useState<Date | undefined>(value);
+  
+  // Helper function to validate and normalize date
+  const normalizeDate = (dateValue: any): Date | undefined => {
+    if (!dateValue) return undefined;
+    if (dateValue instanceof Date) {
+      // Check if Date is valid
+      return isNaN(dateValue.getTime()) ? undefined : dateValue;
+    }
+    // Try to parse as Date
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  };
+  
+  const [date, setDate] = React.useState<Date | undefined>(normalizeDate(value));
   console.log('date', date);
-  const [selectedSlot, setSelectedSlot] = React.useState<Slot | undefined>(date?{
-    start: date,
-    label: "",
-  }:undefined);
+  const [selectedSlot, setSelectedSlot] = React.useState<Slot | undefined>(undefined);
 
+  // Sync date state when value prop changes
+  React.useEffect(() => {
+    const normalizedValue = normalizeDate(value);
+    if (normalizedValue) {
+      setDate(normalizedValue);
+    } else if (!value) {
+      setDate(undefined);
+    }
+  }, [value]);
+
+  // Helper function to safely convert Date to ISO string
+  const dateToISOString = (dateValue: Date | undefined): string => {
+    if (!dateValue || !(dateValue instanceof Date) || isNaN(dateValue.getTime())) {
+      return new Date().toISOString();
+    }
+    return dateValue.toISOString();
+  };
 
   // Fetch available slots from API (package mode or reschedule mode)
   const isRescheduleMode = (props as any).token !== undefined;
   const { data: packageSlotsData, isLoading: pkgLoading,isFetching: pkgFetching, error: pkgError } = useGetAvailableSlotsQuery(
     {
       packageId: (props as any).packageId as number,
-      date: date && date instanceof Date ? new Date(date).toISOString() : new Date().toISOString(),
+      date: dateToISOString(date),
     },
     {
       skip: !date || !(date instanceof Date) || isRescheduleMode,
     }
   );
   const { data: rescheduleSlotsData, isLoading: resLoading,isFetching: resFetching, error: resError } = useGetPublicRescheduleSlotsQuery(
-    { token: (props as any).token as string, dateISO: date && date instanceof Date ? new Date(date).toISOString() : undefined },
+    { token: (props as any).token as string, dateISO: date ? dateToISOString(date) : undefined },
     { skip: !isRescheduleMode || !date || !(date instanceof Date) }
   );
   /**
@@ -98,21 +127,39 @@ export function DateTimePicker(props: DateTimePickerProps) {
     const slotDurationMinutes = slotsData.slotDurationMinutes || 15;
 
     // API now returns slots only for the requested date, so no need to filter
-    slotsData.availableSlots.forEach((apiSlot: any) => {
+    slotsData.availableSlots.forEach((apiSlot: AvailableSlot) => {
       const startTime = new Date(apiSlot.slot);
       const endTime = new Date(startTime.getTime() + slotDurationMinutes * 60 * 1000);
       
       slots.push({
         start: startTime,
         label: `${formatTime(startTime)} - ${formatTime(endTime)}`,
+        apiSlot: apiSlot, // Preserve the original API slot
       });
     });
 
     // remove slots that are already booked
+    // Handle backward compatibility: old format was string[] or Date[], new format is SlotInput[]
     const bookedSlots = items
       .flatMap((item) => item.DateTime || [])
-      .filter((slot) => slot !== undefined && slot !== null ) // Remove undefined values
-      .map((slot) => new Date(slot)); // Ensure they're Date objects
+      .filter((slot: any) => {
+        if (!slot) return false;
+        // Handle old format: slot is a string
+        if (typeof slot === 'string') return slot.trim() !== '';
+        // Handle old format: slot is a Date
+        if (slot instanceof Date) return !isNaN(slot.getTime());
+        // Handle new format: slot is SlotInput
+        return slot.dateTime && typeof slot.dateTime === 'string' && slot.dateTime.trim() !== '';
+      })
+      .map((slot: any) => {
+        // Convert old string format to Date
+        if (typeof slot === 'string') return new Date(slot);
+        // Convert old Date format
+        if (slot instanceof Date) return slot;
+        // Convert new SlotInput format
+        return new Date(slot.dateTime);
+      })
+      .filter((date) => !isNaN(date.getTime())); // Filter out invalid dates
 
     // Combine booked slots with excluded slots
     const allExcludedSlots = [...bookedSlots, ...excludedSlots];
@@ -170,8 +217,9 @@ export function DateTimePicker(props: DateTimePickerProps) {
 
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
-    if (selectedDate && selectedDate instanceof Date) {
-      setDate(selectedDate);
+    const normalizedDate = normalizeDate(selectedDate);
+    if (normalizedDate) {
+      setDate(normalizedDate);
       // Don't call onChange here - wait for slot selection
     }
   };
@@ -179,7 +227,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
   const handleSlotSelect = (slot: Slot) => {
     setSelectedSlot(slot);
     
-    if (date && date instanceof Date) {
+    if (date && date instanceof Date && !isNaN(date.getTime())) {
       // Combine selected date with slot time
       const combinedDate = new Date(date);
       combinedDate.setHours(
@@ -188,7 +236,17 @@ export function DateTimePicker(props: DateTimePickerProps) {
         0,
         0
       );
-      onChange(combinedDate);
+      
+      // Validate combined date before creating SlotInput
+      if (!isNaN(combinedDate.getTime())) {
+        // Create SlotInput object with dateTime and availableEmployeeIds
+        const slotInput: SlotInput = {
+          dateTime: combinedDate.toISOString(),
+          availableEmployeeIds: slot.apiSlot.availableEmployees.map(emp => emp.id),
+        };
+        
+        onChange(slotInput);
+      }
     }
   };
   const [isOpen, setIsOpen] = React.useState(false);

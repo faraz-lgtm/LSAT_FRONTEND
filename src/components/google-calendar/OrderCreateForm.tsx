@@ -24,6 +24,7 @@ import PhoneInput from "react-phone-input-2";
 import { useCurrency } from '@/context/currency-provider';
 import { useCurrencyFormatter } from '@/utils/currency';
 import { fetchSlotsForPackage } from '@/utils/slotFetcher';
+import type { SlotInput } from '@/types/api/data-contracts';
 
 interface OrderCreateFormProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ interface CustomerFormData {
 
 interface OrderFormData {
   packageIds: number[];
-  selectedSlots: { packageId: number; slots: (Date | undefined)[] }[];
+  selectedSlots: { packageId: number; slots: (SlotInput | undefined)[] }[];
   customerId?: number;
   customerData?: CustomerFormData;
 }
@@ -134,8 +135,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
         // Get all already selected slots from other packages to exclude
         const allSelectedSlots = formData.selectedSlots
           .flatMap(slotData => slotData.slots)
-          .filter(slot => slot !== undefined)
-          .map(slot => slot!.toISOString());
+          .filter(slot => slot !== undefined && slot.dateTime)
+          .map(slot => slot!.dateTime);
         
         // Fetch available slots for this package
         const fetchedSlots = await fetchSlotsForPackage(
@@ -145,9 +146,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
           allSelectedSlots
         );
         
-        // Convert ISO strings to Date objects
-        const dateSlots = fetchedSlots.map(slot => new Date(slot));
-        
+        // fetchedSlots is already SlotInput[], so use it directly
         setFormData(prev => {
           // Double-check package hasn't been added in the meantime
           if (prev.packageIds.includes(packageIdNum)) {
@@ -161,7 +160,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
               ...prev.selectedSlots,
               {
                 packageId: packageIdNum,
-                slots: dateSlots
+                slots: fetchedSlots
               }
             ],
           };
@@ -197,7 +196,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     }
   };
 
-  const handleSlotChange = (packageId: number, slotIndex: number, date: Date) => {
+  const handleSlotChange = (packageId: number, slotIndex: number, slotInput: SlotInput) => {
     setFormData(prev => ({
       ...prev,
       selectedSlots: prev.selectedSlots.map(slotData => 
@@ -205,7 +204,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
           ? {
               ...slotData,
               slots: slotData.slots.map((slot, index) => 
-                index === slotIndex ? date : slot
+                index === slotIndex ? slotInput : slot
               )
             }
           : slotData
@@ -233,11 +232,16 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     }));
   };
 
-  // Helper function to get all selected slots across all packages
+  // Helper function to get all selected slots across all packages as Date objects
   const getAllSelectedSlots = (): Date[] => {
     return formData.selectedSlots
       .flatMap(slotData => slotData.slots)
-      .filter(slot => slot !== undefined) as Date[];
+      .filter(slot => slot !== undefined && slot.dateTime)
+      .map(slot => {
+        const date = new Date(slot!.dateTime);
+        return isNaN(date.getTime()) ? null : date;
+      })
+      .filter((date): date is Date => date !== null);
   };
 
   // Helper function to get excluded slots for a specific package and slot index
@@ -250,8 +254,11 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     // Return all selected slots except the current one being edited
     return allSelectedSlots.filter(slot => {
       // Don't exclude the slot being edited itself
-      if (currentSlot && slot.getTime() === currentSlot.getTime()) {
-        return false;
+      if (currentSlot && currentSlot.dateTime) {
+        const currentSlotDate = new Date(currentSlot.dateTime);
+        if (!isNaN(currentSlotDate.getTime()) && slot.getTime() === currentSlotDate.getTime()) {
+          return false;
+        }
       }
       return true;
     });
@@ -262,7 +269,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     for (const packageId of formData.packageIds) {
       const slotsNeeded = getSlotsPerPackage(packageId);
       const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
-      const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined).length || 0;
+      const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined && slot.dateTime && slot.dateTime.trim() !== '').length || 0;
       
       if (selectedSlotsCount !== slotsNeeded) {
         return false;
@@ -281,7 +288,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     for (const packageId of formData.packageIds) {
       const slotsNeeded = getSlotsPerPackage(packageId);
       const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
-      const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined).length || 0;
+      const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined && slot.dateTime && slot.dateTime.trim() !== '').length || 0;
       
       if (selectedSlotsCount !== slotsNeeded) {
         const packageName = products.find(p => p.id === packageId)?.name || 'Unknown Package';
@@ -315,7 +322,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
             save: selectedPackage.save,
             Duration: selectedPackage.Duration,
             Description: selectedPackage.Description,
-            DateTime: packageSlots.slots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()),
+            DateTime: packageSlots.slots.filter(slot => slot !== undefined && slot.dateTime) as SlotInput[],
             quantity: 1,
             // assignedEmployeeIds: [-1],
             sessions: selectedPackage.sessions,
@@ -431,8 +438,15 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
                                 </span>
                                 <DateTimePicker
                                   packageId={packageId}
-                                  value={packageSlots?.slots[index]}
-                                  onChange={(date) => handleSlotChange(packageId, index, date)}
+                                  value={
+                                    packageSlots?.slots[index] && packageSlots.slots[index]?.dateTime
+                                      ? (() => {
+                                          const parsedDate = new Date(packageSlots.slots[index]!.dateTime);
+                                          return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+                                        })()
+                                      : undefined
+                                  }
+                                  onChange={(slotInput) => handleSlotChange(packageId, index, slotInput)}
                                   excludedSlots={getExcludedSlots(packageId, index)}
                                 />
                               </div>

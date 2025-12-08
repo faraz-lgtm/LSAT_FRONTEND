@@ -24,7 +24,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { roles } from '../data/data'
 import { DataTableBulkActions } from './data-table-bulk-actions'
-import { usersColumns as baseColumns } from './users-columns'
+import { createUsersColumns } from './users-columns'
 import type { UserOutput } from '@/types/api/data-contracts'
 import { useUsers } from './users-provider'
 import { useSelector } from 'react-redux'
@@ -53,7 +53,7 @@ type DataTableProps = {
 } 
 
 export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hideRolesFilter, hideUsernameColumn, excludeRolesFromFilter, showGoogleCalendarColumn }: DataTableProps) {
-  const { setOpen, setCurrentRow } = useUsers()
+  const { setOpen, setCurrentRow, pageType } = useUsers()
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const currentUserForRBAC = convertAuthUserToIUser(currentUser)
   
@@ -66,8 +66,8 @@ export function UsersTable({ data, search, navigate, hideCustomerTypeFilter, hid
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   
-  // Create columns with products in meta
-  const columns = useMemo(() => baseColumns, [])
+  // Create columns with products in meta and pageType
+  const columns = useMemo(() => createUsersColumns(pageType), [pageType])
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])

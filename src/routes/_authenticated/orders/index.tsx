@@ -11,6 +11,7 @@ const orderSearchSchema = z.object({
     .optional()
     .catch([]),
   orderId: z.number().optional().catch(undefined),
+  assignedEmployeeId: z.number().optional().catch(undefined),
 })
 
 // Lazy load Orders to enable code splitting

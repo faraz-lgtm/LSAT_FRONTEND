@@ -4,8 +4,10 @@ import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/dashboard/data-table'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
-import type { OrderOutput } from '@/types/api/data-contracts'
+import type { OrderOutput, UserOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
+import { useListOrderAppointmentsQuery } from '@/redux/apiSlices/Order/orderSlice'
+import { useMemo } from 'react'
 
 // Helper to get initials from name
 function getInitials(name: string): string {
@@ -16,7 +18,46 @@ function getInitials(name: string): string {
   return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase()
 }
 
-export const createOrdersColumns = (formatCurrency: (cents: number) => string): ColumnDef<OrderOutput>[] => [
+// Component for assigned tutors cell
+function AssignedTutorsCell({ orderId, userIdToUser }: { orderId: number; userIdToUser: Record<number, UserOutput> }) {
+  const { data: apptsData } = useListOrderAppointmentsQuery(orderId)
+  
+  const assignedEmployees = useMemo(() => {
+    // handle either wrapped BaseApiResponse or raw array
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = (apptsData as any)?.data ?? apptsData
+    const appointments = (payload ?? []) as Array<{ assignedEmployeeId?: number | null }>
+    
+    // Extract unique assigned employee IDs
+    const employeeIds = new Set<number>()
+    appointments.forEach(appt => {
+      if (appt.assignedEmployeeId) {
+        employeeIds.add(appt.assignedEmployeeId)
+      }
+    })
+    
+    return Array.from(employeeIds).map(id => userIdToUser[id]).filter(Boolean) as UserOutput[]
+  }, [apptsData, userIdToUser])
+  
+  if (assignedEmployees.length === 0) {
+    return <div className='text-sm text-muted-foreground'>Unassigned</div>
+  }
+  
+  return (
+    <div className='flex flex-wrap gap-1'>
+      {assignedEmployees.map((employee) => (
+        <Badge key={employee.id} variant='outline' className='text-xs'>
+          {employee.name}
+        </Badge>
+      ))}
+    </div>
+  )
+}
+
+export const createOrdersColumns = (
+  formatCurrency: (cents: number) => string,
+  userIdToUser?: Record<number, UserOutput>
+): ColumnDef<OrderOutput>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -106,6 +147,17 @@ export const createOrdersColumns = (formatCurrency: (cents: number) => string): 
     },
     meta: { className: 'w-52' },
   },
+  ...(userIdToUser ? [{
+    id: 'assignedTutors',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Assigned Tutors' />
+    ),
+    cell: ({ row }) => {
+      return <AssignedTutorsCell orderId={row.original.id} userIdToUser={userIdToUser} />
+    },
+    enableSorting: false,
+    meta: { className: 'w-48' },
+  }] : []),
   {
     id: 'phone',
     accessorKey: 'customer',

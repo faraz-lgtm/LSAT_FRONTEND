@@ -347,10 +347,27 @@ const Appointment = () => {
             console.log(`⚠️ Invalid slots found for item ${item.id}, fetching fresh slots...`);
             
             // Get all already booked slots from other cart items
+            // Handle backward compatibility: old format was string[] or Date[], new format is SlotInput[]
             const otherItems = initialItems.filter(i => i.id !== item.id);
             const bookedSlots = otherItems.flatMap((cartItem) => 
               cartItem.DateTime || []
-            ).filter((slot: string) => slot && slot.trim() !== '');
+            ).filter((slot: any) => {
+              if (!slot) return false;
+              // Handle old format: slot is a string
+              if (typeof slot === 'string') return slot.trim() !== '';
+              // Handle old format: slot is a Date
+              if (slot instanceof Date) return !isNaN(slot.getTime());
+              // Handle new format: slot is SlotInput
+              return slot.dateTime && typeof slot.dateTime === 'string' && slot.dateTime.trim() !== '';
+            })
+              .map((slot: any) => {
+                // Handle old format: slot is a string
+                if (typeof slot === 'string') return slot;
+                // Handle old format: slot is a Date
+                if (slot instanceof Date) return slot.toISOString();
+                // Handle new format: slot is SlotInput
+                return slot.dateTime;
+              });
             
             // Fetch fresh slots for this item
             const requiredSlots = item.sessions || 1;
@@ -448,11 +465,20 @@ const Appointment = () => {
       }
 
       // add validation to check if all the slots are selected
+      // Handle backward compatibility when checking if all slots are selected
       const allSlotsSelected = items.every(
         (item) =>
           item.DateTime &&
           item.DateTime.length > 0 &&
-          item.DateTime.every((dateTime) => dateTime !== undefined)
+          item.DateTime.every((slotInput: any) => {
+            if (!slotInput) return false;
+            // Handle old format: slotInput is a string
+            if (typeof slotInput === 'string') return slotInput.trim() !== '';
+            // Handle old format: slotInput is a Date
+            if (slotInput instanceof Date) return !isNaN(slotInput.getTime());
+            // Handle new format: slotInput is SlotInput
+            return slotInput.dateTime && typeof slotInput.dateTime === 'string' && slotInput.dateTime.trim() !== '';
+          })
       );
 
       if (!allSlotsSelected) {
@@ -460,11 +486,19 @@ const Appointment = () => {
           (sum, item) => sum + (item.DateTime?.length || 0),
           0
         );
+        // Handle backward compatibility when counting selected slots
         const selectedSlots = items.reduce(
           (sum, item) =>
             sum +
-            (item.DateTime?.filter((dateTime) => dateTime !== undefined)
-              .length || 0),
+            (item.DateTime?.filter((slotInput: any) => {
+              if (!slotInput) return false;
+              // Handle old format: slotInput is a string
+              if (typeof slotInput === 'string') return slotInput.trim() !== '';
+              // Handle old format: slotInput is a Date
+              if (slotInput instanceof Date) return !isNaN(slotInput.getTime());
+              // Handle new format: slotInput is SlotInput
+              return slotInput.dateTime && typeof slotInput.dateTime === 'string' && slotInput.dateTime.trim() !== '';
+            }).length || 0),
           0
         );
         handleError(
@@ -616,16 +650,35 @@ const Appointment = () => {
                                       key={`${item.id}-${globalIndex}-${slotUpdateKey}`}
                                       packageId={item.id}
                                       value={
-                                        dateTime
-                                          ? new Date(dateTime)
-                                          : undefined
+                                        (() => {
+                                          if (!dateTime) return undefined;
+                                          
+                                          // Handle old format: dateTime is a string
+                                          if (typeof dateTime === 'string') {
+                                            const parsedDate = new Date(dateTime);
+                                            return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+                                          }
+                                          
+                                          // Handle old format: dateTime is a Date
+                                          if (dateTime instanceof Date) {
+                                            return isNaN(dateTime.getTime()) ? undefined : dateTime;
+                                          }
+                                          
+                                          // Handle new format: dateTime is SlotInput
+                                          if (dateTime.dateTime && dateTime.dateTime.trim() !== '') {
+                                            const parsedDate = new Date(dateTime.dateTime);
+                                            return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+                                          }
+                                          
+                                          return undefined;
+                                        })()
                                       }
-                                      onChange={(date) =>
+                                      onChange={(slotInput) =>
                                         dispatch(
                                           updateBookingDate({
                                             id: item.id,
                                             index: globalIndex,
-                                            bookingDate: date.toISOString(),
+                                            slotInput: slotInput,
                                           })
                                         )
                                       }
