@@ -21,10 +21,12 @@ function useTimezoneLabel() {
 interface AppointmentSlot {
   id: number
   slotDateTime: string
+  originalDateTime: string // Keep track of original time
   packageName: string
   duration: number
   assignedEmployeeName?: string
   newDateTime?: string
+  hasChanged?: boolean // Track if user changed the time
   isRescheduled?: boolean
   isConfirming?: boolean
 }
@@ -63,7 +65,9 @@ export function OrderReschedulePage() {
     if (orderInfo?.data?.appointments) {
       const appts = orderInfo.data.appointments.map(apt => ({
         ...apt,
-        newDateTime: apt.slotDateTime, // Initialize with current time
+        originalDateTime: apt.slotDateTime, // Keep original for comparison
+        newDateTime: apt.slotDateTime,
+        hasChanged: false,
       }))
       setAppointments(appts)
       setState('ready')
@@ -72,9 +76,10 @@ export function OrderReschedulePage() {
 
   // Handle date/time change for an appointment
   const handleDateTimeChange = (appointmentId: number, newDate: Date) => {
+    console.log('Date changed for appointment:', appointmentId, 'to:', newDate.toISOString())
     setAppointments(prev => prev.map(apt => 
       apt.id === appointmentId 
-        ? { ...apt, newDateTime: newDate.toISOString() } 
+        ? { ...apt, newDateTime: newDate.toISOString(), hasChanged: true } 
         : apt
     ))
   }
@@ -82,9 +87,11 @@ export function OrderReschedulePage() {
   // Handle confirm single appointment reschedule
   const handleConfirmSingle = async (appointmentId: number) => {
     const apt = appointments.find(a => a.id === appointmentId)
-    if (!apt || !apt.newDateTime || apt.newDateTime === apt.slotDateTime) {
+    if (!apt || !apt.newDateTime || !apt.hasChanged) {
+      console.log('Skip confirm single - no changes for:', appointmentId)
       return
     }
+    console.log('Confirming single appointment:', appointmentId, 'new time:', apt.newDateTime)
 
     // Update state to show confirming for this appointment
     setAppointments(prev => prev.map(a => 
@@ -107,7 +114,7 @@ export function OrderReschedulePage() {
       
       setSlotsRefreshed(true)
       setTimeout(() => setSlotsRefreshed(false), 3000)
-    } catch (error) {
+    } catch {
       setAppointments(prev => prev.map(a => 
         a.id === appointmentId ? { ...a, isConfirming: false } : a
       ))
@@ -116,33 +123,75 @@ export function OrderReschedulePage() {
     }
   }
 
-  // Handle confirm all reschedules
+  // Handle confirm all reschedules - parallel execution
   const handleConfirmAll = async () => {
     setState('confirming')
     
+    // Get all appointments that need rescheduling
+    const toReschedule = appointments.filter(
+      apt => apt.newDateTime && apt.hasChanged && !apt.isRescheduled
+    )
+    console.log('Appointments to reschedule:', toReschedule)
+    
+    if (toReschedule.length === 0) {
+      setState('ready')
+      return
+    }
+
+    // Mark all as confirming
+    setAppointments(prev => prev.map(a => 
+      toReschedule.find(r => r.id === a.id) ? { ...a, isConfirming: true } : a
+    ))
+    
     try {
-      // Reschedule each appointment that has a new time
-      for (const apt of appointments) {
-        if (apt.newDateTime && apt.newDateTime !== apt.slotDateTime && !apt.isRescheduled) {
-          await confirmReschedule({ 
+      // Execute all reschedules in parallel
+      const results = await Promise.allSettled(
+        toReschedule.map(apt => 
+          confirmReschedule({ 
             token, 
             appointmentId: apt.id, 
-            newDateTimeISO: apt.newDateTime 
+            newDateTimeISO: apt.newDateTime! 
           }).unwrap()
-          
-          // Mark as rescheduled
-          setAppointments(prev => prev.map(a => 
-            a.id === apt.id 
-              ? { ...a, isRescheduled: true, slotDateTime: apt.newDateTime! } 
-              : a
-          ))
-        }
-      }
+        )
+      )
       
-      setState('success')
-      setSlotsRefreshed(true)
-    } catch (error) {
-      setErrorMsg('Some appointments could not be rescheduled. Please try again.')
+      // Process results
+      const successIds: number[] = []
+      const failedIds: number[] = []
+      
+      results.forEach((result, index) => {
+        const apt = toReschedule[index]
+        if (!apt) return
+        if (result.status === 'fulfilled') {
+          successIds.push(apt.id)
+        } else {
+          failedIds.push(apt.id)
+        }
+      })
+      
+      // Update state for all appointments
+      setAppointments(prev => prev.map(a => {
+        if (successIds.includes(a.id)) {
+          const apt = toReschedule.find(r => r.id === a.id)
+          return { ...a, isRescheduled: true, slotDateTime: apt?.newDateTime || a.slotDateTime, isConfirming: false }
+        }
+        if (failedIds.includes(a.id)) {
+          return { ...a, isConfirming: false }
+        }
+        return a
+      }))
+      
+      if (failedIds.length > 0) {
+        setErrorMsg(`${failedIds.length} appointment(s) could not be rescheduled. Please try again.`)
+        setState('ready')
+        setTimeout(() => setErrorMsg(''), 5000)
+      } else {
+        setState('success')
+        setSlotsRefreshed(true)
+      }
+    } catch {
+      setAppointments(prev => prev.map(a => ({ ...a, isConfirming: false })))
+      setErrorMsg('Failed to reschedule appointments. Please try again.')
       setState('ready')
       setTimeout(() => setErrorMsg(''), 5000)
     }
@@ -155,8 +204,16 @@ export function OrderReschedulePage() {
 
   // Calculate total appointments
   const totalAppointments = appointments.length
-  const pendingReschedules = appointments.filter(a => !a.isRescheduled && a.newDateTime !== a.slotDateTime).length
+  const pendingReschedules = appointments.filter(a => !a.isRescheduled && a.hasChanged).length
   const completedReschedules = appointments.filter(a => a.isRescheduled).length
+  
+  console.log('Appointments state:', appointments.map(a => ({ 
+    id: a.id, 
+    hasChanged: a.hasChanged, 
+    isRescheduled: a.isRescheduled,
+    newDateTime: a.newDateTime 
+  })))
+  console.log('Pending:', pendingReschedules, 'Completed:', completedReschedules)
 
   if (state === 'loading' || isLoadingInfo) {
     return (
@@ -260,7 +317,7 @@ export function OrderReschedulePage() {
                   {/* Header */}
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-baseline justify-between">
-                      <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Your Sessions</h1>
+                      <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Reschedule Your Sessions</h1>
                       <span className="text-xs text-gray-500">Timezone: {tz}</span>
                     </div>
                   </div>
@@ -354,7 +411,7 @@ export function OrderReschedulePage() {
                                     />
                                   </div>
                                   {/* Individual Confirm Button */}
-                                  {!appointment.isRescheduled && appointment.newDateTime !== appointment.slotDateTime && (
+                                  {!appointment.isRescheduled && appointment.hasChanged && (
                                     <button
                                       onClick={() => handleConfirmSingle(appointment.id)}
                                       disabled={appointment.isConfirming}
