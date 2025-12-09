@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, User, Package } from 'lucide-react';
+import { Clock, User, Package, Info, AlertTriangle } from 'lucide-react';
 import { useGetProductsQuery } from '@/redux/apiSlices/Product/productSlice';
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice';
 import { useCreateOrderMutation } from '@/redux/apiSlices/Order/orderSlice';
@@ -42,7 +42,20 @@ interface OrderFormData {
   selectedSlots: { packageId: number; slots: (Date | undefined)[] }[];
   customerId?: number;
   customerData?: CustomerFormData;
+  skipSlotReservation: boolean;
+  reservationExpiryMinutes: number;
 }
+
+// Reservation time options for configurable slot reservation
+const RESERVATION_TIME_OPTIONS = [
+  { value: 30, label: '30 minutes (default)' },
+  { value: 60, label: '1 hour' },
+  { value: 120, label: '2 hours' },
+  { value: 360, label: '6 hours' },
+  { value: 720, label: '12 hours' },
+  { value: 1080, label: '18 hours' },
+  { value: 1440, label: '24 hours' },
+];
 
 export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
   isOpen,
@@ -53,6 +66,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     selectedSlots: [],
     customerId: undefined,
     customerData: undefined,
+    skipSlotReservation: false,
+    reservationExpiryMinutes: 30,
   });
 
   const [customerFormData, setCustomerFormData] = useState<CustomerFormData>({
@@ -89,7 +104,9 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
   const [orderResult, setOrderResult] = useState<{
     data: {
       url: string;
-      sessionId: string;
+      sessionId?: string;
+      rescheduleUrl?: string;
+      isRescheduleFlow?: boolean;
     };
   } | null>(null);
 
@@ -114,6 +131,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
         selectedSlots: [],
         customerId: undefined,
         customerData: undefined,
+        skipSlotReservation: false,
+        reservationExpiryMinutes: 30,
       });
       setCustomerFormData({
         firstName: '',
@@ -257,8 +276,13 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
     });
   };
 
-  // Helper function to check if all required slots are selected
+  // Helper function to check if all required slots are selected (or if skip reservation is enabled)
   const isAllSlotsSelected = (): boolean => {
+    // If skipping slot reservation, no need to check slots
+    if (formData.skipSlotReservation) {
+      return true;
+    }
+    
     for (const packageId of formData.packageIds) {
       const slotsNeeded = getSlotsPerPackage(packageId);
       const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
@@ -277,16 +301,18 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
       return;
     }
 
-    // Check if all required slots are selected for each package
-    for (const packageId of formData.packageIds) {
-      const slotsNeeded = getSlotsPerPackage(packageId);
-      const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
-      const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined).length || 0;
-      
-      if (selectedSlotsCount !== slotsNeeded) {
-        const packageName = products.find(p => p.id === packageId)?.name || 'Unknown Package';
-        alert(`Please select all ${slotsNeeded} time slots for ${packageName}. You have selected ${selectedSlotsCount} out of ${slotsNeeded}.`);
-        return;
+    // Check if all required slots are selected for each package (only when not skipping reservation)
+    if (!formData.skipSlotReservation) {
+      for (const packageId of formData.packageIds) {
+        const slotsNeeded = getSlotsPerPackage(packageId);
+        const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
+        const selectedSlotsCount = packageSlots?.slots.filter(slot => slot !== undefined).length || 0;
+        
+        if (selectedSlotsCount !== slotsNeeded) {
+          const packageName = products.find(p => p.id === packageId)?.name || 'Unknown Package';
+          alert(`Please select all ${slotsNeeded} time slots for ${packageName}. You have selected ${selectedSlotsCount} out of ${slotsNeeded}.`);
+          return;
+        }
       }
     }
 
@@ -304,9 +330,14 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
           const selectedPackage = products.find(p => p.id === packageId);
           const packageSlots = formData.selectedSlots.find(slot => slot.packageId === packageId);
           
-          if (!selectedPackage || !packageSlots) {
+          if (!selectedPackage) {
             throw new Error(`Package ${packageId} not found`);
           }
+
+          // When skipping slot reservation, don't include DateTime
+          const dateTime = formData.skipSlotReservation 
+            ? [] 
+            : (packageSlots?.slots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()) || []);
 
           return {
             id: selectedPackage.id,
@@ -315,9 +346,8 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
             save: selectedPackage.save,
             Duration: selectedPackage.Duration,
             Description: selectedPackage.Description,
-            DateTime: packageSlots.slots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()),
+            DateTime: dateTime,
             quantity: 1,
-            // assignedEmployeeIds: [-1],
             sessions: selectedPackage.sessions,
           };
         }),
@@ -335,6 +365,9 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
               };
             })()
           : formData.customerData!,
+        // Add slot reservation options
+        skipSlotReservation: formData.skipSlotReservation,
+        reservationExpiryMinutes: formData.skipSlotReservation ? undefined : formData.reservationExpiryMinutes,
       };
 
       const result = await createOrder(orderData).unwrap();
@@ -398,8 +431,79 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
               </CardContent>
             </Card>
 
-            {/* Step 2: Time Slots Selection */}
-            {formData.packageIds.length > 0 && (
+            {/* Step 2: Slot Reservation Options */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Slot Reservation Options
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Skip Slot Reservation Checkbox */}
+                <div className="flex items-start space-x-3 p-3 border rounded-lg bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                  <Checkbox
+                    id="skip-slot-reservation"
+                    checked={formData.skipSlotReservation}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, skipSlotReservation: checked as boolean }))
+                    }
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="skip-slot-reservation"
+                      className="font-medium cursor-pointer flex items-center gap-2"
+                    >
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      Skip Slot Reservation
+                    </label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      When enabled, slots won't be reserved upfront. Customer will receive a reschedule link 
+                      to book their appointments and then proceed to checkout.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Reservation Time Configuration */}
+                {!formData.skipSlotReservation && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="reservation-time">Reservation Duration</Label>
+                      <div className="group relative">
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2 bg-popover text-popover-foreground text-xs rounded-md shadow-lg border z-50">
+                          How long the slot will be reserved for the customer to complete payment. 
+                          After this time, the slot becomes available to other customers.
+                        </div>
+                      </div>
+                    </div>
+                    <Select 
+                      value={formData.reservationExpiryMinutes.toString()} 
+                      onValueChange={(value) => 
+                        setFormData(prev => ({ ...prev, reservationExpiryMinutes: parseInt(value) }))
+                      }
+                    >
+                      <SelectTrigger id="reservation-time">
+                        <SelectValue placeholder="Select reservation duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RESERVATION_TIME_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value.toString()}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Use longer durations (12-24 hours) if the customer needs more time to complete payment.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Step 3: Time Slots Selection - Only show when NOT skipping slot reservation */}
+            {formData.packageIds.length > 0 && !formData.skipSlotReservation && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -446,7 +550,7 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
               </Card>
             )}
 
-            {/* Step 3: Customer Selection */}
+            {/* Step 4: Customer Selection */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">

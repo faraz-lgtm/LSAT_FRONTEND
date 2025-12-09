@@ -2,9 +2,10 @@ import * as React from 'react'
 import { DateTimePicker } from '@/components/ui/dateTimerPicker'
 import { 
   useGetPublicOrderRescheduleInfoQuery,
-  useConfirmPublicOrderRescheduleMutation 
+  useConfirmPublicOrderRescheduleMutation,
+  useGetPublicOrderCheckoutMutation
 } from '@/redux/apiSlices/Order/orderSlice'
-import { ArrowLeft, Check, AlertCircle, Terminal } from 'lucide-react'
+import { ArrowLeft, Check, AlertCircle, Terminal, CreditCard, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 function useTimezoneLabel() {
@@ -20,15 +21,16 @@ function useTimezoneLabel() {
 
 interface AppointmentSlot {
   id: number
-  slotDateTime: string
-  originalDateTime: string // Keep track of original time
+  slotDateTime: string | null // Can be null for unscheduled appointments
+  originalDateTime: string | null // Keep track of original time (null if never scheduled)
   packageName: string
   duration: number
   assignedEmployeeName?: string
-  newDateTime?: string
+  newDateTime?: string | null
   hasChanged?: boolean // Track if user changed the time
   isRescheduled?: boolean
   isConfirming?: boolean
+  isUnscheduled?: boolean // True if this appointment was never scheduled (skipSlotReservation flow)
 }
 
 export function OrderReschedulePage() {
@@ -36,11 +38,13 @@ export function OrderReschedulePage() {
   const [errorMsg, setErrorMsg] = React.useState<string>('')
   const [appointments, setAppointments] = React.useState<AppointmentSlot[]>([])
   const [slotsRefreshed, setSlotsRefreshed] = React.useState(false)
+  const [needsPayment, setNeedsPayment] = React.useState(false) // Track if this is a new order needing payment
   
   const token = React.useMemo(() => new URLSearchParams(window.location.search).get('token') || '', [])
   const tz = useTimezoneLabel()
   
   const [confirmReschedule, { isLoading: isConfirming }] = useConfirmPublicOrderRescheduleMutation()
+  const [getCheckout, { isLoading: isGettingCheckout }] = useGetPublicOrderCheckoutMutation()
   
   // Fetch order info with appointments
   const { data: orderInfo, isLoading: isLoadingInfo, error: infoError } = useGetPublicOrderRescheduleInfoQuery(
@@ -65,11 +69,17 @@ export function OrderReschedulePage() {
     if (orderInfo?.data?.appointments) {
       const appts = orderInfo.data.appointments.map(apt => ({
         ...apt,
-        originalDateTime: apt.slotDateTime, // Keep original for comparison
-        newDateTime: apt.slotDateTime,
+        originalDateTime: apt.slotDateTime, // Keep original for comparison (null if never scheduled)
+        newDateTime: apt.slotDateTime, // Will be null for unscheduled appointments
         hasChanged: false,
+        isUnscheduled: !apt.slotDateTime, // Mark as unscheduled if no slotDateTime
       }))
       setAppointments(appts)
+      
+      // If any appointments are unscheduled, this is a new order flow that needs payment after scheduling
+      const hasUnscheduled = appts.some(apt => !apt.slotDateTime)
+      setNeedsPayment(hasUnscheduled)
+      
       setState('ready')
     }
   }, [token, orderInfo, infoError])
@@ -84,14 +94,15 @@ export function OrderReschedulePage() {
     ))
   }
 
-  // Handle confirm single appointment reschedule
+  // Handle confirm single appointment reschedule or schedule
   const handleConfirmSingle = async (appointmentId: number) => {
     const apt = appointments.find(a => a.id === appointmentId)
-    if (!apt || !apt.newDateTime || !apt.hasChanged) {
+    // Allow confirm if: has changes OR is unscheduled with a new time selected
+    if (!apt || !apt.newDateTime || (!apt.hasChanged && !apt.isUnscheduled)) {
       console.log('Skip confirm single - no changes for:', appointmentId)
       return
     }
-    console.log('Confirming single appointment:', appointmentId, 'new time:', apt.newDateTime)
+    console.log('Confirming appointment:', appointmentId, 'new time:', apt.newDateTime, 'isUnscheduled:', apt.isUnscheduled)
 
     // Update state to show confirming for this appointment
     setAppointments(prev => prev.map(a => 
@@ -123,15 +134,15 @@ export function OrderReschedulePage() {
     }
   }
 
-  // Handle confirm all reschedules - parallel execution
+  // Handle confirm all reschedules/schedules - parallel execution
   const handleConfirmAll = async () => {
     setState('confirming')
     
-    // Get all appointments that need rescheduling
+    // Get all appointments that need scheduling (changed OR unscheduled with selected time)
     const toReschedule = appointments.filter(
-      apt => apt.newDateTime && apt.hasChanged && !apt.isRescheduled
+      apt => apt.newDateTime && !apt.isRescheduled && (apt.hasChanged || apt.isUnscheduled)
     )
-    console.log('Appointments to reschedule:', toReschedule)
+    console.log('Appointments to schedule:', toReschedule)
     
     if (toReschedule.length === 0) {
       setState('ready')
@@ -204,8 +215,11 @@ export function OrderReschedulePage() {
 
   // Calculate total appointments
   const totalAppointments = appointments.length
-  const pendingReschedules = appointments.filter(a => !a.isRescheduled && a.hasChanged).length
+  // Pending includes: changed appointments OR unscheduled appointments with selected time
+  const pendingReschedules = appointments.filter(a => !a.isRescheduled && (a.hasChanged || (a.isUnscheduled && a.newDateTime))).length
   const completedReschedules = appointments.filter(a => a.isRescheduled).length
+  // Count how many are still unscheduled (no time selected yet)
+  const unscheduledCount = appointments.filter(a => a.isUnscheduled && !a.newDateTime && !a.isRescheduled).length
   
   console.log('Appointments state:', appointments.map(a => ({ 
     id: a.id, 
@@ -244,6 +258,22 @@ export function OrderReschedulePage() {
     )
   }
 
+  // Handle proceed to payment
+  const handleProceedToPayment = async () => {
+    try {
+      const result = await getCheckout({ token }).unwrap()
+      if (result?.data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = result.data.url
+      } else {
+        setErrorMsg('Failed to get payment link. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error getting checkout URL:', error)
+      setErrorMsg('Failed to get payment link. Please try again.')
+    }
+  }
+
   if (state === 'success') {
     return (
       <div className="min-h-screen customer-page-bg flex items-center justify-center p-4">
@@ -251,16 +281,41 @@ export function OrderReschedulePage() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <Check className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-xl font-semibold">You're all set!</h1>
+          <h1 className="text-xl font-semibold">
+            {needsPayment ? 'Appointments Scheduled!' : "You're all set!"}
+          </h1>
           <p className="text-sm text-gray-600">
-            Your appointments have been rescheduled successfully. Add them to your calendar to avoid missing them.
+            {needsPayment 
+              ? 'Your appointments have been scheduled. Click below to complete your payment and confirm your booking.'
+              : 'Your appointments have been rescheduled successfully. Add them to your calendar to avoid missing them.'
+            }
           </p>
-          <button 
-            onClick={() => window.close()}
-            className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Close
-          </button>
+          {needsPayment ? (
+            <button 
+              onClick={handleProceedToPayment}
+              disabled={isGettingCheckout}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isGettingCheckout ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Getting payment link...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-5 w-5" />
+                  Proceed to Payment
+                </>
+              )}
+            </button>
+          ) : (
+            <button 
+              onClick={() => window.close()}
+              className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Close
+            </button>
+          )}
         </div>
       </div>
     )
@@ -317,7 +372,9 @@ export function OrderReschedulePage() {
                   {/* Header */}
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-baseline justify-between">
-                      <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Reschedule Your Sessions</h1>
+                      <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {appointments.some(a => a.isUnscheduled) ? 'Schedule Your Sessions' : 'Reschedule Your Sessions'}
+                      </h1>
                       <span className="text-xs text-gray-500">Timezone: {tz}</span>
                     </div>
                   </div>
@@ -343,8 +400,10 @@ export function OrderReschedulePage() {
                         appointment{totalAppointments !== 1 ? "s" : ""} to schedule
                       </p>
                       <p className="text-xs sm:text-sm leading-relaxed text-white/90">
-                        We've pre-selected the best available times for you. 
-                        Tap any slot to adjust or reschedule
+                        {appointments.some(a => a.isUnscheduled) 
+                          ? 'Select your preferred time slots for each session below.'
+                          : "We've pre-selected the best available times for you. Tap any slot to adjust or reschedule"
+                        }
                       </p>
                     </div>
 
@@ -366,6 +425,8 @@ export function OrderReschedulePage() {
                             className={`bg-white dark:bg-gray-800 p-3 rounded-lg border shadow-sm transition-all ${
                               appointment.isRescheduled 
                                 ? 'border-green-300 bg-green-50/30' 
+                                : appointment.isUnscheduled && !appointment.hasChanged
+                                ? 'border-amber-300 bg-amber-50/30'
                                 : 'border-gray-200 dark:border-gray-700'
                             }`}
                           >
@@ -374,17 +435,21 @@ export function OrderReschedulePage() {
                                 <h6 className="font-medium text-gray-800 dark:text-gray-200 flex items-center text-[10px] sm:text-xs">
                                   <span 
                                     className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold mr-1.5" 
-                                    style={{ backgroundColor: appointment.isRescheduled ? '#22c55e' : 'var(--customer-primary, #3b82f6)' }}
+                                    style={{ backgroundColor: appointment.isRescheduled ? '#22c55e' : appointment.isUnscheduled && !appointment.hasChanged ? '#f59e0b' : 'var(--customer-primary, #3b82f6)' }}
                                   >
                                     {appointment.isRescheduled ? <Check size={10} /> : packageIndex + 1}
                                   </span>
                                   {appointment.packageName} ({appointment.duration} min)
                                 </h6>
-                                {appointment.isRescheduled && (
+                                {appointment.isRescheduled ? (
                                   <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] sm:text-xs rounded-full font-medium">
-                                    Rescheduled
+                                    Scheduled
                                   </span>
-                                )}
+                                ) : appointment.isUnscheduled && !appointment.hasChanged ? (
+                                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] sm:text-xs rounded-full font-medium">
+                                    Needs Scheduling
+                                  </span>
+                                ) : null}
                               </div>
                               
                               <div className="grid grid-cols-1 gap-2">
@@ -406,12 +471,12 @@ export function OrderReschedulePage() {
                                     <DateTimePicker
                                       token={token}
                                       appointmentId={appointment.id}
-                                      value={appointment.newDateTime ? new Date(appointment.newDateTime) : new Date(appointment.slotDateTime)}
+                                      value={appointment.newDateTime ? new Date(appointment.newDateTime) : (appointment.slotDateTime ? new Date(appointment.slotDateTime) : undefined)}
                                       onChange={(date) => handleDateTimeChange(appointment.id, date)}
                                     />
                                   </div>
-                                  {/* Individual Confirm Button */}
-                                  {!appointment.isRescheduled && appointment.hasChanged && (
+                                  {/* Individual Confirm Button - show for unscheduled or changed appointments */}
+                                  {!appointment.isRescheduled && (appointment.hasChanged || (appointment.isUnscheduled && appointment.newDateTime)) && (
                                     <button
                                       onClick={() => handleConfirmSingle(appointment.id)}
                                       disabled={appointment.isConfirming}
@@ -434,7 +499,17 @@ export function OrderReschedulePage() {
                       <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                         <Check className="h-4 w-4 text-green-600" />
                         <span className="text-sm text-green-700">
-                          {completedReschedules} of {totalAppointments} appointment{completedReschedules !== 1 ? 's' : ''} rescheduled
+                          {completedReschedules} of {totalAppointments} appointment{completedReschedules !== 1 ? 's' : ''} scheduled
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Unscheduled Warning */}
+                    {unscheduledCount > 0 && (
+                      <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm text-amber-700">
+                          {unscheduledCount} appointment{unscheduledCount !== 1 ? 's' : ''} still need{unscheduledCount === 1 ? 's' : ''} to be scheduled
                         </span>
                       </div>
                     )}
@@ -458,28 +533,50 @@ export function OrderReschedulePage() {
                           {isConfirming ? (
                             <div className="flex items-center justify-center">
                               <div className="animate-spin rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 border-b-2 border-white mr-1.5 sm:mr-2"></div>
-                              <span className="text-[10px] sm:text-xs">Rescheduling...</span>
+                              <span className="text-[10px] sm:text-xs">Scheduling...</span>
                             </div>
                           ) : (
                             `Confirm All (${pendingReschedules})`
                           )}
                         </button>
                       ) : completedReschedules === totalAppointments ? (
-                        <button
-                          onClick={() => window.close()}
-                          className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm text-white bg-green-600 hover:bg-green-700"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Check size={14} />
-                            Done
-                          </div>
-                        </button>
+                        needsPayment ? (
+                          <button
+                            onClick={handleProceedToPayment}
+                            disabled={isGettingCheckout}
+                            className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                          >
+                            <div className="flex items-center gap-2">
+                              {isGettingCheckout ? (
+                                <>
+                                  <Loader2 size={14} className="animate-spin" />
+                                  Getting payment link...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard size={14} />
+                                  Proceed to Payment
+                                </>
+                              )}
+                            </div>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => window.close()}
+                            className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg text-xs sm:text-sm text-white bg-green-600 hover:bg-green-700"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Check size={14} />
+                              Done
+                            </div>
+                          </button>
+                        )
                       ) : (
                         <button
                           disabled
                           className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm bg-gray-300 text-gray-500 cursor-not-allowed"
                         >
-                          Select new time to reschedule
+                          Select time slots to continue
                         </button>
                       )}
                     </div>

@@ -54,6 +54,7 @@ import {
   SwaggerBaseApiResponseForClassForgotPasswordOutput,
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassMessageOutputDto,
+  SwaggerBaseApiResponseForClassOrderCreateResponse,
   SwaggerBaseApiResponseForClassOrderOutput,
   SwaggerBaseApiResponseForClassOrganizationOutput,
   SwaggerBaseApiResponseForClassParticipantOutputDto,
@@ -747,7 +748,7 @@ export namespace Api {
     export type RequestBody = OrderInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassStripeCheckoutSession;
+      SwaggerBaseApiResponseForClassOrderCreateResponse;
   }
 
   /**
@@ -1008,6 +1009,21 @@ export namespace Api {
    * @request POST:/api/v1/public/order-reschedule/confirm
    */
   export namespace OrderPublicControllerConfirmOrderReschedule {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Called after customer has scheduled all appointments to get the payment link
+   * @tags public
+   * @name OrderPublicControllerGetCheckoutUrl
+   * @summary Get Stripe checkout URL after scheduling all appointments (public)
+   * @request POST:/api/v1/public/order-reschedule/checkout
+   */
+  export namespace OrderPublicControllerGetCheckoutUrl {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
