@@ -124,7 +124,7 @@ export interface CreateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -152,7 +152,7 @@ export interface UpdateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -843,7 +843,7 @@ export interface SwaggerBaseApiResponseForClassOrderOutput {
 }
 
 export interface MarkAppointmentAttendanceDto {
-  status: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
+  status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
 }
 
 export interface UpdateAppointmentNotesDto {
@@ -1012,7 +1012,7 @@ export interface OrderAppointmentQueryDto {
   /** Filter by task label */
   label?: "meeting" | "personal" | "preparation" | "grading";
   /** Filter by attendance status */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
   /**
    * Filter appointments from this date
    * @example "2024-01-15T00:00:00.000Z"
@@ -1135,7 +1135,7 @@ export interface TaskOutputDto {
    */
   itemId?: number;
   /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
   /**
    * When the attendance was marked (if this task is from an order appointment)
    * @example "2024-01-15T14:00:00.000Z"
@@ -1156,11 +1156,6 @@ export interface TaskOutputDto {
 export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   meta: MetaResponse;
   data: TaskOutputDto[];
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto;
 }
 
 export interface SlotsQueryDto {
@@ -1735,60 +1730,6 @@ export interface SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFina
   data: PaymentTransaction;
 }
 
-export interface CustomerInfoDto {
-  /**
-   * First name
-   * @example "John"
-   */
-  firstName: string;
-  /**
-   * Last name
-   * @example "Doe"
-   */
-  lastName: string;
-  /**
-   * Email
-   * @example "john.doe@example.com"
-   */
-  email: string;
-  /**
-   * Phone number
-   * @example "+1234567890"
-   */
-  phone: string;
-  /**
-   * Optional customer ID if selecting existing customer
-   * @example 123
-   */
-  id?: number;
-}
-
-export interface CreatePaymentLinkDto {
-  /**
-   * Currency code
-   * @example "CAD"
-   */
-  currency: string;
-  /**
-   * Amount in the currency (not cents)
-   * @example 100
-   */
-  amount: number;
-  customerInfo: CustomerInfoDto;
-  /**
-   * Optional description for the payment link
-   * @example "Consultation Fee"
-   */
-  description?: string;
-}
-
-export interface PaymentLinkResponseDto {
-  /** Stripe session ID */
-  sessionId: string;
-  /** Checkout URL for the customer */
-  checkoutUrl: string;
-}
-
 export interface InvoiceItemDto {
   /**
    * Description of the invoice item
@@ -2079,6 +2020,11 @@ export interface TaskQueryDto {
    * @example 0
    */
   offset?: number;
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto;
 }
 
 export interface TopCustomerDto {
@@ -2374,7 +2320,7 @@ export interface EmailAutomationParameters {
   ccRecipients?: string[];
   /**
    * Email subject line with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
-   * @example "Order #{{orderNumber}} Confirmed - BetterLSAT"
+   * @example "Order #{{orderNumber}} Confirmed - Better LSAT MCAT"
    */
   subject?: string;
   /**
@@ -2387,18 +2333,6 @@ export interface EmailAutomationParameters {
    * @example "order-confirmation"
    */
   template?: string;
-  /**
-   * Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events). Also accepts "includeInvoice" as an alias.
-   * @default false
-   * @example false
-   */
-  sendAttachment?: boolean;
-  /**
-   * Alias for sendAttachment. Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events).
-   * @default false
-   * @example false
-   */
-  includeInvoice?: boolean;
 }
 
 export interface CreateAutomationDto {
