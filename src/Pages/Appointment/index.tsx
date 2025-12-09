@@ -18,6 +18,7 @@ import { fetchSlotsForPackage } from "@/utils/slotFetcher";
 import { useCurrencyFormatter } from "@/utils/currency";
 import { useCurrency } from "@/context/currency-provider";
 import { useGetProductsQuery } from "@/redux/apiSlices/Product/productSlice";
+import type { SlotInput } from "@/types/api/data-contracts";
 import { addToCartAsync } from "@/redux/cartSlice";
 import type { ItemInput } from "@/types/api/data-contracts";
 import { getOrganizationSlugFromUrl } from "../../utils/organization";
@@ -350,7 +351,8 @@ const Appointment = () => {
             const otherItems = initialItems.filter(i => i.id !== item.id);
             const bookedSlots = otherItems.flatMap((cartItem) => 
               cartItem.DateTime || []
-            ).filter((slot: string) => slot && slot.trim() !== '');
+            ).filter((slot: SlotInput) => slot && slot.dateTime && slot.dateTime.trim() !== '')
+              .map((slot: SlotInput) => slot.dateTime);
             
             // Fetch fresh slots for this item
             const requiredSlots = item.sessions || 1;
@@ -448,11 +450,12 @@ const Appointment = () => {
       }
 
       // add validation to check if all the slots are selected
+      // add validation to check if all the slots are selected
       const allSlotsSelected = items.every(
         (item) =>
           item.DateTime &&
           item.DateTime.length > 0 &&
-          item.DateTime.every((dateTime) => dateTime !== undefined)
+          item.DateTime.every((slotInput: SlotInput) => slotInput && slotInput.dateTime && slotInput.dateTime.trim() !== '')
       );
 
       if (!allSlotsSelected) {
@@ -463,7 +466,7 @@ const Appointment = () => {
         const selectedSlots = items.reduce(
           (sum, item) =>
             sum +
-            (item.DateTime?.filter((dateTime) => dateTime !== undefined)
+            (item.DateTime?.filter((slotInput: SlotInput) => slotInput && slotInput.dateTime && slotInput.dateTime.trim() !== '')
               .length || 0),
           0
         );
@@ -612,24 +615,27 @@ const Appointment = () => {
                                     {slotIndex + 1}
                                   </span>
                                   <div className="flex-1 min-w-0">
-                                    <DateTimePicker
-                                      key={`${item.id}-${globalIndex}-${slotUpdateKey}`}
-                                      packageId={item.id}
-                                      value={
-                                        dateTime
-                                          ? new Date(dateTime)
-                                          : undefined
-                                      }
-                                      onChange={(date) =>
-                                        dispatch(
-                                          updateBookingDate({
-                                            id: item.id,
-                                            index: globalIndex,
-                                            bookingDate: date.toISOString(),
-                                          })
-                                        )
-                                      }
-                                    />
+                                  <DateTimePicker
+                                    key={`${item.id}-${globalIndex}-${slotUpdateKey}`}
+                                    packageId={item.id}
+                                    value={
+                                      dateTime && dateTime.dateTime && dateTime.dateTime.trim() !== ''
+                                        ? (() => {
+                                            const parsedDate = new Date(dateTime.dateTime);
+                                            return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+                                          })()
+                                        : undefined
+                                    }
+                                    onChange={(slotInput) =>
+                                      dispatch(
+                                        updateBookingDate({
+                                          id: item.id,
+                                          index: globalIndex,
+                                          slotInput: slotInput,
+                                        })
+                                      )
+                                    }
+                                  />
                                   </div>
                                 </div>
                               );

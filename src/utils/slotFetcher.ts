@@ -1,4 +1,4 @@
-import type { Slot } from "@/types/api/data-contracts";
+import type { Slot, SlotInput } from "@/types/api/data-contracts";
 
 const BASE_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -7,8 +7,8 @@ const BASE_URL = import.meta.env.VITE_SERVER_URL;
  * @param packageId - The package ID to fetch slots for
  * @param requiredSlots - Number of slots needed
  * @param startDate - Starting date to search from (defaults to today)
- * @param excludeSlots - Array of already booked slots to exclude
- * @returns Promise<string[]> - Array of ISO datetime strings
+ * @param excludeSlots - Array of already booked slot dateTime strings to exclude
+ * @returns Promise<SlotInput[]> - Array of SlotInput objects
  * @throws Error if not enough slots found within 30 days
  */
 export async function fetchSlotsForPackage(
@@ -16,8 +16,8 @@ export async function fetchSlotsForPackage(
   requiredSlots: number,
   startDate: string = new Date().toISOString(),
   excludeSlots: string[] = []
-): Promise<string[]> {
-  const slots: string[] = [];
+): Promise<SlotInput[]> {
+  const slots: SlotInput[] = [];
   const currentDate = new Date(startDate);
   let daysChecked = 0;
   const MAX_DAYS = 30;
@@ -53,11 +53,16 @@ export async function fetchSlotsForPackage(
       const slotData: Slot = data.data;
 
       if (slotData?.availableSlots && slotData.availableSlots.length > 0) {
-        // Extract slot times from available slots
-        const daySlots = slotData.availableSlots.map(availableSlot => availableSlot.slot);
+        // Create SlotInput objects from available slots
+        const daySlots: SlotInput[] = slotData.availableSlots.map(availableSlot => ({
+          dateTime: availableSlot.slot, // The slot time string from API
+          availableEmployeeIds: availableSlot.availableEmployees.map(emp => emp.id),
+        }));
         
-        // Filter out already booked slots
-        const availableDaySlots = daySlots.filter(slot => !excludeSlots.includes(slot));
+        // Filter out already booked slots by comparing dateTime
+        const availableDaySlots = daySlots.filter(slot => 
+          !excludeSlots.includes(slot.dateTime)
+        );
         
         console.log(`✅ Found ${daySlots.length} slots for ${currentDate.toDateString()}, ${availableDaySlots.length} available after filtering`);
         

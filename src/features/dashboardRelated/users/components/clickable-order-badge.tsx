@@ -14,13 +14,31 @@ export function ClickableOrderBadge({ user, ordersCount }: ClickableOrderBadgePr
   
   const handleOrderClick = () => {
     if (ordersCount > 0) {
-      // Navigate to orders page with user filter
-      navigate({
-        to: '/orders',
-        search: {
-          customer: `${user.name} ${user.email}`.trim()
-        }
-      })
+      // Check if user is an employee (has ADMIN, USER, COMPANY_ADMIN, or SUPER_ADMIN role)
+      const isEmployee = user.roles?.some(role => 
+        role === 'ADMIN' || 
+        role === 'USER' || 
+        role === 'COMPANY_ADMIN' || 
+        role === 'SUPER_ADMIN'
+      )
+      
+      if (isEmployee) {
+        // Navigate to orders page filtered by assigned employee
+        navigate({
+          to: '/orders',
+          search: {
+            assignedEmployeeId: user.id,
+          }
+        })
+      } else {
+        // Navigate to orders page with customer filter
+        navigate({
+          to: '/orders',
+          search: {
+            customer: `${user.name} ${user.email}`.trim()
+          }
+        })
+      }
     }
   }
   

@@ -28,6 +28,7 @@ const taskSearchSchema = z.object({
     .optional()
     .catch([]),
   filter: z.string().optional().catch(''),
+  tutorId: z.number().optional().catch(undefined),
 })
 
 // Lazy load Tasks to enable code splitting

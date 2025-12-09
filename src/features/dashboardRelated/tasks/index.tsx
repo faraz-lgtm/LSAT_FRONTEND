@@ -8,17 +8,21 @@ import { TasksDialogs } from './components/tasks-dialogs'
 import { TasksPrimaryButtons } from './components/tasks-primary-buttons'
 import { TasksTable } from './components/tasks-table'
 import { useGetTasksQuery } from '@/redux/apiSlices/Task/taskSlice'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { TaskOutputDto, TaskQueryDto, UserOutput } from '@/types/api/data-contracts'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/redux/store'
 import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
 import { isAdminOrSuperAdmin } from '@/utils/rbac'
+import { getRouteApi } from '@tanstack/react-router'
+
+const route = getRouteApi('/_authenticated/tasks/')
 
 export function Tasks() {
   const user=useSelector((state: RootState) => state.auth.user)
   const isAdmin = isAdminOrSuperAdmin(user?.roles)
   const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({})
+  const search = route.useSearch()
   const [filters, setFilters] = useState<TaskQueryDto>(() => {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -26,14 +30,29 @@ export function Tasks() {
     // Set end date to end of day to include tasks on the last day of the month
     endOfMonth.setHours(23, 59, 59, 999)
     
+    // Use tutorId from URL if present, otherwise use default logic
+    const tutorIdFromUrl = search.tutorId
+    const defaultTutorId = isAdmin ? undefined : user?.id
+    
     return {
       limit: 50,
       startDate: startOfMonth.toISOString(),
       endDate: endOfMonth.toISOString(),
-      tutorId: isAdmin ? undefined : user?.id,
+      tutorId: tutorIdFromUrl ?? defaultTutorId,
       googleCalendar:false
     }
   })
+
+  // Sync filters when URL search params change
+  useEffect(() => {
+    const tutorIdFromUrl = search.tutorId
+    const defaultTutorId = isAdmin ? undefined : user?.id
+    
+    setFilters(prev => ({
+      ...prev,
+      tutorId: tutorIdFromUrl ?? defaultTutorId,
+    }))
+  }, [search.tutorId, isAdmin, user?.id])
 
   // Dialog state management
   type TasksDialogOpenState = 'create' | 'update' | 'delete' | 'view' | null

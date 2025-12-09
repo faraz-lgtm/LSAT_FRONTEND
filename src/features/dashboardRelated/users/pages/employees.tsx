@@ -25,6 +25,7 @@ export function EmployeesPage() {
     return all.filter(u => 
       u.roles.includes('ADMIN') || 
       u.roles.includes('USER') || 
+      u.roles.includes('COMPANY_ADMIN') ||
       (u.roles as string[]).includes('SUPER_ADMIN')
     );
   }, [isSuccess, usersData?.data]);

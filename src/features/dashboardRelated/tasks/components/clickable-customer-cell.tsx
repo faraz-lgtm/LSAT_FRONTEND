@@ -17,8 +17,8 @@ export function ClickableCustomerCell({ customerEmail, emailToUser, displayValue
     const user = emailToUser[customerEmail.toLowerCase()]
     if (!user) return
 
-    // Check user roles: if 'ADMIN' or 'USER' → navigate to employees page, if 'CUST' → navigate to customers page
-    const isEmployee = user.roles?.some(role => role === 'ADMIN' || role === 'USER' || role === 'SUPER_ADMIN')
+    // Check user roles: if 'ADMIN', 'COMPANY_ADMIN', or 'USER' → navigate to employees page, if 'CUST' → navigate to customers page
+    const isEmployee = user.roles?.some(role => role === 'ADMIN' || role === 'USER' || role === 'COMPANY_ADMIN' || role === 'SUPER_ADMIN')
     
     if (isEmployee) {
       navigate({

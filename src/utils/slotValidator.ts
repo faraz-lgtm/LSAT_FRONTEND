@@ -1,5 +1,4 @@
-import type { ItemInput } from "@/types/api/data-contracts";
-import type { Slot } from "@/types/api/data-contracts";
+import type { ItemInput, Slot, SlotInput } from "@/types/api/data-contracts";
 
 const BASE_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -28,7 +27,9 @@ export async function validateCartItemSlots(item: ItemInput): Promise<SlotValida
     
     // Get all unique dates from the selected slots
     const selectedDates = new Set(
-      item.DateTime.map(slot => new Date(slot).toISOString())
+      item.DateTime
+        .filter((slot: SlotInput) => slot && slot.dateTime)
+        .map((slot: SlotInput) => new Date(slot.dateTime).toISOString())
     );
     
     // Fetch available slots for all dates
@@ -66,9 +67,10 @@ export async function validateCartItemSlots(item: ItemInput): Promise<SlotValida
     }
     
     // Check which selected slots are no longer available
-    const unavailableSlots = item.DateTime.filter(
-      selectedSlot => !allAvailableSlots.includes(selectedSlot)
-    );
+    const unavailableSlots = item.DateTime
+      .filter((slot: SlotInput) => slot && slot.dateTime)
+      .filter((slot: SlotInput) => !allAvailableSlots.includes(slot.dateTime))
+      .map((slot: SlotInput) => slot.dateTime);
     
     const isValid = unavailableSlots.length === 0;
     
@@ -89,7 +91,9 @@ export async function validateCartItemSlots(item: ItemInput): Promise<SlotValida
     // If validation fails, assume slots are invalid to be safe
     return {
       isValid: false,
-      unavailableSlots: item.DateTime || [],
+      unavailableSlots: (item.DateTime || [])
+        .filter((slot: SlotInput) => slot && slot.dateTime)
+        .map((slot: SlotInput) => slot.dateTime),
       availableSlots: []
     };
   }

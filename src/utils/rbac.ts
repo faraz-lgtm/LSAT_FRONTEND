@@ -35,7 +35,7 @@ export function isCompanyAdminOrSuperAdmin(userRoles: string[] | undefined | nul
  * 
  * Rules:
  * - SUPER_ADMIN: Can edit anyone (including themselves)
- * - ADMIN: Can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
+ * - ADMIN/COMPANY_ADMIN: Can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
  * - USER: Can edit CUSTOMER and themselves
  * - CUSTOMER: Cannot edit anyone (they don't use dashboard)
  * 
@@ -56,14 +56,14 @@ export function canEditUser(currentUser: UserOutput | null, targetUser: UserOutp
   const isTargetCustomer = targetUserRoles.includes(ROLE.CUSTOMER)
   const isTargetUser = targetUserRoles.includes(ROLE.USER)
   const isCurrentUserSuperAdmin = (currentUserRoles as string[]).includes('SUPER_ADMIN')
-  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN)
+  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN) || currentUserRoles.includes(ROLE.COMPANY_ADMIN)
 
   // SUPER_ADMIN can edit anyone (including themselves)
   if (isCurrentUserSuperAdmin) {
     return true
   }
 
-  // ADMIN can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
+  // ADMIN/COMPANY_ADMIN can edit themselves, CUSTOMER, and USER (cannot edit other admins or super admin)
   if (isCurrentUserAdmin) {
     if (isCurrentUser) {
       return true // Can edit themselves
@@ -90,7 +90,7 @@ export function canEditUser(currentUser: UserOutput | null, targetUser: UserOutp
  * 
  * Rules:
  * - SUPER_ADMIN: Can delete anyone except themselves
- * - ADMIN: Can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
+ * - ADMIN/COMPANY_ADMIN: Can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
  * - USER: Can delete CUSTOMER only (not themselves)
  * - CUSTOMER: Cannot delete anyone (they don't use dashboard)
  * 
@@ -115,14 +115,14 @@ export function canDeleteUser(currentUser: UserOutput | null, targetUser: UserOu
   const isTargetCustomer = targetUserRoles.includes(ROLE.CUSTOMER)
   const isTargetUser = targetUserRoles.includes(ROLE.USER)
   const isCurrentUserSuperAdmin = (currentUserRoles as string[]).includes('SUPER_ADMIN')
-  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN)
+  const isCurrentUserAdmin = currentUserRoles.includes(ROLE.ADMIN) || currentUserRoles.includes(ROLE.COMPANY_ADMIN)
 
   // SUPER_ADMIN can delete anyone except themselves
   if (isCurrentUserSuperAdmin) {
     return true
   }
 
-  // ADMIN can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
+  // ADMIN/COMPANY_ADMIN can delete CUSTOMER and USER (cannot delete themselves, other admins, or super admin)
   if (isCurrentUserAdmin) {
     // Cannot delete other admins or super admin
     if (isTargetAdmin || isTargetSuperAdmin) {
@@ -145,7 +145,7 @@ export function canDeleteUser(currentUser: UserOutput | null, targetUser: UserOu
  * Check if current user can edit/delete a target user based on role-based access control
  * 
  * Rules:
- * - ADMIN: Can edit/delete any user except themselves
+ * - ADMIN/COMPANY_ADMIN: Can edit/delete any user except themselves
  * - USER: Can edit/delete CUSTOMER only
  * - CUSTOMER: Cannot edit/delete anyone (they don't use dashboard)
  * 
@@ -166,8 +166,8 @@ export function canEditOrDeleteUser(currentUser: UserOutput | null, targetUser: 
   const currentUserRoles = currentUser.roles
   const targetUserRoles = targetUser.roles || []
 
-  // ADMIN can edit/delete any user except themselves
-  if (currentUserRoles.includes(ROLE.ADMIN)) {
+  // ADMIN/COMPANY_ADMIN can edit/delete any user except themselves
+  if (currentUserRoles.includes(ROLE.ADMIN) || currentUserRoles.includes(ROLE.COMPANY_ADMIN)) {
     return true
   }
 
@@ -251,7 +251,7 @@ export function getAvailableRolesForNewUser(currentUser: UserOutput | null): ROL
  * 
  * Rules:
  * - SUPER_ADMIN: Can see all users
- * - ADMIN: Can see all users
+ * - ADMIN/COMPANY_ADMIN: Can see all users
  * - USER: Can see USER and CUSTOMER
  * - CUSTOMER: Cannot see anyone (they don't use dashboard)
  * 

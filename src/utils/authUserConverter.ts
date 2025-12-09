@@ -28,6 +28,7 @@ export function convertAuthUserToIUser(authUser: AuthUser | null, organizationId
     updatedAt: new Date().toISOString(),
     lastAssignedOrderCount: 0,
     ordersCount: 0, // AuthUser doesn't have orders data, default to 0
+    orderAppointmentCount: 0, // AuthUser doesn't have order appointment data, default to 0
     googleCalendarIntegration: false, // Default to false since AuthUser doesn't have this info
     hasPaidOrder: false, // Default to false since AuthUser doesn't have this info
   }
