@@ -5,8 +5,7 @@ import {
   useGetPublicOrderRescheduleInfoQuery,
   useConfirmPublicOrderRescheduleMutation 
 } from '@/redux/apiSlices/Order/orderSlice'
-import { format } from 'date-fns'
-import { ArrowLeft, Calendar, Check, AlertCircle, Terminal } from 'lucide-react'
+import { ArrowLeft, Check, AlertCircle, Terminal } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import GlobalProgressBar from '@/components/GlobalProgressBar'
 
@@ -72,10 +71,10 @@ export function OrderReschedulePage() {
   }, [token, orderInfo, infoError])
 
   // Handle date/time change for an appointment
-  const handleDateTimeChange = (appointmentId: number, newDate: Date) => {
+  const handleDateTimeChange = (appointmentId: number, slotInput: { dateTime: string; availableEmployeeIds: number[] }) => {
     setAppointments(prev => prev.map(apt => 
       apt.id === appointmentId 
-        ? { ...apt, newDateTime: newDate.toISOString() } 
+        ? { ...apt, newDateTime: slotInput.dateTime } 
         : apt
     ))
   }
@@ -293,7 +292,7 @@ export function OrderReschedulePage() {
                                       token={token}
                                       appointmentId={appointment.id}
                                       value={appointment.newDateTime ? new Date(appointment.newDateTime) : new Date(appointment.slotDateTime)}
-                                      onChange={(date) => handleDateTimeChange(appointment.id, date)}
+                                      onChange={(slotInput) => handleDateTimeChange(appointment.id, slotInput)}
                                     />
                                   </div>
                                 </div>

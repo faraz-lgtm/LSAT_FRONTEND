@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Eye, Trash2, ReceiptText, XCircle, CheckCircle2, CalendarClock, Clipboard, Check } from 'lucide-react'
+import { Eye, Trash2, ReceiptText, XCircle, CheckCircle2, CalendarClock, Check } from 'lucide-react'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   DropdownMenu,

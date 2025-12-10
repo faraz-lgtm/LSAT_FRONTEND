@@ -310,11 +310,11 @@ export function AppointmentsViewDialog({
             <div className='grid grid-cols-2 gap-4'>
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>Start Date & Time</label>
-                <p className='text-sm'>{format(new Date(currentRow.startDateTime), 'PPpp')}</p>
+                <p className='text-sm'>{currentRow.startDateTime ? format(new Date(currentRow.startDateTime), 'PPpp') : '—'}</p>
               </div>
               <div>
                 <label className='text-sm font-medium text-muted-foreground'>End Date & Time</label>
-                <p className='text-sm'>{format(new Date(currentRow.endDateTime), 'PPpp')}</p>
+                <p className='text-sm'>{currentRow.endDateTime ? format(new Date(currentRow.endDateTime), 'PPpp') : '—'}</p>
               </div>
             </div>
           </div>

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/dashboard/ui/badge';
-import { CheckCircle, Copy, ExternalLink, Calendar, CreditCard, CalendarClock, Link } from 'lucide-react';
+import { CheckCircle, Copy, ExternalLink, Calendar, CreditCard, CalendarClock } from 'lucide-react';
 import { useToast } from "@/hooks/dashboardRelated/calendar/use-toast";
 
 interface OrderSuccessModalProps {
@@ -31,7 +31,6 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   orderResult,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [copiedReschedule, setCopiedReschedule] = useState(false);
   const { toast } = useToast();
 
   const isRescheduleFlow = orderResult.data.isRescheduleFlow || orderResult.data.rescheduleUrl;
@@ -57,34 +56,8 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
     }
   };
 
-  const handleCopyRescheduleLink = async () => {
-    if (!orderResult.data.rescheduleUrl) return;
-    try {
-      await navigator.clipboard.writeText(orderResult.data.rescheduleUrl);
-      setCopiedReschedule(true);
-      toast({
-        title: "Link copied!",
-        description: "Reschedule link has been copied to clipboard",
-      });
-      setTimeout(() => setCopiedReschedule(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy link:', error);
-      toast({
-        title: "Copy failed",
-        description: "Failed to copy link to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleOpenPayment = () => {
     window.open(orderResult.data.url, '_blank');
-  };
-
-  const handleOpenReschedule = () => {
-    if (orderResult.data.rescheduleUrl) {
-      window.open(orderResult.data.rescheduleUrl, '_blank');
-    }
   };
 
   return (

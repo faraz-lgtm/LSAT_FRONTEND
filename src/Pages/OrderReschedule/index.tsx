@@ -85,11 +85,11 @@ export function OrderReschedulePage() {
   }, [token, orderInfo, infoError])
 
   // Handle date/time change for an appointment
-  const handleDateTimeChange = (appointmentId: number, newDate: Date) => {
-    console.log('Date changed for appointment:', appointmentId, 'to:', newDate.toISOString())
+  const handleDateTimeChange = (appointmentId: number, slotInput: { dateTime: string; availableEmployeeIds: number[] }) => {
+    console.log('Date changed for appointment:', appointmentId, 'to:', slotInput.dateTime)
     setAppointments(prev => prev.map(apt => 
       apt.id === appointmentId 
-        ? { ...apt, newDateTime: newDate.toISOString(), hasChanged: true } 
+        ? { ...apt, newDateTime: slotInput.dateTime, hasChanged: true } 
         : apt
     ))
   }
@@ -472,7 +472,7 @@ export function OrderReschedulePage() {
                                       token={token}
                                       appointmentId={appointment.id}
                                       value={appointment.newDateTime ? new Date(appointment.newDateTime) : (appointment.slotDateTime ? new Date(appointment.slotDateTime) : undefined)}
-                                      onChange={(date) => handleDateTimeChange(appointment.id, date)}
+                                      onChange={(slotInput) => handleDateTimeChange(appointment.id, slotInput)}
                                     />
                                   </div>
                                   {/* Individual Confirm Button - show for unscheduled or changed appointments */}

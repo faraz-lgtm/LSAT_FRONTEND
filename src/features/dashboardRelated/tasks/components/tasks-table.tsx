@@ -386,11 +386,13 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                 // If user has applied sorting, respect it and still separate active/expired
                 // If no sorting, use default behavior (sort by startDateTime within each group)
                 let activeTasks = rows.filter(row => {
+                  if (!row.original.endDateTime) return false
                   const endDateTime = new Date(row.original.endDateTime)
                   return endDateTime > now
                 })
                 
                 let expiredTasks = rows.filter(row => {
+                  if (!row.original.endDateTime) return false
                   const endDateTime = new Date(row.original.endDateTime)
                   return endDateTime <= now
                 })
@@ -398,12 +400,14 @@ export function TasksTable({ data, filters, onFiltersChange, onEdit, onDelete, o
                 // If no sorting is applied, sort by startDateTime within each group
                 if (!hasSorting) {
                   activeTasks = activeTasks.sort((a, b) => {
+                    if (!a.original.startDateTime || !b.original.startDateTime) return 0
                     const dateA = new Date(a.original.startDateTime)
                     const dateB = new Date(b.original.startDateTime)
                     return dateA.getTime() - dateB.getTime() // Ascending order (earliest first)
                   })
                   
                   expiredTasks = expiredTasks.sort((a, b) => {
+                    if (!a.original.startDateTime || !b.original.startDateTime) return 0
                     const dateA = new Date(a.original.startDateTime)
                     const dateB = new Date(b.original.startDateTime)
                     return dateB.getTime() - dateA.getTime() // Descending order (most recent first)

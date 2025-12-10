@@ -1,5 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";

@@ -341,11 +341,6 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
             throw new Error(`Package ${packageId} not found`);
           }
 
-          // When skipping slot reservation, don't include DateTime
-          const dateTime = formData.skipSlotReservation 
-            ? [] 
-            : (packageSlots?.slots.filter(slot => slot !== undefined).map(slot => slot!.toISOString()) || []);
-
           return {
             id: selectedPackage.id,
             price: selectedPackage.price,
@@ -353,7 +348,9 @@ export const OrderCreateForm: React.FC<OrderCreateFormProps> = ({
             save: selectedPackage.save,
             Duration: selectedPackage.Duration,
             Description: selectedPackage.Description,
-            DateTime: packageSlots.slots.filter(slot => slot !== undefined && slot.dateTime) as SlotInput[],
+            DateTime: formData.skipSlotReservation 
+              ? [] 
+              : (packageSlots?.slots.filter(slot => slot !== undefined && slot.dateTime) as SlotInput[] || []),
             quantity: 1,
             sessions: selectedPackage.sessions,
           };
