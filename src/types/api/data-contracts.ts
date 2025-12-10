@@ -877,6 +877,7 @@ export interface OrderOutput {
     | "EXPIRED"
     | "FAILED"
     | "CANCELED"
+    | "PENDING_SCHEDULE"
     | null;
   /**
    * Google Meet link shared across all calendar events in this order
@@ -949,6 +950,58 @@ export interface OrderInput {
   /** @example "CAD" */
   currency: string;
   utm?: UtmInput;
+  /**
+   * When true, slots will not be reserved upfront. Customer will receive a reschedule link to book appointments first, then proceed to checkout.
+   * @default false
+   * @example false
+   */
+  skipSlotReservation?: boolean;
+  /**
+   * Custom slot reservation expiry time in minutes. Only used when skipSlotReservation is false. Default is 30 minutes.
+   * @min 5
+   * @max 1440
+   * @default 30
+   * @example 30
+   */
+  reservationExpiryMinutes?: number;
+}
+
+export interface OrderCreateResponse {
+  /**
+   * Primary URL - either Stripe checkout URL or reschedule+checkout combined link
+   * @example "https://checkout.stripe.com/pay/cs_test_123456789"
+   */
+  url: string;
+  /**
+   * Stripe checkout session ID (present when slots are reserved)
+   * @example "cs_test_123456789"
+   */
+  sessionId?: string;
+  /**
+   * Order ID for reference
+   * @example 123
+   */
+  orderId?: number;
+  /**
+   * Separate reschedule-only link (present when skipSlotReservation is true)
+   * @example "https://example.com/order-reschedule?token=xyz"
+   */
+  rescheduleUrl?: string;
+  /**
+   * Flag indicating this is a reschedule flow (no upfront slot reservation)
+   * @example true
+   */
+  isRescheduleFlow?: boolean;
+}
+
+export interface SwaggerBaseApiResponseForClassOrderCreateResponse {
+  meta: MetaResponse;
+  data: OrderCreateResponse;
+}
+
+export interface SwaggerBaseApiResponseForClassOrderOutput {
+  meta: MetaResponse;
+  data: OrderOutput[];
 }
 
 export interface StripeCheckoutSession {
@@ -967,11 +1020,6 @@ export interface StripeCheckoutSession {
 export interface SwaggerBaseApiResponseForClassStripeCheckoutSession {
   meta: MetaResponse;
   data: StripeCheckoutSession;
-}
-
-export interface SwaggerBaseApiResponseForClassOrderOutput {
-  meta: MetaResponse;
-  data: OrderOutput[];
 }
 
 export interface StripePaymentIntent {
@@ -1078,17 +1126,17 @@ export interface TaskOutputDto {
    */
   description?: string;
   /**
-   * Task start date and time
+   * Task start date and time. Null/undefined for unscheduled appointments.
    * @format date-time
    * @example "2024-01-15T14:00:00.000Z"
    */
-  startDateTime: string;
+  startDateTime?: string;
   /**
-   * Task end date and time
+   * Task end date and time. Null/undefined for unscheduled appointments.
    * @format date-time
    * @example "2024-01-15T15:00:00.000Z"
    */
-  endDateTime: string;
+  endDateTime?: string;
   /**
    * Tutor ID who created this task
    * @example 1

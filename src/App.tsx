@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import Layout from "./Layouts/DefaultLayout";
 import DashboardApp from "./DashboardApp";
 import { ReschedulePage } from "./routes/reschedule";
+import { OrderReschedulePage } from "./Pages/OrderReschedule";
 import { isOnOrganizationDomain } from "./utils/organization";
 
 // Code splitting: Lazy load pages to reduce initial bundle size
@@ -66,6 +67,7 @@ function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/cancel" element={<PaymentCancel />} />
           <Route path="/reschedule" element={<ReschedulePage />} />
+          <Route path="/order-reschedule" element={<OrderReschedulePage />} />
           <Route path="/success" element={<PaymentSuccess />} />
           <Route path="/cancel" element={<PaymentCancel />} />
           <Route path="/dashboard/*" element={<DashboardApp />} />

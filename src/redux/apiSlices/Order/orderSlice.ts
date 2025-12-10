@@ -1,5 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
@@ -141,6 +141,17 @@ export const ordersApi = api.injectEndpoints({
       }),
     }),
 
+    // Generate a reschedule link for entire order (all appointments)
+    generateOrderRescheduleLink: builder.mutation<
+      BaseApiResponse<{ url: string }> | { data: { url: string }; meta: unknown },
+      { orderId: number }
+    >({
+      query: ({ orderId }) => ({
+        url: `order/${orderId}/reschedule/link`,
+        method: 'POST',
+      }),
+    }),
+
     // Directly reschedule an appointment (staff-driven)
     rescheduleAppointment: builder.mutation<
       BaseApiResponse<OrderAppointmentOutput> | OrderAppointmentOutput | void,
@@ -195,8 +206,8 @@ export const ordersApi = api.injectEndpoints({
 
     //Mutations
     createOrder: builder.mutation<
-      BaseApiResponse<StripeCheckoutSession>, // 👈 replace `any` with your API response type
-      { items: CartItem[]; user: InformationState,currency: string | undefined } // 👈 request body type
+      BaseApiResponse<OrderCreateResponse>, // Response can be Stripe checkout session or reschedule flow
+      CreateOrderParams // Request body type
     >({
       query: (orderData) => {
         // Get UTM parameters
@@ -255,6 +266,63 @@ export const ordersApi = api.injectEndpoints({
         body,
       }),
     }),
+
+    // Public order reschedule - get all appointments for an order
+    getPublicOrderRescheduleInfo: builder.query<
+      BaseApiResponse<{
+        orderId: number;
+        customerName: string;
+        customerEmail: string;
+        appointments: Array<{
+          id: number;
+          slotDateTime: string;
+          packageName: string;
+          duration: number;
+          assignedEmployeeName?: string;
+        }>;
+      }>,
+      { token: string }
+    >({
+      query: ({ token }) => ({
+        url: `public/order-reschedule/info`,
+        params: { token },
+      }),
+    }),
+
+    // Public order reschedule - get available slots for a specific appointment
+    getPublicOrderRescheduleSlots: builder.query<
+      BaseApiResponse<{ availableSlots: { slot: string; availableEmployees: { id: number; name: string; email: string }[] }[]; slotDurationMinutes: number }>,
+      { token: string; appointmentId: number; dateISO?: string }
+    >({
+      query: ({ token, appointmentId, dateISO }) => ({
+        url: `public/order-reschedule/slots`,
+        params: dateISO ? { token, appointmentId, date: dateISO } : { token, appointmentId },
+      }),
+    }),
+
+    // Public order reschedule - confirm reschedule for a specific appointment
+    confirmPublicOrderReschedule: builder.mutation<
+      BaseApiResponse<{ appointmentId: number }>,
+      { token: string; appointmentId: number; newDateTimeISO: string }
+    >({
+      query: (body) => ({
+        url: `public/order-reschedule/confirm`,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    // Public order reschedule - get Stripe checkout URL after scheduling all appointments
+    getPublicOrderCheckout: builder.mutation<
+      BaseApiResponse<{ url: string; sessionId: string }>,
+      { token: string }
+    >({
+      query: (body) => ({
+        url: `public/order-reschedule/checkout`,
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
@@ -266,6 +334,7 @@ export const {
   useListOrderAppointmentsQuery,
   useMarkAppointmentAttendanceMutation,
   useGenerateRescheduleLinkMutation,
+  useGenerateOrderRescheduleLinkMutation,
   useRescheduleAppointmentMutation,
   useCreateOrderMutation,
   useDeleteOrderMutation,
@@ -273,6 +342,10 @@ export const {
   useCancelOrderMutation,
   useGetPublicRescheduleSlotsQuery,
   useConfirmPublicRescheduleMutation,
+  useGetPublicOrderRescheduleInfoQuery,
+  useGetPublicOrderRescheduleSlotsQuery,
+  useConfirmPublicOrderRescheduleMutation,
+  useGetPublicOrderCheckoutMutation,
 } = ordersApi;
 
 // Local DTO until swagger adds explicit type
@@ -283,4 +356,27 @@ export interface OrderAppointmentOutput {
   slotDateTime: string;
   assignedEmployeeId?: number | null;
   attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW';
+}
+
+// Order creation parameters with slot reservation options
+export interface CreateOrderParams {
+  items: CartItem[];
+  user: InformationState;
+  currency: string | undefined;
+  /** When true, slots won't be reserved upfront - customer gets reschedule link first */
+  skipSlotReservation?: boolean;
+  /** Custom reservation expiry time in minutes (default 30). Only used when skipSlotReservation is false */
+  reservationExpiryMinutes?: number;
+}
+
+// Order creation response - can be either Stripe checkout or reschedule flow
+export interface OrderCreateResponse {
+  /** Primary URL - either Stripe checkout or reschedule+checkout combined link */
+  url: string;
+  /** Stripe session ID (present when slots are reserved) */
+  sessionId?: string;
+  /** Separate reschedule-only link (present when skipSlotReservation is true) */
+  rescheduleUrl?: string;
+  /** Flag indicating this is a reschedule flow */
+  isRescheduleFlow?: boolean;
 }

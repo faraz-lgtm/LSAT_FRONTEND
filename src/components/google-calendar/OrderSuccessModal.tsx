@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/dashboard/ui/badge';
-import { CheckCircle, Copy, ExternalLink, Calendar, CreditCard } from 'lucide-react';
+import { CheckCircle, Copy, ExternalLink, Calendar, CreditCard, CalendarClock } from 'lucide-react';
 import { useToast } from "@/hooks/dashboardRelated/calendar/use-toast";
 
 interface OrderSuccessModalProps {
@@ -18,7 +18,9 @@ interface OrderSuccessModalProps {
   orderResult: {
     data: {
       url: string;
-      sessionId: string;
+      sessionId?: string;
+      rescheduleUrl?: string;
+      isRescheduleFlow?: boolean;
     };
   };
 }
@@ -31,13 +33,17 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
+  const isRescheduleFlow = orderResult.data.isRescheduleFlow || orderResult.data.rescheduleUrl;
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(orderResult.data.url);
       setCopied(true);
       toast({
         title: "Link copied!",
-        description: "Payment link has been copied to clipboard",
+        description: isRescheduleFlow 
+          ? "Reschedule & Checkout link has been copied to clipboard"
+          : "Payment link has been copied to clipboard",
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -63,7 +69,10 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             Order Created Successfully!
           </DialogTitle>
           <DialogDescription>
-            Your order has been created. Complete the payment to confirm your booking.
+            {isRescheduleFlow 
+              ? "Order created without slot reservation. Share the link below with your customer to schedule appointments and complete payment."
+              : "Your order has been created. Complete the payment to confirm your booking."
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -77,62 +86,135 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Session ID:</span>
-                <Badge variant="outline">{orderResult.data.sessionId}</Badge>
-              </div>
+              {orderResult.data.sessionId && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Session ID:</span>
+                  <Badge variant="outline">{orderResult.data.sessionId}</Badge>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Status:</span>
-                <Badge variant="secondary">Pending Payment</Badge>
+                <Badge variant="secondary">
+                  {isRescheduleFlow ? 'Pending Scheduling' : 'Pending Payment'}
+                </Badge>
               </div>
+              {isRescheduleFlow && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Flow Type:</span>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                    Reschedule + Checkout
+                  </Badge>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Payment Link */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Payment Link
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-muted rounded-md border">
-                <p className="text-sm text-muted-foreground break-all font-mono">
-                  {orderResult.data.url}
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleCopyLink}
-                  variant="outline"
-                  className="flex-1"
-                  disabled={copied}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copied ? 'Copied!' : 'Copy Link'}
-                </Button>
+          {/* Reschedule Flow - Combined Link */}
+          {isRescheduleFlow ? (
+            <>
+              <Card className="border-amber-200 bg-amber-50/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-amber-700">
+                    <CalendarClock className="h-4 w-4" />
+                    Schedule & Checkout Link
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Customer will use this link to:
+                  </p>
+                  <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
+                    <li>Schedule their appointment slots</li>
+                    <li>Proceed to payment checkout</li>
+                  </ol>
+                  
+                  <div className="p-4 bg-white rounded-md border">
+                    <p className="text-sm text-muted-foreground break-all font-mono">
+                      {orderResult.data.url}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={handleCopyLink}
+                      variant="outline"
+                      className="flex-1"
+                      disabled={copied}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      {copied ? 'Copied!' : 'Copy Link'}
+                    </Button>
+                    
+                    <Button
+                      onClick={handleOpenPayment}
+                      className="flex-1 bg-amber-600 hover:bg-amber-700"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open Link
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            /* Standard Payment Link Flow */
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Payment Link
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-md border">
+                  <p className="text-sm text-muted-foreground break-all font-mono">
+                    {orderResult.data.url}
+                  </p>
+                </div>
                 
-                <Button
-                  onClick={handleOpenPayment}
-                  className="flex-1"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Payment
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={handleCopyLink}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={copied}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </Button>
+                  
+                  <Button
+                    onClick={handleOpenPayment}
+                    className="flex-1"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Payment
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Instructions */}
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• Share this payment link with your customer</p>
-                <p>• Payment must be completed to confirm the booking</p>
-                <p>• Calendar events will be created after successful payment</p>
-                <p>• You can track the order status in the Orders page</p>
+                {isRescheduleFlow ? (
+                  <>
+                    <p>• Share this link with your customer</p>
+                    <p>• Customer will first select their preferred appointment times</p>
+                    <p>• After scheduling, they will be redirected to complete payment</p>
+                    <p>• Slots will only be reserved after payment is completed</p>
+                    <p>• You can track the order status in the Orders page</p>
+                  </>
+                ) : (
+                  <>
+                    <p>• Share this payment link with your customer</p>
+                    <p>• Payment must be completed to confirm the booking</p>
+                    <p>• Calendar events will be created after successful payment</p>
+                    <p>• You can track the order status in the Orders page</p>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

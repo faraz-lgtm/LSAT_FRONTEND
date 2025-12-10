@@ -54,6 +54,7 @@ import {
   SwaggerBaseApiResponseForClassForgotPasswordOutput,
   SwaggerBaseApiResponseForClassLoginOutput,
   SwaggerBaseApiResponseForClassMessageOutputDto,
+  SwaggerBaseApiResponseForClassOrderCreateResponse,
   SwaggerBaseApiResponseForClassOrderOutput,
   SwaggerBaseApiResponseForClassOrganizationOutput,
   SwaggerBaseApiResponseForClassParticipantOutputDto,
@@ -683,6 +684,24 @@ export namespace Api {
   /**
    * No description
    * @tags order
+   * @name OrderControllerGenerateOrderRescheduleLink
+   * @summary Generate reschedule link for entire order
+   * @request POST:/api/v1/order/{orderId}/reschedule/link
+   * @secure
+   */
+  export namespace OrderControllerGenerateOrderRescheduleLink {
+    export type RequestParams = {
+      orderId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags order
    * @name OrderControllerRescheduleAppointment
    * @summary Reschedule an appointment (admin)
    * @request PATCH:/api/v1/order/appointments/{appointmentId}/reschedule
@@ -729,7 +748,7 @@ export namespace Api {
     export type RequestBody = OrderInput;
     export type RequestHeaders = {};
     export type ResponseBody =
-      SwaggerBaseApiResponseForClassStripeCheckoutSession;
+      SwaggerBaseApiResponseForClassOrderCreateResponse;
   }
 
   /**
@@ -938,6 +957,73 @@ export namespace Api {
    * @request POST:/api/v1/public/reschedule/confirm
    */
   export namespace OrderPublicControllerConfirm {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags public
+   * @name OrderPublicControllerGetOrderRescheduleInfo
+   * @summary Get order info with all appointments for rescheduling (public)
+   * @request GET:/api/v1/public/order-reschedule/info
+   */
+  export namespace OrderPublicControllerGetOrderRescheduleInfo {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      token: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags public
+   * @name OrderPublicControllerGetOrderRescheduleSlots
+   * @summary Get available slots for a specific appointment in order reschedule (public)
+   * @request GET:/api/v1/public/order-reschedule/slots
+   */
+  export namespace OrderPublicControllerGetOrderRescheduleSlots {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      token: string;
+      appointmentId: string;
+      date: string;
+      graceHours: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * No description
+   * @tags public
+   * @name OrderPublicControllerConfirmOrderReschedule
+   * @summary Confirm reschedule for a specific appointment in order (public)
+   * @request POST:/api/v1/public/order-reschedule/confirm
+   */
+  export namespace OrderPublicControllerConfirmOrderReschedule {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+   * @description Called after customer has scheduled all appointments to get the payment link
+   * @tags public
+   * @name OrderPublicControllerGetCheckoutUrl
+   * @summary Get Stripe checkout URL after scheduling all appointments (public)
+   * @request POST:/api/v1/public/order-reschedule/checkout
+   */
+  export namespace OrderPublicControllerGetCheckoutUrl {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
