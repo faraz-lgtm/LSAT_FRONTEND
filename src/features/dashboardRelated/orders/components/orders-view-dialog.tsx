@@ -23,6 +23,7 @@ import {
   useMarkAppointmentAttendanceMutation, 
   useUpdateOrderNotesMutation,
   useGenerateRescheduleLinkMutation,
+  useCreateStripeCheckoutMutation,
 } from '@/redux/apiSlices/Order/orderSlice'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -62,15 +63,35 @@ export function OrdersViewDialog({
   const { data: apptsData, isLoading: isLoadingAppts } = useListOrderAppointmentsQuery(currentRow.id, { skip: !open })
   const [markAttendance, { isLoading: isMarking }] = useMarkAppointmentAttendanceMutation()
   const [generateLink, { isLoading: isGenerating } ] = useGenerateRescheduleLinkMutation()
+  const [createStripeCheckout, { isLoading: isRegeneratingCheckout }] = useCreateStripeCheckoutMutation()
   const [copyingApptId, setCopyingApptId] = useState<number | null>(null)
   const [copiedApptId, setCopiedApptId] = useState<number | null>(null)
   const [copyErrorApptId, setCopyErrorApptId] = useState<number | null>(null)
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(currentRow.checkoutSessionUrl || null)
+  
+  // Update checkoutUrl when currentRow changes
+  useEffect(() => {
+    setCheckoutUrl(currentRow.checkoutSessionUrl || null)
+  }, [currentRow.checkoutSessionUrl])
+  
   const appointments = useMemo(() => {
     // handle either wrapped BaseApiResponse or raw array
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = (apptsData as any)?.data ?? apptsData
     return (payload ?? []) as Array<{ id: number; orderId: number; itemId: number; slotDateTime: string; assignedEmployeeId?: number | null; attendanceStatus: 'UNKNOWN' | 'SHOWED' | 'NO_SHOW' | 'RESCHEDULED' }>
   }, [apptsData])
+  
+  // Handle regenerate checkout link
+  const handleRegenerateCheckout = async () => {
+    try {
+      const result = await createStripeCheckout(currentRow.id).unwrap()
+      if (result?.data?.url) {
+        setCheckoutUrl(result.data.url)
+      }
+    } catch (error) {
+      console.error('Failed to regenerate checkout link:', error)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -173,19 +194,31 @@ export function OrdersViewDialog({
             </div>
           )}
 
-          {/* Checkout Session URL - Only show if order status is RESERVED */}
-          {currentRow.checkoutSessionUrl && (currentRow.slot_reservation_status === 'RESERVED' || currentRow.slot_reservation_status === 'FAILED') && (
+          {/* Checkout Session URL - Show for RESERVED and FAILED statuses */}
+          {checkoutUrl && (currentRow.slot_reservation_status === 'RESERVED' || currentRow.slot_reservation_status === 'FAILED') && (
             <div className='space-y-3'>
-              <h3 className='text-lg font-semibold'>Checkout Session</h3>
+              <div className='flex items-center justify-between'>
+                <h3 className='text-lg font-semibold'>Checkout Session</h3>
+                {currentRow.slot_reservation_status === 'FAILED' && (
+                  <Button
+                    onClick={handleRegenerateCheckout}
+                    disabled={isRegeneratingCheckout}
+                    size='sm'
+                    variant='outline'
+                  >
+                    {isRegeneratingCheckout ? 'Regenerating...' : 'Regenerate Payment Link'}
+                  </Button>
+                )}
+              </div>
               <div className='border rounded-lg p-4 bg-muted/30'>
                 <a
-                  href={currentRow.checkoutSessionUrl}
+                  href={checkoutUrl}
                   target='_blank'
                   rel='noopener noreferrer'
                   className='flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors break-all'
                 >
                   <ExternalLink className='h-4 w-4 flex-shrink-0' />
-                  <span className='text-sm font-medium break-all'>{currentRow.checkoutSessionUrl}</span>
+                  <span className='text-sm font-medium break-all'>{checkoutUrl}</span>
                 </a>
               </div>
             </div>

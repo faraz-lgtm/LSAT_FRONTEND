@@ -1,5 +1,5 @@
 import type { BaseApiResponse } from "@/shared/BaseApiResponse";
-import type { GetOrdersQueryParams, OrderOutput, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
+import type { GetOrdersQueryParams, OrderOutput, StripeCheckoutSession, UpdateOrderNotesDto, UpdateAppointmentNotesDto, MarkAppointmentAttendanceDto, CancelOrderDto, CancelOrderResultDto } from "@/types/api/data-contracts";
 import { api } from "../../api";
 import type { CartItem } from "../../cartSlice";
 import type { InformationState } from "../../informationSlice";
@@ -204,6 +204,18 @@ export const ordersApi = api.injectEndpoints({
       invalidatesTags: ['Orders', 'Refunds', 'Invoices', 'AvailableSlots'],
     }),
 
+    // Create Stripe checkout session for an order
+    createStripeCheckout: builder.mutation<
+      BaseApiResponse<StripeCheckoutSession>,
+      number // orderId
+    >({
+      query: (orderId) => ({
+        url: `order/${orderId}/stripe/checkout`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Orders'],
+    }),
+
     //Mutations
     createOrder: builder.mutation<
       BaseApiResponse<OrderCreateResponse>, // Response can be Stripe checkout session or reschedule flow
@@ -340,6 +352,7 @@ export const {
   useDeleteOrderMutation,
   useCompleteOrderMutation,
   useCancelOrderMutation,
+  useCreateStripeCheckoutMutation,
   useGetPublicRescheduleSlotsQuery,
   useConfirmPublicRescheduleMutation,
   useGetPublicOrderRescheduleInfoQuery,
