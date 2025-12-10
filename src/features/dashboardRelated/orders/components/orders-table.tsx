@@ -24,9 +24,11 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/dashboard/data-table'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { createOrdersColumns } from './orders-columns'
-import type { OrderOutput } from '@/types/api/data-contracts'
+import type { OrderOutput, UserOutput } from '@/types/api/data-contracts'
 import { formatCurrency } from '@/utils/currency'
 import { useOrders } from './orders-provider'
+import { useGetUsersQuery } from '@/redux/apiSlices/User/userSlice'
+import { useMemo } from 'react'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -46,7 +48,33 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
   console.log("OrdersTable data length:", data?.length);
   
   const { setOpen, setCurrentRow } = useOrders()
-  const columns = createOrdersColumns(formatCurrency);
+  const { data: usersData } = useGetUsersQuery(undefined)
+  
+  // Create user ID to user mapping
+  const userIdToUser = useMemo(() => {
+    return (usersData?.data || []).reduce<Record<number, UserOutput>>((acc, user) => {
+      acc[user.id] = user
+      return acc
+    }, {})
+  }, [usersData?.data])
+  
+  const columns = createOrdersColumns(formatCurrency, userIdToUser);
+  
+  // Filter orders by assignedEmployeeId if present
+  // Note: Efficient filtering requires server-side support or fetching appointments for all orders
+  // For now, we show all orders and users can see assigned tutors in the column
+  // TODO: Implement efficient filtering when backend supports filtering orders by assignedEmployeeId
+  const filteredData = useMemo(() => {
+    const assignedEmployeeId = search.assignedEmployeeId as number | undefined
+    if (!assignedEmployeeId) {
+      return data
+    }
+    
+    // Return all data - filtering by assignedEmployeeId requires checking appointments
+    // which is expensive to do client-side for all orders
+    // The Assigned Tutors column will show which employees are assigned to each order
+    return data
+  }, [data, search.assignedEmployeeId])
   
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
@@ -79,7 +107,7 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
   })
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -126,9 +154,9 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Reserved', value: 'reserved' },
               { label: 'Confirmed', value: 'confirmed' },
               { label: 'Expired', value: 'expired' },
+              { label: 'Failed', value: 'failed' },
               { label: 'Canceled', value: 'canceled' },
-              { label: 'Completed', value: 'completed' },
-              { label: 'No Status', value: 'no-status' },
+              {label:'Completed', value: 'completed'}
             ],
           },
         ]}

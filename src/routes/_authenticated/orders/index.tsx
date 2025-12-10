@@ -7,10 +7,11 @@ const orderSearchSchema = z.object({
   pageSize: z.number().optional().catch(10),
   customer: z.string().optional().catch(''),
   orderStatus: z
-    .array(z.enum(['reserved', 'confirmed', 'expired', 'no-status']))
+    .array(z.enum(['reserved', 'confirmed', 'expired', 'failed', 'canceled', 'completed']))
     .optional()
     .catch([]),
   orderId: z.number().optional().catch(undefined),
+  assignedEmployeeId: z.number().optional().catch(undefined),
 })
 
 // Lazy load Orders to enable code splitting

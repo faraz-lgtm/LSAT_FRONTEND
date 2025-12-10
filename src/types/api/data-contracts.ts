@@ -199,6 +199,11 @@ export interface UserOutput {
    */
   ordersCount: number;
   /**
+   * Total count of order appointments for this user (without DISTINCT)
+   * @example 12
+   */
+  orderAppointmentCount: number;
+  /**
    * Last assigned order count for round-robin assignment
    * @example 5
    */
@@ -691,6 +696,67 @@ export interface GetOrdersQueryParams {
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
 }
 
+export interface SlotInput {
+  /**
+   * Slot date and time in ISO format
+   * @example "2025-12-09T13:00:00.000Z"
+   */
+  dateTime: string;
+  /**
+   * Available employee IDs for this slot (pre-validated from slots API)
+   * @example [206,207]
+   */
+  availableEmployeeIds: number[];
+}
+
+export interface ItemInput {
+  /**
+   * Item ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Item price
+   * @example 100
+   */
+  price: number;
+  /**
+   * Item name
+   * @example "60-Minute Prep Session"
+   */
+  name: string;
+  /**
+   * Session duration in minutes
+   * @example 60
+   */
+  Duration: number;
+  /**
+   * Item description
+   * @example "Comprehensive prep session"
+   */
+  Description: string;
+  /**
+   * Scheduled date and time slots with available employees
+   * @example [{"dateTime":"2025-12-09T13:00:00.000Z","availableEmployeeIds":[206,207]},{"dateTime":"2025-12-09T14:00:00.000Z","availableEmployeeIds":[206]}]
+   */
+  DateTime: SlotInput[];
+  /**
+   * Quantity of items
+   * @example 1
+   */
+  quantity: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * ID of assigned employee (set by backend after assignment)
+   * @example [206,206]
+   */
+  assignedEmployeeIds?: string[];
+}
+
 export interface UpdateOrderNotesDto {
   /**
    * Free-form notes for the order
@@ -853,54 +919,6 @@ export interface UpdateAppointmentNotesDto {
    * @example "Student needs extra help with logic games"
    */
   notes?: object;
-}
-
-export interface ItemInput {
-  /**
-   * Item ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Item price
-   * @example 100
-   */
-  price: number;
-  /**
-   * Item name
-   * @example "60-Minute Prep Session"
-   */
-  name: string;
-  /**
-   * Session duration in minutes
-   * @example 60
-   */
-  Duration: number;
-  /**
-   * Item description
-   * @example "Comprehensive prep session"
-   */
-  Description: string;
-  /**
-   * Scheduled date and time slots
-   * @example ["2025-10-15T12:00:00Z","2025-10-15T13:00:00Z"]
-   */
-  DateTime: string[];
-  /**
-   * Quantity of items
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Number of sessions included
-   * @example 1
-   */
-  sessions: number;
-  /**
-   * ID of assigned employee
-   * @example 5
-   */
-  assignedEmployeeIds?: string[];
 }
 
 export interface UtmInput {
@@ -2633,6 +2651,11 @@ export interface AutomationConfigOutputDto {
    * @example {"delayMinutes":0,"customMessage":"New order #{{orderId}}"}
    */
   parameters?: object;
+  /**
+   * Scheduling type for the automation
+   * @example "fixed-delay"
+   */
+  schedulingType?: "fixed-delay" | "session-based";
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {

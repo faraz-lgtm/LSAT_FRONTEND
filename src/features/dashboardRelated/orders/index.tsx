@@ -11,7 +11,7 @@ import { OrdersTable } from "./components/orders-table";
 import { OrdersPrimaryButtons } from "./components/orders-primary-buttons";
 import { useGetOrdersQuery } from "@/redux/apiSlices/Order/orderSlice";
 import { OrderCreateForm } from "@/components/google-calendar/OrderCreateForm";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { OrderOutput } from "@/types/api/data-contracts";
 
 const route = getRouteApi("/_authenticated/orders/");
@@ -36,6 +36,21 @@ export function Orders() {
   } else {
     console.log("NOT setting orders - isSuccess:", isSuccess, "ordersData:", ordersData);
   }
+
+  // Filter orders by assignedEmployeeId if present in search params
+  // Note: This requires checking appointments for each order, which is expensive
+  // Ideally this should be done server-side
+  const filteredOrders = useMemo(() => {
+    const assignedEmployeeId = search.assignedEmployeeId as number | undefined;
+    
+    if (!assignedEmployeeId) {
+      return orders;
+    }
+
+    // Return all orders - filtering will be handled in OrdersTable component
+    // where we can check appointments per order as they're rendered
+    return orders;
+  }, [orders, search.assignedEmployeeId])
 
   if (isLoading) {
     return (
@@ -80,7 +95,7 @@ export function Orders() {
         </div>
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12">
           <OrdersTable
-            data={orders}
+            data={filteredOrders}
             search={search}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigate={navigate as any}

@@ -1,4 +1,4 @@
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef, type Column, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/dashboardRelated/utils'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
@@ -8,9 +8,12 @@ import { roles } from '../data/data'
 import { type UserOutput } from '@/types/api/data-contracts'
 import { DataTableRowActions } from './data-table-row-actions'
 import { ClickableOrderBadge } from './clickable-order-badge'
+import { ClickableAppointmentBadge } from './clickable-appointment-badge'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
-export const usersColumns: ColumnDef<UserOutput>[] = [
+type PageType = 'customers' | 'employees' | 'all' | 'leads' | 'contacts'
+
+export const createUsersColumns = (pageType?: PageType): ColumnDef<UserOutput>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -115,6 +118,22 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
     enableSorting: true,
     enableHiding: false,
   },
+  ...(pageType === 'employees' ? [{
+    accessorKey: 'orderAppointmentCount',
+    header: ({ column }: { column: Column<UserOutput> }) => (
+      <div className="flex items-center justify-start">
+        <DataTableColumnHeader column={column} title='Appointments' />
+      </div>
+    ),
+    cell: ({ row }: { row: Row<UserOutput> }) => {
+      const appointmentCount = row.getValue('orderAppointmentCount') as number
+      const user = row.original
+      
+      return <ClickableAppointmentBadge user={user} appointmentCount={appointmentCount} />
+    },
+    enableSorting: true,
+    enableHiding: false,
+  }] : []),
   {
     accessorKey: 'isAccountDisabled',
     header: ({ column }) => (
@@ -211,3 +230,6 @@ export const usersColumns: ColumnDef<UserOutput>[] = [
     cell: DataTableRowActions,
   },
 ]
+
+// Keep backward compatibility
+export const usersColumns = createUsersColumns()
