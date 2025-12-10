@@ -174,7 +174,7 @@ export function OrdersViewDialog({
           )}
 
           {/* Checkout Session URL - Only show if order status is RESERVED */}
-          {currentRow.checkoutSessionUrl && currentRow.slot_reservation_status === 'RESERVED' && (
+          {currentRow.checkoutSessionUrl && (currentRow.slot_reservation_status === 'RESERVED' || currentRow.slot_reservation_status === 'FAILED') && (
             <div className='space-y-3'>
               <h3 className='text-lg font-semibold'>Checkout Session</h3>
               <div className='border rounded-lg p-4 bg-muted/30'>

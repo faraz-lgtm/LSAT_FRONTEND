@@ -154,9 +154,9 @@ export function OrdersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Reserved', value: 'reserved' },
               { label: 'Confirmed', value: 'confirmed' },
               { label: 'Expired', value: 'expired' },
+              { label: 'Failed', value: 'failed' },
               { label: 'Canceled', value: 'canceled' },
-              { label: 'Completed', value: 'completed' },
-              { label: 'No Status', value: 'no-status' },
+              {label:'Completed', value: 'completed'}
             ],
           },
         ]}

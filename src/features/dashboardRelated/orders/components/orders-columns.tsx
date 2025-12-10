@@ -216,7 +216,7 @@ export const createOrdersColumns = (
     ),
     cell: ({ row }) => {
       const orderStatus = row.original.orderStatus as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | undefined
-      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'CANCELED' | null
+      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'FAILED' | 'CANCELED' | null
       
       // Show order status if available, otherwise show slot reservation status
       if (orderStatus === 'COMPLETED') {
@@ -243,6 +243,7 @@ export const createOrdersColumns = (
         RESERVED: 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200',
         CONFIRMED: 'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
         EXPIRED: 'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200',
+        FAILED: 'bg-orange-100/30 text-orange-900 dark:text-orange-200 border-orange-200',
         CANCELED: 'bg-white-100/30 text-red-900 dark:text-red-200 border-red-200',
       }
       
@@ -256,15 +257,16 @@ export const createOrdersColumns = (
     },
     filterFn: (row, _id, value) => {
       const orderStatus = row.original.orderStatus as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | undefined
-      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | null
+      const slotStatus = row.original.slot_reservation_status as 'RESERVED' | 'CONFIRMED' | 'EXPIRED' | 'FAILED' | 'CANCELED' | null
       
       // Check if completed filter is selected
       if (value.includes('completed') && orderStatus === 'COMPLETED') {
         return true
       }
       
+      // Only filter by slot reservation status
       if (!slotStatus) {
-        return value.includes('no-status')
+        return false
       }
       return value.includes(slotStatus.toLowerCase())
     },
