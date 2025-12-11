@@ -20,16 +20,17 @@ import {
   CreateConversationDto,
   CreateInvoiceDto,
   CreateOrganizationDto,
-  CreatePaymentLinkDto,
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
+  GlobalStatsDto,
   GoogleCalendarConfigInputDto,
+  IntegrationUsageDto,
   InvoiceOutputDto,
   LoginInput,
   MarkAppointmentAttendanceDto,
   OrderInput,
-  PaymentLinkResponseDto,
+  OrganizationListItemDto,
   ProcessRefundDto,
   RecordingCallbackDto,
   RefreshTokenInput,
@@ -201,19 +202,6 @@ export namespace Api {
     export type RequestBody = UpdateOrganizationDto;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
-  }
-
-  /**
-   * No description
-   * @name MetricsControllerGetMetrics
-   * @request GET:/api/v1/metrics
-   */
-  export namespace MetricsControllerGetMetrics {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = void;
   }
 
   /**
@@ -1054,7 +1042,7 @@ export namespace Api {
       /** Filter by task label */
       label?: "meeting" | "personal" | "preparation" | "grading";
       /** Filter by attendance status */
-      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
       /**
        * Filter appointments from this date
        * @example "2024-01-15T00:00:00.000Z"
@@ -1079,28 +1067,6 @@ export namespace Api {
        */
       offset?: number;
     };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
-  }
-
-  /**
-   * No description
-   * @tags order-appointments
-   * @name OrderAppointmentControllerFindOne
-   * @summary Get Order Appointment by ID
-   * @request GET:/api/v1/order-appointments/{id}
-   * @secure
-   */
-  export namespace OrderAppointmentControllerFindOne {
-    export type RequestParams = {
-      /**
-       * Order Appointment ID
-       * @example 1
-       */
-      id: number;
-    };
-    export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
@@ -1692,22 +1658,6 @@ export namespace Api {
       /** @example 100 */
       originalAmount?: number;
     };
-  }
-
-  /**
-   * @description Creates a Stripe checkout session for a direct payment without an order
-   * @tags Payment Links
-   * @name PaymentLinkControllerCreatePaymentLink
-   * @summary Create a direct payment link
-   * @request POST:/api/v1/payment-links
-   * @secure
-   */
-  export namespace PaymentLinkControllerCreatePaymentLink {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = CreatePaymentLinkDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PaymentLinkResponseDto;
   }
 
   /**
@@ -2871,5 +2821,53 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = CallsByConversationResponseDto;
+  }
+
+  /**
+   * @description Returns aggregated system-wide statistics including total organizations, leads, contacts, customers, appointments, and revenue. Super Admin only.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetGlobalStats
+   * @summary Get global statistics
+   * @request GET:/api/v1/super-admin/stats
+   * @secure
+   */
+  export namespace SuperAdminControllerGetGlobalStats {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = GlobalStatsDto;
+  }
+
+  /**
+   * @description Returns a list of all organizations in the system. Super Admin only. Organization admins cannot access this endpoint.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetAllOrganizations
+   * @summary Get all organizations
+   * @request GET:/api/v1/super-admin/organizations
+   * @secure
+   */
+  export namespace SuperAdminControllerGetAllOrganizations {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = OrganizationListItemDto[];
+  }
+
+  /**
+   * @description Returns integration usage statistics (SMS, email, call duration) for all organizations. Super Admin only.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetIntegrationUsage
+   * @summary Get integration usage for all organizations
+   * @request GET:/api/v1/super-admin/usage
+   * @secure
+   */
+  export namespace SuperAdminControllerGetIntegrationUsage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = IntegrationUsageDto[];
   }
 }

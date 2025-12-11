@@ -45,69 +45,95 @@ const sidebarData: SidebarData = {
   ],
   navGroups: [
     {
+      title: "Super Admin",
+      items: [
+        {
+          title: "Dashboard",
+          url: "/super-admin/dashboard",
+          icon: LayoutDashboard,
+          superAdminOnly: true,
+        },
+        {
+          title: "Organizations",
+          url: "/super-admin/organizations",
+          icon: Building2,
+          superAdminOnly: true,
+        },
+        {
+          title: "Integrations Usage",
+          url: "/super-admin/usage",
+          icon: Activity,
+          superAdminOnly: true,
+        },
+      ],
+    },
+    {
       title: "General",
       items: [
         {
           title: "Dashboard",
           url: "/",
           icon: LayoutDashboard,
+          hideForSuperAdmin: true,
         },
         {
           title: "Tasks",
           url: "/tasks",
           icon: ClipboardList,
+          hideForSuperAdmin: true,
         },
         {
           title: "Appointments",
           url: "/appointments",
           icon: CalendarCheck,
+          hideForSuperAdmin: true,
         },
         {
           title: "Apps",
           url: "/apps",
           icon: Package,
+          hideForSuperAdmin: true,
         },
         {
           title: "Chats",
           url: "/chats",
           icon: MessagesSquare,
+          hideForSuperAdmin: true,
         },
         
         {
           title: "Orders",
           url: "/orders",
           icon: ShoppingCart,
+          hideForSuperAdmin: true,
         },
         {
           title: "Cart",
           url: import.meta.env.VITE_CART_ || "/cart",
           icon: ShoppingBag,
+          hideForSuperAdmin: true,
         },
         {
           title: "Packages",
           url: "/packages",
           icon: Package,
+          hideForSuperAdmin: true,
         },
         {
           title: "Calendar",
           url: "/calendar",
           icon: Calendar,
+          hideForSuperAdmin: true,
         },
       ],
     },
     {
       title: "Users",
       items: [
-        { title: "Employees", url: "/users/employees", icon: Users },
-        { title: "Leads", url: "/users/leads", icon: Users },
-        { title: "Contacts", url: "/users/contacts", icon: Users },
-        { title: "Customers", url: "/users/customers", icon: Users },
-      ],
-    },
-    {
-      title: "Admin",
-      items: [
-        { title: "Organizations", url: "/organizations", icon: Building2, superAdminOnly: true },
+        { title: "Employees", url: "/users/employees", icon: Users, hideForSuperAdmin: true },
+        { title: "Leads", url: "/users/leads", icon: Users, hideForSuperAdmin: true },
+        { title: "Contacts", url: "/users/contacts", icon: Users, hideForSuperAdmin: true },
+        { title: "Customers", url: "/users/customers", icon: Users, hideForSuperAdmin: true },
       ],
     },
     {
@@ -117,11 +143,13 @@ const sidebarData: SidebarData = {
           title: "Automations",
           url: "/automations",
           icon: Zap,
+          hideForSuperAdmin: true,
         },
         {
           title: "Automation Logs",
           url: "/automation-logs",
           icon: Activity,
+          hideForSuperAdmin: true,
         },
       ],
     },
@@ -132,16 +160,19 @@ const sidebarData: SidebarData = {
           title: "Invoices",
           url: "/invoices",
           icon: Receipt,
+          hideForSuperAdmin: true,
         },
         {
           title: "Refunds",
           url: "/refunds",
           icon: ReceiptText,
+          hideForSuperAdmin: true,
         },
         {
           title: "Transactions",
           url: "/transactions",
           icon: CreditCard,
+          hideForSuperAdmin: true,
         },
         {
           title: "Secured by Clerk",
@@ -242,6 +273,9 @@ if (ENV !== "DEVELOPMENT") {
         // Allow items with direct URLs
         if (item.url && [
           "/", 
+          "/super-admin/dashboard",
+          "/super-admin/organizations",
+          "/super-admin/usage",
           "/users", 
           "/users/employees",
           "/users/leads",
@@ -259,7 +293,6 @@ if (ENV !== "DEVELOPMENT") {
           "/transactions",
           "/automations",
           "/automation-logs",
-          "/organizations",
           cartUrl
         ].includes(item.url)) {
           return true;
