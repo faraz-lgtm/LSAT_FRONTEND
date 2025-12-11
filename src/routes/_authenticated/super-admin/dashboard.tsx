@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { lazy } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Lazy load SuperAdminDashboardPage to enable code splitting
-const SuperAdminDashboardPage = lazy(() => import("@/features/dashboardRelated/super-admin/pages/dashboard").then((m) => ({ default: m.SuperAdminDashboardPage })));
-
+// Redirect old /super-admin/dashboard route to /super-admin
 export const Route = createFileRoute("/_authenticated/super-admin/dashboard")({
-  component: SuperAdminDashboardPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/super-admin',
+    })
+  },
 });

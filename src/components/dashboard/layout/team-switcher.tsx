@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { ChevronsUpDown, Building2 } from 'lucide-react'
+import { ChevronsUpDown, Building2, Shield } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/dashboard/ui/dropdown-menu'
@@ -20,6 +21,7 @@ import type { RootState } from '@/redux/store'
 import { setOrganization } from '@/redux/authSlice'
 import { ROLE } from '@/constants/roles'
 import { Loader2 } from 'lucide-react'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 
 type TeamSwitcherProps = {
   teams?: {
@@ -32,12 +34,17 @@ type TeamSwitcherProps = {
 export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
   const { isMobile } = useSidebar()
   const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { user, organizationId } = useSelector((state: RootState) => state.auth)
   
   // Check if user is SUPER_ADMIN
   const isSuperAdmin = user?.roles?.some(role => 
     role === ROLE.SUPER_ADMIN
   ) || false
+  
+  // Check if we're on a super-admin route
+  const isOnSuperAdminRoute = location.pathname.startsWith('/super-admin')
 
   // Fetch all organizations for Super Admin (without domain filter for switcher)
   const { data: allOrganizationsData, isLoading: isLoadingAll } = useGetAllOrganizationsQuery(
@@ -64,6 +71,8 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
 
   // Find active organization
   const activeOrganization = React.useMemo(() => {
+    // If on super-admin route, no active organization
+    if (isOnSuperAdminRoute) return null
     if (organizations.length === 0) return null
     // For Super Admin, use the one matching current organizationId, or first one
     if (isSuperAdmin) {
@@ -71,7 +80,7 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
     }
     // For non-Super Admin, use their organization
     return organizations[0]
-  }, [organizations, organizationId, isSuperAdmin])
+  }, [organizations, organizationId, isSuperAdmin, isOnSuperAdminRoute])
 
   const isLoading = isSuperAdmin ? isLoadingAll : isLoadingMy
 
@@ -85,22 +94,30 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
       organizationSlug: org.slug,
     }))
 
-    // Reload the page to apply the new organization context
-    // This ensures all API calls use the new organization
-    window.location.reload()
-  }, [dispatch])
+    // If on super-admin route, navigate to dashboard
+    if (isOnSuperAdminRoute) {
+      navigate({ to: '/' })
+      // Reload to apply the new organization context
+      setTimeout(() => window.location.reload(), 100)
+    } else {
+      // Reload the page to apply the new organization context
+      window.location.reload()
+    }
+  }, [dispatch, navigate, isOnSuperAdminRoute])
+  
+  // Handle going back to Admin Dashboard
+  const handleGoToAdminDashboard = React.useCallback(() => {
+    // Clear organization selection
+    dispatch(setOrganization({
+      organizationId: null,
+      organizationSlug: null,
+    }))
+    navigate({ to: '/super-admin' })
+    setTimeout(() => window.location.reload(), 100)
+  }, [dispatch, navigate])
 
   // Convert organizations to teams format for display
   const teams = React.useMemo(() => {
-    if (isSuperAdmin) {
-      // For Super Admin, show a fixed 'Super Admin Panel' instead of org name
-      return [{
-        name: 'Super Admin Panel',
-        logo: Building2,
-        plan: 'Global Administration',
-        id: 0,
-      }]
-    }
     if (organizations.length > 0) {
       return organizations.map(org => ({
         name: org.name,
@@ -110,9 +127,8 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
         slug: org.slug,
       }))
     }
-    // For Super Admin, show fallback teams if organizations haven't loaded yet
-    // For non-Super Admin, return empty array
-    if (isSuperAdmin && fallbackTeams && fallbackTeams.length > 0) {
+    // Show fallback teams if organizations haven't loaded yet
+    if (fallbackTeams && fallbackTeams.length > 0) {
       return fallbackTeams.map(team => ({
         ...team,
         id: team.name.toLowerCase().replace(/\s+/g, '-'),
@@ -120,7 +136,7 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
       }))
     }
     return []
-  }, [organizations, fallbackTeams, isSuperAdmin])
+  }, [organizations, fallbackTeams])
 
   // Show loading state
   if (isLoading && organizations.length === 0) {
@@ -145,33 +161,6 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
     return null
   }
 
-  // For Super Admin, show a simple non-clickable header
-  if (isSuperAdmin) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size='lg'
-            className='cursor-default hover:bg-transparent'
-            disabled
-          >
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-              <Building2 className='size-4' />
-            </div>
-            <div className='grid flex-1 text-start text-sm leading-tight'>
-              <span className='truncate font-semibold'>
-                Super Admin Panel
-              </span>
-              <span className='truncate text-xs'>
-                Global Administration
-              </span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    )
-  }
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -180,17 +169,28 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
             <SidebarMenuButton
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-              disabled={teams.length === 1}
+              disabled={!isSuperAdmin && teams.length === 1}
             >
               <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-                {activeOrganization && React.createElement(Building2, { className: 'size-4' })}
+                {isOnSuperAdminRoute 
+                  ? React.createElement(Shield, { className: 'size-4' })
+                  : activeOrganization && React.createElement(Building2, { className: 'size-4' })
+                }
               </div>
               <div className='grid flex-1 text-start text-sm leading-tight'>
                 <span className='truncate font-semibold'>
-                  {activeOrganization ? activeOrganization.name : 'No organization'}
+                  {isOnSuperAdminRoute 
+                    ? 'Admin Dashboard' 
+                    : activeOrganization 
+                      ? activeOrganization.name 
+                      : 'No organization'}
                 </span>
                 <span className='truncate text-xs'>
-                  {activeOrganization ? (activeOrganization.domain || activeOrganization.slug || 'No domain') : ''}
+                  {isOnSuperAdminRoute 
+                    ? 'Global Administration' 
+                    : activeOrganization 
+                      ? (activeOrganization.domain || activeOrganization.slug || 'No domain') 
+                      : ''}
                 </span>
               </div>
               <ChevronsUpDown className='ms-auto' />
@@ -203,8 +203,31 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
             sideOffset={4}
           >
             <DropdownMenuLabel className='text-muted-foreground text-xs'>
-              Organizations
+              {isSuperAdmin ? 'Switch View' : 'Organizations'}
             </DropdownMenuLabel>
+            {isSuperAdmin && (
+              <>
+                <DropdownMenuItem
+                  onClick={handleGoToAdminDashboard}
+                  className='gap-2 p-2'
+                  disabled={isOnSuperAdminRoute}
+                >
+                  <div className='flex size-6 items-center justify-center rounded-sm border'>
+                    <Shield className='size-4 shrink-0' />
+                  </div>
+                  <div className='flex-1'>
+                    <div className='font-medium'>Admin Dashboard</div>
+                    <div className='text-xs text-muted-foreground'>
+                      Global Administration
+                    </div>
+                  </div>
+                  {isOnSuperAdminRoute && (
+                    <span className='text-xs text-muted-foreground'>Current</span>
+                  )}
+                </DropdownMenuItem>
+                {organizations.length > 0 && <DropdownMenuSeparator />}
+              </>
+            )}
             {organizations.length === 0 ? (
               <DropdownMenuItem disabled className='gap-2 p-2'>
                 <div className='text-sm text-muted-foreground'>No organizations found</div>

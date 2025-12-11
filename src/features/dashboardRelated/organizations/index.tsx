@@ -28,13 +28,13 @@ export function Organizations() {
   // Check if user is SUPER_ADMIN
   const isSuperAdmin = user?.roles?.includes(ROLE.SUPER_ADMIN) || (user?.roles as string[])?.includes('SUPER_ADMIN');
 
-  // Redirect if not SUPER_ADMIN - this route is deprecated, use /super-admin/dashboard instead
+  // Redirect if not SUPER_ADMIN - this route is deprecated, use /super-admin instead
   useEffect(() => {
     if (user && !isSuperAdmin) {
       navigate({ to: '/errors/403' });
     } else if (user && isSuperAdmin) {
       // Redirect super admin to the new dashboard
-      navigate({ to: '/super-admin/dashboard' });
+      navigate({ to: '/super-admin' });
     }
   }, [user, isSuperAdmin, navigate]);
 

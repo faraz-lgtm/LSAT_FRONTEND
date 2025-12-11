@@ -49,7 +49,7 @@ const sidebarData: SidebarData = {
       items: [
         {
           title: "Dashboard",
-          url: "/super-admin/dashboard",
+          url: "/super-admin",
           icon: LayoutDashboard,
           superAdminOnly: true,
         },
@@ -273,7 +273,7 @@ if (ENV !== "DEVELOPMENT") {
         // Allow items with direct URLs
         if (item.url && [
           "/", 
-          "/super-admin/dashboard",
+          "/super-admin",
           "/super-admin/organizations",
           "/super-admin/usage",
           "/users", 

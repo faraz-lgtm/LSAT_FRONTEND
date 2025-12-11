@@ -9,18 +9,20 @@ import { useNavigate } from '@tanstack/react-router'
 const Dashboard = lazy(() => import('@/features/dashboardRelated/dashboard').then(m => ({ default: m.Dashboard })))
 
 function DashboardWrapper() {
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, organizationId } = useSelector((state: RootState) => state.auth)
   const navigate = useNavigate()
   
   const isSuperAdmin = user?.roles?.includes(ROLE.SUPER_ADMIN) || (user?.roles as string[])?.includes('SUPER_ADMIN')
   
   useEffect(() => {
-    if (user && isSuperAdmin) {
-      navigate({ to: '/super-admin/dashboard' })
+    // Only redirect to super-admin dashboard if no organization is selected
+    if (user && isSuperAdmin && !organizationId) {
+      navigate({ to: '/super-admin' })
     }
-  }, [user, isSuperAdmin, navigate])
+  }, [user, isSuperAdmin, organizationId, navigate])
   
-  if (isSuperAdmin) {
+  // If super admin but no organization selected, don't render (will redirect)
+  if (isSuperAdmin && !organizationId) {
     return null
   }
   
