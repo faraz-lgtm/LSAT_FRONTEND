@@ -1,9 +1,8 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { lazy, Suspense, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/redux/store'
 import { ROLE } from '@/constants/roles'
-import { useNavigate } from '@tanstack/react-router'
+import type { RootState } from '@/redux/store'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Suspense, lazy, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 
 // Lazy load dashboard to enable code splitting
 const Dashboard = lazy(() => import('@/features/dashboardRelated/dashboard').then(m => ({ default: m.Dashboard })))

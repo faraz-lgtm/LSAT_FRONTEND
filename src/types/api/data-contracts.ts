@@ -124,7 +124,7 @@ export interface CreateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -152,7 +152,7 @@ export interface UpdateOrganizationDto {
   domains?: string[];
   /**
    * Organization settings including integrations (Stripe, Google Calendar, Twilio, Email). For Twilio integration, include emailHostname (e.g., "mail.betterlsat.com") in settings.integrations.twilio.emailHostname to identify the organization from SendGrid inbound emails.
-   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com"},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
+   * @example {"integrations":{"stripe":{"secretKey":"sk_test_...","webhookSecret":"whsec_...","publishableKey":"pk_test_...","taxEnabled":true},"googleCalendar":{"clientId":"...","clientSecret":"...","redirectUri":"...","accessToken":"...","refreshToken":"...","calendarId":"...","businessOwnerEmail":"...","defaultTimezone":"America/New_York"},"twilio":{"accountSid":"AC...","authToken":"...","phoneNumber":"+1...","conversationsServiceSid":"IS...","sendgridApiKey":"SG...","webhookUrl":"https://...","emailHostname":"mail.betterlsat.com","twimlAppSid":"AP..."},"email":{"smtpHost":"smtp.sendgrid.net","smtpPort":"587","smtpUser":"apikey","smtpPass":"SG...","smtpFromEmail":"support@betterlsat.com","smtpFromName":"Better LSAT","sendgridFromEmail":"support@betterlsat.com","sendgridFromName":"Better LSAT"}}}
    */
   settings?: object;
 }
@@ -198,6 +198,11 @@ export interface UserOutput {
    * @example 5
    */
   ordersCount: number;
+  /**
+   * Total count of order appointments for this user (without DISTINCT)
+   * @example 12
+   */
+  orderAppointmentCount: number;
   /**
    * Last assigned order count for round-robin assignment
    * @example 5
@@ -691,6 +696,67 @@ export interface GetOrdersQueryParams {
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
 }
 
+export interface SlotInput {
+  /**
+   * Slot date and time in ISO format
+   * @example "2025-12-09T13:00:00.000Z"
+   */
+  dateTime: string;
+  /**
+   * Available employee IDs for this slot (pre-validated from slots API)
+   * @example [206,207]
+   */
+  availableEmployeeIds: number[];
+}
+
+export interface ItemInput {
+  /**
+   * Item ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Item price
+   * @example 100
+   */
+  price: number;
+  /**
+   * Item name
+   * @example "60-Minute Prep Session"
+   */
+  name: string;
+  /**
+   * Session duration in minutes
+   * @example 60
+   */
+  Duration: number;
+  /**
+   * Item description
+   * @example "Comprehensive prep session"
+   */
+  Description: string;
+  /**
+   * Scheduled date and time slots with available employees
+   * @example [{"dateTime":"2025-12-09T13:00:00.000Z","availableEmployeeIds":[206,207]},{"dateTime":"2025-12-09T14:00:00.000Z","availableEmployeeIds":[206]}]
+   */
+  DateTime: SlotInput[];
+  /**
+   * Quantity of items
+   * @example 1
+   */
+  quantity: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * ID of assigned employee (set by backend after assignment)
+   * @example [206,206]
+   */
+  assignedEmployeeIds?: string[];
+}
+
 export interface UpdateOrderNotesDto {
   /**
    * Free-form notes for the order
@@ -844,7 +910,7 @@ export interface SwaggerBaseApiResponseForClassOrderOutput {
 }
 
 export interface MarkAppointmentAttendanceDto {
-  status: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  status: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
 }
 
 export interface UpdateAppointmentNotesDto {
@@ -853,54 +919,6 @@ export interface UpdateAppointmentNotesDto {
    * @example "Student needs extra help with logic games"
    */
   notes?: object;
-}
-
-export interface ItemInput {
-  /**
-   * Item ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Item price
-   * @example 100
-   */
-  price: number;
-  /**
-   * Item name
-   * @example "60-Minute Prep Session"
-   */
-  name: string;
-  /**
-   * Session duration in minutes
-   * @example 60
-   */
-  Duration: number;
-  /**
-   * Item description
-   * @example "Comprehensive prep session"
-   */
-  Description: string;
-  /**
-   * Scheduled date and time slots
-   * @example ["2025-10-15T12:00:00Z","2025-10-15T13:00:00Z"]
-   */
-  DateTime: string[];
-  /**
-   * Quantity of items
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Number of sessions included
-   * @example 1
-   */
-  sessions: number;
-  /**
-   * ID of assigned employee
-   * @example 5
-   */
-  assignedEmployeeIds?: string[];
 }
 
 export interface UtmInput {
@@ -1060,7 +1078,7 @@ export interface OrderAppointmentQueryDto {
   /** Filter by task label */
   label?: "meeting" | "personal" | "preparation" | "grading";
   /** Filter by attendance status */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
   /**
    * Filter appointments from this date
    * @example "2024-01-15T00:00:00.000Z"
@@ -1183,7 +1201,7 @@ export interface TaskOutputDto {
    */
   itemId?: number;
   /** Attendance status (if this task is from an order appointment) */
-  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+  attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
   /**
    * When the attendance was marked (if this task is from an order appointment)
    * @example "2024-01-15T14:00:00.000Z"
@@ -1204,6 +1222,11 @@ export interface TaskOutputDto {
 export interface SwaggerBaseApiResponseForClassTaskOutputDto {
   meta: MetaResponse;
   data: TaskOutputDto[];
+}
+
+export interface SwaggerBaseApiResponseForClassTaskOutputDto {
+  meta: MetaResponse;
+  data: TaskOutputDto;
 }
 
 export interface SlotsQueryDto {
@@ -1778,6 +1801,60 @@ export interface SwaggerBaseApiResponseForClassPaymentTransactionExtendsBaseFina
   data: PaymentTransaction;
 }
 
+export interface CustomerInfoDto {
+  /**
+   * First name
+   * @example "John"
+   */
+  firstName: string;
+  /**
+   * Last name
+   * @example "Doe"
+   */
+  lastName: string;
+  /**
+   * Email
+   * @example "john.doe@example.com"
+   */
+  email: string;
+  /**
+   * Phone number
+   * @example "+1234567890"
+   */
+  phone: string;
+  /**
+   * Optional customer ID if selecting existing customer
+   * @example 123
+   */
+  id?: number;
+}
+
+export interface CreatePaymentLinkDto {
+  /**
+   * Currency code
+   * @example "CAD"
+   */
+  currency: string;
+  /**
+   * Amount in the currency (not cents)
+   * @example 100
+   */
+  amount: number;
+  customerInfo: CustomerInfoDto;
+  /**
+   * Optional description for the payment link
+   * @example "Consultation Fee"
+   */
+  description?: string;
+}
+
+export interface PaymentLinkResponseDto {
+  /** Stripe session ID */
+  sessionId: string;
+  /** Checkout URL for the customer */
+  checkoutUrl: string;
+}
+
 export interface InvoiceItemDto {
   /**
    * Description of the invoice item
@@ -1885,7 +1962,13 @@ export interface InvoiceOutputDto {
   /** @example 1 */
   customerId: number;
   /** @example "paid" */
-  status: "draft" | "issued" | "paid" | "void" | "overdue";
+  status:
+    | "draft"
+    | "issued"
+    | "paid"
+    | "partially_refunded"
+    | "void"
+    | "overdue";
   /**
    * @format date-time
    * @example "2025-01-15"
@@ -1932,7 +2015,13 @@ export interface InvoiceQueryDto {
    * Filter by invoice status
    * @example "paid"
    */
-  status?: "draft" | "issued" | "paid" | "void" | "overdue";
+  status?:
+    | "draft"
+    | "issued"
+    | "paid"
+    | "partially_refunded"
+    | "void"
+    | "overdue";
   /**
    * Filter by customer ID
    * @example 174
@@ -1973,7 +2062,13 @@ export interface UpdateInvoiceStatusDto {
    * New status for the invoice
    * @example "issued"
    */
-  status: "draft" | "issued" | "paid" | "void" | "overdue";
+  status:
+    | "draft"
+    | "issued"
+    | "paid"
+    | "partially_refunded"
+    | "void"
+    | "overdue";
 }
 
 export interface VoidInvoiceDto {
@@ -2068,11 +2163,6 @@ export interface TaskQueryDto {
    * @example 0
    */
   offset?: number;
-}
-
-export interface SwaggerBaseApiResponseForClassTaskOutputDto {
-  meta: MetaResponse;
-  data: TaskOutputDto;
 }
 
 export interface TopCustomerDto {
@@ -2368,7 +2458,7 @@ export interface EmailAutomationParameters {
   ccRecipients?: string[];
   /**
    * Email subject line with placeholders. Available: {{orderNumber}}, {{customerName}}, {{customerEmail}}, {{total}}, {{currency}} (always CAD), {{itemCount}}, {{orderDate}}
-   * @example "Order #{{orderNumber}} Confirmed - Better LSAT MCAT"
+   * @example "Order #{{orderNumber}} Confirmed - BetterLSAT"
    */
   subject?: string;
   /**
@@ -2381,6 +2471,18 @@ export interface EmailAutomationParameters {
    * @example "order-confirmation"
    */
   template?: string;
+  /**
+   * Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events). Also accepts "includeInvoice" as an alias.
+   * @default false
+   * @example false
+   */
+  sendAttachment?: boolean;
+  /**
+   * Alias for sendAttachment. Whether to attach PDF invoice to the email (only applicable for ORDER_PAID events).
+   * @default false
+   * @example false
+   */
+  includeInvoice?: boolean;
 }
 
 export interface CreateAutomationDto {
@@ -2567,6 +2669,11 @@ export interface AutomationConfigOutputDto {
    * @example {"delayMinutes":0,"customMessage":"New order #{{orderId}}"}
    */
   parameters?: object;
+  /**
+   * Scheduling type for the automation
+   * @example "fixed-delay"
+   */
+  schedulingType?: "fixed-delay" | "session-based";
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {

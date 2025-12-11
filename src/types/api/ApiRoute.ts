@@ -20,6 +20,7 @@ import {
   CreateConversationDto,
   CreateInvoiceDto,
   CreateOrganizationDto,
+  CreatePaymentLinkDto,
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
@@ -31,6 +32,7 @@ import {
   MarkAppointmentAttendanceDto,
   OrderInput,
   OrganizationListItemDto,
+  PaymentLinkResponseDto,
   ProcessRefundDto,
   RecordingCallbackDto,
   RefreshTokenInput,
@@ -202,6 +204,19 @@ export namespace Api {
     export type RequestBody = UpdateOrganizationDto;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassOrganizationOutput;
+  }
+
+  /**
+   * No description
+   * @name MetricsControllerGetMetrics
+   * @request GET:/api/v1/metrics
+   */
+  export namespace MetricsControllerGetMetrics {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 
   /**
@@ -817,17 +832,29 @@ export namespace Api {
   }
 
   /**
-   * No description
+   * @description Creates a new Stripe checkout session. Use expirationDays query parameter to extend expiration (e.g., 7 days for manual retry).
    * @tags order
    * @name OrderControllerCreateStripeCheckout
-   * @summary Create Stripe checkout session for order
+   * @summary Create or regenerate Stripe checkout session for order
    * @request POST:/api/v1/order/{id}/stripe/checkout
+   * @secure
    */
   export namespace OrderControllerCreateStripeCheckout {
     export type RequestParams = {
       id: string;
     };
-    export type RequestQuery = {};
+    export type RequestQuery = {
+      /**
+       * Currency for checkout (default: CAD)
+       * @example "CAD"
+       */
+      currency?: string;
+      /**
+       * Number of days until checkout session expires (default: 30 minutes). Use 7 for extended retry period.
+       * @example 7
+       */
+      expirationDays?: number;
+    };
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody =
@@ -1042,7 +1069,7 @@ export namespace Api {
       /** Filter by task label */
       label?: "meeting" | "personal" | "preparation" | "grading";
       /** Filter by attendance status */
-      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW";
+      attendanceStatus?: "UNKNOWN" | "SHOWED" | "NO_SHOW" | "RESCHEDULED";
       /**
        * Filter appointments from this date
        * @example "2024-01-15T00:00:00.000Z"
@@ -1067,6 +1094,28 @@ export namespace Api {
        */
       offset?: number;
     };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
+  }
+
+  /**
+   * No description
+   * @tags order-appointments
+   * @name OrderAppointmentControllerFindOne
+   * @summary Get Order Appointment by ID
+   * @request GET:/api/v1/order-appointments/{id}
+   * @secure
+   */
+  export namespace OrderAppointmentControllerFindOne {
+    export type RequestParams = {
+      /**
+       * Order Appointment ID
+       * @example 1
+       */
+      id: number;
+    };
+    export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = SwaggerBaseApiResponseForClassTaskOutputDto;
@@ -1661,6 +1710,22 @@ export namespace Api {
   }
 
   /**
+   * @description Creates a Stripe checkout session for a direct payment without an order
+   * @tags Payment Links
+   * @name PaymentLinkControllerCreatePaymentLink
+   * @summary Create a direct payment link
+   * @request POST:/api/v1/payment-links
+   * @secure
+   */
+  export namespace PaymentLinkControllerCreatePaymentLink {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreatePaymentLinkDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PaymentLinkResponseDto;
+  }
+
+  /**
    * @description Creates a new invoice for an order with detailed line items
    * @tags invoicing
    * @name InvoiceControllerCreateInvoice
@@ -1688,7 +1753,13 @@ export namespace Api {
     export type RequestParams = {};
     export type RequestQuery = {
       /** Filter by invoice status */
-      status?: "draft" | "issued" | "paid" | "void" | "overdue";
+      status?:
+        | "draft"
+        | "issued"
+        | "paid"
+        | "partially_refunded"
+        | "void"
+        | "overdue";
       /**
        * Filter by customer ID
        * @example 174
