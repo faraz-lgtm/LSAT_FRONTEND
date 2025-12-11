@@ -92,6 +92,15 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
 
   // Convert organizations to teams format for display
   const teams = React.useMemo(() => {
+    if (isSuperAdmin) {
+      // For Super Admin, show a fixed 'Super Admin Panel' instead of org name
+      return [{
+        name: 'Super Admin Panel',
+        logo: Building2,
+        plan: 'Global Administration',
+        id: 0,
+      }]
+    }
     if (organizations.length > 0) {
       return organizations.map(org => ({
         name: org.name,
@@ -136,6 +145,33 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
     return null
   }
 
+  // For Super Admin, show a simple non-clickable header
+  if (isSuperAdmin) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size='lg'
+            className='cursor-default hover:bg-transparent'
+            disabled
+          >
+            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+              <Building2 className='size-4' />
+            </div>
+            <div className='grid flex-1 text-start text-sm leading-tight'>
+              <span className='truncate font-semibold'>
+                Super Admin Panel
+              </span>
+              <span className='truncate text-xs'>
+                Global Administration
+              </span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -144,7 +180,7 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
             <SidebarMenuButton
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-              disabled={!isSuperAdmin && teams.length === 1}
+              disabled={teams.length === 1}
             >
               <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
                 {activeOrganization && React.createElement(Building2, { className: 'size-4' })}
@@ -157,27 +193,24 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
                   {activeOrganization ? (activeOrganization.domain || activeOrganization.slug || 'No domain') : ''}
                 </span>
               </div>
-              {isSuperAdmin && (
-                <ChevronsUpDown className='ms-auto' />
-              )}
+              <ChevronsUpDown className='ms-auto' />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          {isSuperAdmin && (
-            <DropdownMenuContent
-              className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-              align='start'
-              side={isMobile ? 'bottom' : 'right'}
-              sideOffset={4}
-            >
-              <DropdownMenuLabel className='text-muted-foreground text-xs'>
-                Organizations
-              </DropdownMenuLabel>
-              {organizations.length === 0 ? (
-                <DropdownMenuItem disabled className='gap-2 p-2'>
-                  <div className='text-sm text-muted-foreground'>No organizations found</div>
-                </DropdownMenuItem>
-              ) : (
-                organizations.map((org, index) => {
+          <DropdownMenuContent
+            className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
+            align='start'
+            side={isMobile ? 'bottom' : 'right'}
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className='text-muted-foreground text-xs'>
+              Organizations
+            </DropdownMenuLabel>
+            {organizations.length === 0 ? (
+              <DropdownMenuItem disabled className='gap-2 p-2'>
+                <div className='text-sm text-muted-foreground'>No organizations found</div>
+              </DropdownMenuItem>
+            ) : (
+              organizations.map((org, index) => {
                   const isActive = org.id === activeOrganization?.id
                   return (
                     <DropdownMenuItem
@@ -205,8 +238,7 @@ export function TeamSwitcher({ teams: fallbackTeams }: TeamSwitcherProps) {
                   )
                 })
               )}
-            </DropdownMenuContent>
-          )}
+          </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

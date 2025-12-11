@@ -49,6 +49,9 @@ import { Route as AuthenticatedUsersLeadsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedUsersEmployeesRouteImport } from './routes/_authenticated/users/employees'
 import { Route as AuthenticatedUsersCustomersRouteImport } from './routes/_authenticated/users/customers'
 import { Route as AuthenticatedUsersContactsRouteImport } from './routes/_authenticated/users/contacts'
+import { Route as AuthenticatedSuperAdminUsageRouteImport } from './routes/_authenticated/super-admin/usage'
+import { Route as AuthenticatedSuperAdminOrganizationsRouteImport } from './routes/_authenticated/super-admin/organizations'
+import { Route as AuthenticatedSuperAdminDashboardRouteImport } from './routes/_authenticated/super-admin/dashboard'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -271,6 +274,24 @@ const AuthenticatedUsersContactsRoute =
     path: '/users/contacts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSuperAdminUsageRoute =
+  AuthenticatedSuperAdminUsageRouteImport.update({
+    id: '/super-admin/usage',
+    path: '/super-admin/usage',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuperAdminOrganizationsRoute =
+  AuthenticatedSuperAdminOrganizationsRouteImport.update({
+    id: '/super-admin/organizations',
+    path: '/super-admin/organizations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuperAdminDashboardRoute =
+  AuthenticatedSuperAdminDashboardRouteImport.update({
+    id: '/super-admin/dashboard',
+    path: '/super-admin/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -328,6 +349,9 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/super-admin/dashboard': typeof AuthenticatedSuperAdminDashboardRoute
+  '/super-admin/organizations': typeof AuthenticatedSuperAdminOrganizationsRoute
+  '/super-admin/usage': typeof AuthenticatedSuperAdminUsageRoute
   '/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/users/employees': typeof AuthenticatedUsersEmployeesRoute
@@ -372,6 +396,9 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/super-admin/dashboard': typeof AuthenticatedSuperAdminDashboardRoute
+  '/super-admin/organizations': typeof AuthenticatedSuperAdminOrganizationsRoute
+  '/super-admin/usage': typeof AuthenticatedSuperAdminUsageRoute
   '/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/users/employees': typeof AuthenticatedUsersEmployeesRoute
@@ -421,6 +448,9 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/super-admin/dashboard': typeof AuthenticatedSuperAdminDashboardRoute
+  '/_authenticated/super-admin/organizations': typeof AuthenticatedSuperAdminOrganizationsRoute
+  '/_authenticated/super-admin/usage': typeof AuthenticatedSuperAdminUsageRoute
   '/_authenticated/users/contacts': typeof AuthenticatedUsersContactsRoute
   '/_authenticated/users/customers': typeof AuthenticatedUsersCustomersRoute
   '/_authenticated/users/employees': typeof AuthenticatedUsersEmployeesRoute
@@ -468,6 +498,9 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/super-admin/dashboard'
+    | '/super-admin/organizations'
+    | '/super-admin/usage'
     | '/users/contacts'
     | '/users/customers'
     | '/users/employees'
@@ -512,6 +545,9 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/super-admin/dashboard'
+    | '/super-admin/organizations'
+    | '/super-admin/usage'
     | '/users/contacts'
     | '/users/customers'
     | '/users/employees'
@@ -560,6 +596,9 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/super-admin/dashboard'
+    | '/_authenticated/super-admin/organizations'
+    | '/_authenticated/super-admin/usage'
     | '/_authenticated/users/contacts'
     | '/_authenticated/users/customers'
     | '/_authenticated/users/employees'
@@ -884,6 +923,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersContactsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/super-admin/usage': {
+      id: '/_authenticated/super-admin/usage'
+      path: '/super-admin/usage'
+      fullPath: '/super-admin/usage'
+      preLoaderRoute: typeof AuthenticatedSuperAdminUsageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/super-admin/organizations': {
+      id: '/_authenticated/super-admin/organizations'
+      path: '/super-admin/organizations'
+      fullPath: '/super-admin/organizations'
+      preLoaderRoute: typeof AuthenticatedSuperAdminOrganizationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/super-admin/dashboard': {
+      id: '/_authenticated/super-admin/dashboard'
+      path: '/super-admin/dashboard'
+      fullPath: '/super-admin/dashboard'
+      preLoaderRoute: typeof AuthenticatedSuperAdminDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -956,6 +1016,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedSuperAdminDashboardRoute: typeof AuthenticatedSuperAdminDashboardRoute
+  AuthenticatedSuperAdminOrganizationsRoute: typeof AuthenticatedSuperAdminOrganizationsRoute
+  AuthenticatedSuperAdminUsageRoute: typeof AuthenticatedSuperAdminUsageRoute
   AuthenticatedUsersContactsRoute: typeof AuthenticatedUsersContactsRoute
   AuthenticatedUsersCustomersRoute: typeof AuthenticatedUsersCustomersRoute
   AuthenticatedUsersEmployeesRoute: typeof AuthenticatedUsersEmployeesRoute
@@ -983,6 +1046,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedSuperAdminDashboardRoute: AuthenticatedSuperAdminDashboardRoute,
+  AuthenticatedSuperAdminOrganizationsRoute:
+    AuthenticatedSuperAdminOrganizationsRoute,
+  AuthenticatedSuperAdminUsageRoute: AuthenticatedSuperAdminUsageRoute,
   AuthenticatedUsersContactsRoute: AuthenticatedUsersContactsRoute,
   AuthenticatedUsersCustomersRoute: AuthenticatedUsersCustomersRoute,
   AuthenticatedUsersEmployeesRoute: AuthenticatedUsersEmployeesRoute,

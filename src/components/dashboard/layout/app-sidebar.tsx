@@ -34,6 +34,10 @@ export function AppSidebar() {
       return {
         ...group,
         items: group.items.filter((item) => {
+          // Hide items marked as hideForSuperAdmin for super-admin users
+          if (item.hideForSuperAdmin && isSuperAdmin) {
+            return false
+          }
           // Hide Packages for non-company-admin users (only COMPANY_ADMIN and SUPER_ADMIN can see)
           if (item.title === 'Packages' && !isCompanyAdmin) {
             return false

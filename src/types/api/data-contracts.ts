@@ -199,11 +199,6 @@ export interface UserOutput {
    */
   ordersCount: number;
   /**
-   * Total count of order appointments for this user (without DISTINCT)
-   * @example 12
-   */
-  orderAppointmentCount: number;
-  /**
    * Last assigned order count for round-robin assignment
    * @example 5
    */
@@ -696,67 +691,6 @@ export interface GetOrdersQueryParams {
   orderStatus?: "pending" | "succeeded" | "failed" | "canceled";
 }
 
-export interface SlotInput {
-  /**
-   * Slot date and time in ISO format
-   * @example "2025-12-09T13:00:00.000Z"
-   */
-  dateTime: string;
-  /**
-   * Available employee IDs for this slot (pre-validated from slots API)
-   * @example [206,207]
-   */
-  availableEmployeeIds: number[];
-}
-
-export interface ItemInput {
-  /**
-   * Item ID
-   * @example 1
-   */
-  id: number;
-  /**
-   * Item price
-   * @example 100
-   */
-  price: number;
-  /**
-   * Item name
-   * @example "60-Minute Prep Session"
-   */
-  name: string;
-  /**
-   * Session duration in minutes
-   * @example 60
-   */
-  Duration: number;
-  /**
-   * Item description
-   * @example "Comprehensive prep session"
-   */
-  Description: string;
-  /**
-   * Scheduled date and time slots with available employees
-   * @example [{"dateTime":"2025-12-09T13:00:00.000Z","availableEmployeeIds":[206,207]},{"dateTime":"2025-12-09T14:00:00.000Z","availableEmployeeIds":[206]}]
-   */
-  DateTime: SlotInput[];
-  /**
-   * Quantity of items
-   * @example 1
-   */
-  quantity: number;
-  /**
-   * Number of sessions included
-   * @example 1
-   */
-  sessions: number;
-  /**
-   * ID of assigned employee (set by backend after assignment)
-   * @example [206,206]
-   */
-  assignedEmployeeIds?: string[];
-}
-
 export interface UpdateOrderNotesDto {
   /**
    * Free-form notes for the order
@@ -918,6 +852,54 @@ export interface UpdateAppointmentNotesDto {
    * @example "Student needs extra help with logic games"
    */
   notes?: object;
+}
+
+export interface ItemInput {
+  /**
+   * Item ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Item price
+   * @example 100
+   */
+  price: number;
+  /**
+   * Item name
+   * @example "60-Minute Prep Session"
+   */
+  name: string;
+  /**
+   * Session duration in minutes
+   * @example 60
+   */
+  Duration: number;
+  /**
+   * Item description
+   * @example "Comprehensive prep session"
+   */
+  Description: string;
+  /**
+   * Scheduled date and time slots
+   * @example ["2025-10-15T12:00:00Z","2025-10-15T13:00:00Z"]
+   */
+  DateTime: string[];
+  /**
+   * Quantity of items
+   * @example 1
+   */
+  quantity: number;
+  /**
+   * Number of sessions included
+   * @example 1
+   */
+  sessions: number;
+  /**
+   * ID of assigned employee
+   * @example 5
+   */
+  assignedEmployeeIds?: string[];
 }
 
 export interface UtmInput {
@@ -2537,11 +2519,6 @@ export interface AutomationConfigOutputDto {
    * @example {"delayMinutes":0,"customMessage":"New order #{{orderId}}"}
    */
   parameters?: object;
-  /**
-   * Scheduling type for the automation
-   * @example "fixed-delay"
-   */
-  schedulingType?: "fixed-delay" | "session-based";
 }
 
 export interface SwaggerBaseApiResponseForClassAutomationConfigExtendsBaseEntity1BaseEntity {
@@ -3049,3 +3026,105 @@ export type RequestVoiceTokenDto = object;
 export type RecordingCallbackDto = object;
 
 export type CallStatusCallbackDto = object;
+
+export interface GlobalStatsDto {
+  /**
+   * Total number of organizations
+   * @example 25
+   */
+  totalOrganizations: number;
+  /**
+   * Total number of leads across all organizations
+   * @example 1250
+   */
+  totalLeads: number;
+  /**
+   * Total number of contacts across all organizations
+   * @example 3500
+   */
+  totalContacts: number;
+  /**
+   * Total number of customers across all organizations
+   * @example 800
+   */
+  totalCustomers: number;
+  /**
+   * Total number of appointments across all organizations
+   * @example 450
+   */
+  totalAppointments: number;
+  /**
+   * Total revenue across all organizations
+   * @example 125000.5
+   */
+  totalRevenue: number;
+}
+
+export interface OrganizationListItemDto {
+  /**
+   * Organization ID
+   * @example 1
+   */
+  id: number;
+  /**
+   * Organization name
+   * @example "Better LSAT MCAT"
+   */
+  name: string;
+  /**
+   * Organization slug
+   * @example "better-lsat-mcat"
+   */
+  slug: string;
+  /**
+   * Organization domains
+   * @example ["betterlsat.com","www.betterlsat.com"]
+   */
+  domains: string[];
+  /**
+   * Date when organization was created
+   * @format date-time
+   * @example "2025-01-15T10:30:00Z"
+   */
+  createdAt: string;
+  /**
+   * Date when organization was last updated
+   * @format date-time
+   * @example "2025-12-08T10:30:00Z"
+   */
+  updatedAt: string;
+}
+
+export interface IntegrationUsageDto {
+  /**
+   * Organization ID
+   * @example 1
+   */
+  organizationId: number;
+  /**
+   * Organization name
+   * @example "Better LSAT MCAT"
+   */
+  organizationName: string;
+  /**
+   * Total SMS messages sent
+   * @example 150
+   */
+  sms_count: number;
+  /**
+   * Total emails sent
+   * @example 300
+   */
+  email_count: number;
+  /**
+   * Total call duration in seconds
+   * @example 3600
+   */
+  call_duration: number;
+  /**
+   * Last updated timestamp
+   * @format date-time
+   * @example "2025-12-08T10:30:00Z"
+   */
+  updatedAt: string;
+}

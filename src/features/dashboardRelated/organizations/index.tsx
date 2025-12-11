@@ -28,36 +28,18 @@ export function Organizations() {
   // Check if user is SUPER_ADMIN
   const isSuperAdmin = user?.roles?.includes(ROLE.SUPER_ADMIN) || (user?.roles as string[])?.includes('SUPER_ADMIN');
 
-  // Redirect if not SUPER_ADMIN
+  // Redirect if not SUPER_ADMIN - this route is deprecated, use /super-admin/dashboard instead
   useEffect(() => {
     if (user && !isSuperAdmin) {
       navigate({ to: '/errors/403' });
+    } else if (user && isSuperAdmin) {
+      // Redirect super admin to the new dashboard
+      navigate({ to: '/super-admin/dashboard' });
     }
   }, [user, isSuperAdmin, navigate]);
 
-  // Don't render if not SUPER_ADMIN
-  if (user && !isSuperAdmin) {
-    return null;
-  }
-
-  return (
-    <OrganizationsProvider>
-      <Header>
-        <Search />
-        <div className="ms-auto flex items-center space-x-4">
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
-      <Main>
-        <OrganizationsContent />
-      </Main>
-
-      <OrganizationsDialogs />
-    </OrganizationsProvider>
-  );
+  // Don't render - redirect handled in useEffect
+  return null;
 }
 
 // Organizations Content Component (inside provider)

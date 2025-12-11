@@ -23,11 +23,14 @@ import {
   CreateProductInput,
   CreateRefundDto,
   ForgotPasswordInput,
+  GlobalStatsDto,
   GoogleCalendarConfigInputDto,
+  IntegrationUsageDto,
   InvoiceOutputDto,
   LoginInput,
   MarkAppointmentAttendanceDto,
   OrderInput,
+  OrganizationListItemDto,
   ProcessRefundDto,
   RecordingCallbackDto,
   RefreshTokenInput,
@@ -2732,5 +2735,53 @@ export namespace Api {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = CallsByConversationResponseDto;
+  }
+
+  /**
+   * @description Returns aggregated system-wide statistics including total organizations, leads, contacts, customers, appointments, and revenue. Super Admin only.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetGlobalStats
+   * @summary Get global statistics
+   * @request GET:/api/v1/super-admin/stats
+   * @secure
+   */
+  export namespace SuperAdminControllerGetGlobalStats {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = GlobalStatsDto;
+  }
+
+  /**
+   * @description Returns a list of all organizations in the system. Super Admin only. Organization admins cannot access this endpoint.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetAllOrganizations
+   * @summary Get all organizations
+   * @request GET:/api/v1/super-admin/organizations
+   * @secure
+   */
+  export namespace SuperAdminControllerGetAllOrganizations {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = OrganizationListItemDto[];
+  }
+
+  /**
+   * @description Returns integration usage statistics (SMS, email, call duration) for all organizations. Super Admin only.
+   * @tags Super Admin
+   * @name SuperAdminControllerGetIntegrationUsage
+   * @summary Get integration usage for all organizations
+   * @request GET:/api/v1/super-admin/usage
+   * @secure
+   */
+  export namespace SuperAdminControllerGetIntegrationUsage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = IntegrationUsageDto[];
   }
 }
